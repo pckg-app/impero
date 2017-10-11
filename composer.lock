@@ -1497,12 +1497,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/auth.git",
-                "reference": "4e90930ed410f4811a5042cd498cf3e56a282f37"
+                "reference": "0f174934055f434663e84816d16c76f57dd84915"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/auth/zipball/4e90930ed410f4811a5042cd498cf3e56a282f37",
-                "reference": "4e90930ed410f4811a5042cd498cf3e56a282f37",
+                "url": "https://api.github.com/repos/pckg/auth/zipball/0f174934055f434663e84816d16c76f57dd84915",
+                "reference": "0f174934055f434663e84816d16c76f57dd84915",
                 "shasum": ""
             },
             "require": {
@@ -1527,7 +1527,7 @@
             ],
             "description": "Provides basic functionality for authentication and authorization users in database, on Twitter, Facebook and with OAuth2 standard",
             "homepage": "https://github.com/pckg/auth",
-            "time": "2017-09-26 13:28:58"
+            "time": "2017-10-10 22:17:26"
         },
         {
             "name": "pckg/cache",
@@ -1637,12 +1637,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/concept.git",
-                "reference": "1771dbd5b22f410c61913c3961bfac8616965774"
+                "reference": "cc15ad2d7ce39e85a7673bda65a133407fb72ff8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/concept/zipball/1771dbd5b22f410c61913c3961bfac8616965774",
-                "reference": "1771dbd5b22f410c61913c3961bfac8616965774",
+                "url": "https://api.github.com/repos/pckg/concept/zipball/cc15ad2d7ce39e85a7673bda65a133407fb72ff8",
+                "reference": "cc15ad2d7ce39e85a7673bda65a133407fb72ff8",
                 "shasum": ""
             },
             "type": "library",
@@ -1666,7 +1666,7 @@
             ],
             "description": "Simple php concepts",
             "homepage": "https://github.com/pckg/concept",
-            "time": "2017-10-10 17:37:41"
+            "time": "2017-10-10 23:30:02"
         },
         {
             "name": "pckg/database",
@@ -1674,12 +1674,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/database.git",
-                "reference": "5e32985e5d4e6d2518ce04f62ed3b33f1306f159"
+                "reference": "957d62cf02bce03b52bd9004eaa1257c1b1191b2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/database/zipball/5e32985e5d4e6d2518ce04f62ed3b33f1306f159",
-                "reference": "5e32985e5d4e6d2518ce04f62ed3b33f1306f159",
+                "url": "https://api.github.com/repos/pckg/database/zipball/957d62cf02bce03b52bd9004eaa1257c1b1191b2",
+                "reference": "957d62cf02bce03b52bd9004eaa1257c1b1191b2",
                 "shasum": ""
             },
             "require": {
@@ -1709,7 +1709,7 @@
             ],
             "description": "Just another php / orm / pdo implementation for simple and advanced data management",
             "homepage": "https://github.com/pckg/database",
-            "time": "2017-10-10 17:40:21"
+            "time": "2017-10-10 23:30:28"
         },
         {
             "name": "pckg/framework",
@@ -1717,12 +1717,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/framework.git",
-                "reference": "87d17e6c890bcf97bc9424d1f2cfcd3a47927f63"
+                "reference": "87776a46b27db0723666209328acbd155e329da7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/framework/zipball/87d17e6c890bcf97bc9424d1f2cfcd3a47927f63",
-                "reference": "87d17e6c890bcf97bc9424d1f2cfcd3a47927f63",
+                "url": "https://api.github.com/repos/pckg/framework/zipball/87776a46b27db0723666209328acbd155e329da7",
+                "reference": "87776a46b27db0723666209328acbd155e329da7",
                 "shasum": ""
             },
             "require": {
@@ -1758,7 +1758,7 @@
             ],
             "description": "Fully featured lightweight php framework with multilingual support, twig templating engine, and tons of other features.",
             "homepage": "https://github.com/pckg/framework",
-            "time": "2017-10-10 17:38:00"
+            "time": "2017-10-11 01:08:14"
         },
         {
             "name": "pckg/generic",
@@ -1766,12 +1766,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/generic.git",
-                "reference": "a9dcdcd6dddd7d93fe0035a514b1d81293d68598"
+                "reference": "dbd2aa3243f1a33d472fb860aefbd683e00c8d1d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/generic/zipball/a9dcdcd6dddd7d93fe0035a514b1d81293d68598",
-                "reference": "a9dcdcd6dddd7d93fe0035a514b1d81293d68598",
+                "url": "https://api.github.com/repos/pckg/generic/zipball/dbd2aa3243f1a33d472fb860aefbd683e00c8d1d",
+                "reference": "dbd2aa3243f1a33d472fb860aefbd683e00c8d1d",
                 "shasum": ""
             },
             "require": {
@@ -1797,7 +1797,7 @@
             ],
             "description": "Building admin interface and generic frontend made simple",
             "homepage": "https://github.com/pckg/generic",
-            "time": "2017-10-10 16:56:02"
+            "time": "2017-10-11 02:04:46"
         },
         {
             "name": "pckg/helpers-js",
@@ -1863,12 +1863,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/htmlbuilder.git",
-                "reference": "573e47850fac670df6be857072941b3720376214"
+                "reference": "af59e489ad8cdab6834029e620485c2a4303e0bd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/htmlbuilder/zipball/573e47850fac670df6be857072941b3720376214",
-                "reference": "573e47850fac670df6be857072941b3720376214",
+                "url": "https://api.github.com/repos/pckg/htmlbuilder/zipball/af59e489ad8cdab6834029e620485c2a4303e0bd",
+                "reference": "af59e489ad8cdab6834029e620485c2a4303e0bd",
                 "shasum": ""
             },
             "require": {
@@ -1900,7 +1900,7 @@
             ],
             "description": "Build advanced forms in php with datasources, decorators, handlers and validators",
             "homepage": "https://bitbucket.org/lfw/htmlbuilder",
-            "time": "2017-09-28 12:42:15"
+            "time": "2017-10-10 19:46:59"
         },
         {
             "name": "pckg/import",
@@ -1942,12 +1942,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/locale.git",
-                "reference": "30af19bf926c3366af9b2911ed1bae49630d595e"
+                "reference": "3dbe30d160ed020b805e8c170f3be8a933ff0d8b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/locale/zipball/30af19bf926c3366af9b2911ed1bae49630d595e",
-                "reference": "30af19bf926c3366af9b2911ed1bae49630d595e",
+                "url": "https://api.github.com/repos/pckg/locale/zipball/3dbe30d160ed020b805e8c170f3be8a933ff0d8b",
+                "reference": "3dbe30d160ed020b805e8c170f3be8a933ff0d8b",
                 "shasum": ""
             },
             "type": "library",
@@ -1968,7 +1968,7 @@
             ],
             "description": "PHP locale",
             "homepage": "https://github.com/pckg/locale",
-            "time": "2017-10-10 16:51:54"
+            "time": "2017-10-10 20:31:41"
         },
         {
             "name": "pckg/mail",
@@ -2015,12 +2015,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/manager.git",
-                "reference": "33dfb3e67e253e609b484a38480a2600288944ea"
+                "reference": "a4baca05c07b88b353bdb6516609a4e4c95d4773"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/manager/zipball/33dfb3e67e253e609b484a38480a2600288944ea",
-                "reference": "33dfb3e67e253e609b484a38480a2600288944ea",
+                "url": "https://api.github.com/repos/pckg/manager/zipball/a4baca05c07b88b353bdb6516609a4e4c95d4773",
+                "reference": "a4baca05c07b88b353bdb6516609a4e4c95d4773",
                 "shasum": ""
             },
             "require": {
@@ -2044,7 +2044,7 @@
             ],
             "description": "Asset management, meta / seo, locale, vue.js and everything else that projects need to manage",
             "homepage": "https://github.com/pckg/manager",
-            "time": "2017-10-10 16:56:16"
+            "time": "2017-10-10 21:25:38"
         },
         {
             "name": "pckg/migrator",
@@ -4261,12 +4261,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "4752ac97dea523b0accf2f5b1d0d497c0f574222"
+                "reference": "2ea46ac0f2e5557108e3d40490703aad4e140ecb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/4752ac97dea523b0accf2f5b1d0d497c0f574222",
-                "reference": "4752ac97dea523b0accf2f5b1d0d497c0f574222",
+                "url": "https://api.github.com/repos/symfony/console/zipball/2ea46ac0f2e5557108e3d40490703aad4e140ecb",
+                "reference": "2ea46ac0f2e5557108e3d40490703aad4e140ecb",
                 "shasum": ""
             },
             "require": {
@@ -4322,7 +4322,7 @@
             ],
             "description": "Symfony Console Component",
             "homepage": "https://symfony.com",
-            "time": "2017-10-10 10:38:39"
+            "time": "2017-10-10 17:53:03"
         },
         {
             "name": "symfony/css-selector",
