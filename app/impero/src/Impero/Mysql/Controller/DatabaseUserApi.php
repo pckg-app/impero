@@ -24,12 +24,11 @@ class DatabaseUserApi extends Controller
          * Connect to proper mysql server and execute sql.
          */
         $server = Server::gets(['id' => $data['server_id']]);
-        $sshConnection = $server->getConnection();
 
         /**
          * Receive mysql connection?
          */
-        $mysqlConnection = $sshConnection->getMysqlConnection();
+        $mysqlConnection = $server->getMysqlConnection();
         $sql = 'CREATE USER IF NOT EXISTS `' . $data['name'] . '`@`localhost` IDENTIFIED BY \'' . $data['password'] .
                '\'';
         $mysqlConnection->execute($sql);
@@ -41,9 +40,9 @@ class DatabaseUserApi extends Controller
          * Fetch posted data.
          */
         $databaseId = post('database');
+        $permission = post('permission');
         $database = Database::gets(['id' => $databaseId, 'server_id' => $databaseUser->server_id]);
         if (!$database) {
-
         }
 
         /**
@@ -61,15 +60,27 @@ class DatabaseUserApi extends Controller
          * Permission mapper for simplified usage..
          */
         $permissions = [
-            'client' => 'SELECT, UPDATE, DELETE, INSERT',
+            'basic'    => 'SELECT, UPDATE, DELETE, INSERT', // REFERENCES?
+            'advanced' => 'SELECT, UPDATE, DELETE, INSERT, ALTER, CREATE TABLE, INDEX',
+            'dump'     => 'SELECT, LOCK TABLES, SHOW VIEW, EVENT, TRIGGER',
+            'admin'    => 'SELECT, CREATE, DROP, RELOAD, SHOW DATABASES, CREATE USER',
         ];
 
         /**
          * Connect to proper mysql server and execute sql.
          */
-        $sql = 'GRANT ' . $permissions['client'] . ' ON `' . $database->name . '`.* TO `' . $databaseUser->name .
-               '`@`localhost`';
-        $mysqlConnection->execute($mysqlConnection);
+        $mysqlConnection->execute('REVOKE ALL PRIVILEGES ON *.* FROM \'impero\'@\'localhost\';');
+
+        $sql = null;
+        if ($permission !== 'admin') {
+            $sql = 'GRANT ' . $permissions['client'] . ' ON `' . $database->name . '`.* TO `' . $databaseUser->name .
+                   '`@`localhost`';
+        } else {
+            $sql = 'GRANT ' . $permissions['client'] . ' ON *.* TO `' . $databaseUser->name .
+                   '`@`localhost` REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0';
+        }
+
+        $mysqlConnection->execute($sql);
     }
 
 }

@@ -3,6 +3,7 @@
 use Impero\Impero\Provider\Impero as ImperoProvider;
 use Pckg\Framework\Provider;
 use Pckg\Generic\Middleware\EncapsulateResponse;
+use Pckg\Manager\Middleware\RegisterCoreAssets;
 
 /**
  * Class Impero
@@ -14,6 +15,13 @@ class Impero extends Provider
     {
         return [
             ImperoProvider::class,
+        ];
+    }
+
+    public function middlewares()
+    {
+        return [
+            RegisterCoreAssets::class,
         ];
     }
 

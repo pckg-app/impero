@@ -2,6 +2,7 @@
 
 use Impero\Jobs\Record\Job;
 use Impero\Servers\Entity\Servers;
+use Impero\Services\Service\MysqlConnection;
 use Impero\Services\Service\SshConnection;
 use Pckg\Database\Record;
 
@@ -14,13 +15,25 @@ class Server extends Record
 
     protected $connection;
 
+    protected $mysqlConnection;
+
     public function getConnection()
     {
         if (!$this->connection) {
-            $this->connection = new SshConnection($this->ip, $this->user, $this->port, path('storage') . 'private/keys/id_rsa_' . $this->id);
+            $this->connection = new SshConnection($this->ip, $this->user, $this->port,
+                                                  path('storage') . 'private/keys/id_rsa_' . $this->id);
         }
 
         return $this->connection;
+    }
+
+    public function getMysqlConnection()
+    {
+        if (!$this->mysqlConnection) {
+            $this->mysqlConnection = new MysqlConnection($this->connection);
+        }
+
+        return $this->mysqlConnection;
     }
 
     public function fetchJobs()
