@@ -697,12 +697,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/fzaninotto/Faker.git",
-                "reference": "012cf358fa417d409c70bafded4bdb0cc3ad852c"
+                "reference": "910a79d58e264630477292a3ca06b9966673ac09"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/fzaninotto/Faker/zipball/012cf358fa417d409c70bafded4bdb0cc3ad852c",
-                "reference": "012cf358fa417d409c70bafded4bdb0cc3ad852c",
+                "url": "https://api.github.com/repos/fzaninotto/Faker/zipball/910a79d58e264630477292a3ca06b9966673ac09",
+                "reference": "910a79d58e264630477292a3ca06b9966673ac09",
                 "shasum": ""
             },
             "require": {
@@ -739,7 +739,7 @@
                 "faker",
                 "fixtures"
             ],
-            "time": "2017-10-28 06:02:50"
+            "time": "2017-11-06 09:42:24"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -3148,16 +3148,16 @@
         },
         {
             "name": "phpunit/phpunit-mock-objects",
-            "version": "dev-master",
+            "version": "4.0.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit-mock-objects.git",
-                "reference": "a9a136bf77a096c9b396cc81db555db8acabb753"
+                "reference": "11c3bdee46f94d7e0b9361b669e3df7077d50b20"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit-mock-objects/zipball/a9a136bf77a096c9b396cc81db555db8acabb753",
-                "reference": "a9a136bf77a096c9b396cc81db555db8acabb753",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit-mock-objects/zipball/11c3bdee46f94d7e0b9361b669e3df7077d50b20",
+                "reference": "11c3bdee46f94d7e0b9361b669e3df7077d50b20",
                 "shasum": ""
             },
             "require": {
@@ -3170,7 +3170,7 @@
                 "phpunit/phpunit": "<6.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^6.5"
+                "phpunit/phpunit": "^6.4.3"
             },
             "suggest": {
                 "ext-soap": "*"
@@ -3178,7 +3178,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "5.0.x-dev"
+                    "dev-master": "4.0.x-dev"
                 }
             },
             "autoload": {
@@ -3203,7 +3203,7 @@
                 "mock",
                 "xunit"
             ],
-            "time": "2017-11-04 09:37:34"
+            "time": "2017-11-05 14:01:03"
         },
         {
             "name": "psr/container",
