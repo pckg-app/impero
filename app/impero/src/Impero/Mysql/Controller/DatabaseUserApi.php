@@ -13,7 +13,7 @@ class DatabaseUserApi extends Controller
         /**
          * Receive posted data.
          */
-        $data = post(['username', 'password', 'server_id']);
+        $data = post(['username', 'password', 'server_id', 'database', 'privilege']);
 
         /**
          * Save user in our database.
@@ -24,33 +24,7 @@ class DatabaseUserApi extends Controller
          * Connect to proper mysql server and execute sql.
          */
         $server = Server::gets(['id' => $data['server_id']]);
-
-        /**
-         * Receive mysql connection?
-         */
-        $mysqlConnection = $server->getMysqlConnection();
-        $sql = 'CREATE USER IF NOT EXISTS `' . $data['username'] . '`@`localhost` IDENTIFIED BY \'' .
-               $data['password'] . '\'';
-        $error = null;
-        $mysqlConnection->execute($sql, $error);
-
-        return ['databaseUser' => $user];
-    }
-
-    public function postPrivilegesAction(User $databaseUser)
-    {
-        /**
-         * Fetch posted data.
-         */
-        $databaseId = post('database');
-        $privilege = post('privilege');
-        $password = post('password');
-        $database = Database::gets(['id' => $databaseId, 'server_id' => $databaseUser->server_id]);
-
-        /**
-         * Receive correct server.
-         */
-        $server = $databaseUser->server;
+        $database = Database::gets(['id' => $data['database'], 'server_id' => $data['server_id']]);
 
         /**
          * Get ssh and mysql connection.
@@ -71,19 +45,21 @@ class DatabaseUserApi extends Controller
          * Connect to proper mysql server and execute sql.
          */
         $sql = null;
-        if ($privilege !== 'admin') {
-            $sql = 'GRANT ' . $permissions[$privilege] . ' ON `' . $database->name . '`.* TO `' . $databaseUser->name .
-                   '`@`localhost`';
+        if ($data['privilege'] !== 'admin') {
+            $sql = 'GRANT ' . $permissions[$data['privilege']] . ' ON `' . $database->name . '`.* TO `' .
+                   $data['username'] . '`@`localhost`';
         } else {
-            $sql = 'GRANT ' . $permissions[$privilege] . ' ON *.* TO `' . $databaseUser->name .
+            $sql = 'GRANT ' . $permissions[$data['privilege']] . ' ON *.* TO `' . $data['username'] .
                    '`@`localhost` REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0';
         }
 
-        if ($password) {
-            $sql .= ' IDENTIFIED BY \'' . $password . '\'';
-        }
+        $sql .= ' IDENTIFIED BY \'' . $data['password'] . '\'';
 
         $mysqlConnection->execute($sql);
+
+        return [
+            'databaseUser' => $user,
+        ];
     }
 
 }

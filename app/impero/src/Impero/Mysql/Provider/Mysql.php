@@ -6,7 +6,6 @@ use Impero\Mysql\Controller\DatabaseUserApi;
 use Impero\Mysql\Controller\User;
 use Impero\Mysql\Record\Database\Resolver as DatabaseResolver;
 use Impero\Mysql\Record\User\Resolver as UserResolver;
-use Impero\Mysql\Resolver\DatabaseUser;
 use Pckg\Framework\Provider;
 use Pckg\Framework\Router\Route\Group;
 use Pckg\Framework\Router\Route\Route;
@@ -32,11 +31,7 @@ class Mysql extends Provider
                            'urlPrefix'  => '/api/databaseUser',
                            'namePrefix' => 'api.impero.databaseUser',
                        ]))->routes([
-                                       ''            => (new Route('', 'user'))->resolvers(),
-                                       '.privileges' => (new Route('/[user]/privileges', 'privileges'))
-                                           ->resolvers([
-                                                           'user' => DatabaseUser::class,
-                                                       ]),
+                                       '' => (new Route('', 'user'))->resolvers(),
                                    ]),
         ];
     }
