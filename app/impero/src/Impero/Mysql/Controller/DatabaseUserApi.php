@@ -59,6 +59,7 @@ class DatabaseUserApi extends Controller
         $mysqlConnection->execute($sql, $error);
 
         return [
+            'sql'          => $sql,
             'error'        => $error,
             'databaseUser' => $user,
         ];
