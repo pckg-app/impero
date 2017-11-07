@@ -2,9 +2,8 @@
 
 use Impero\Mysql\Entity\Users;
 use Pckg\Database\Record;
-use Pckg\Maestro\Service\Contract\Record as MaestroRecord;
 
-class User extends Record implements MaestroRecord
+class User extends Record
 {
 
     protected $entity = Users::class;
