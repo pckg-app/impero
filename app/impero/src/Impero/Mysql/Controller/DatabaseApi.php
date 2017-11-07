@@ -43,7 +43,7 @@ class DatabaseApi extends Controller
         $server = $database->server;
         $file = post('file');
         $mysqlConnection = $server->getMysqlConnection();
-        $mysqlConnection->pipeIn($file);
+        $mysqlConnection->pipeIn($file, $database->name);
 
         return $this->response()->respondWithSuccess();
     }
