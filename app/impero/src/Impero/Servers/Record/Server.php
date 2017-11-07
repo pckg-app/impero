@@ -2,8 +2,8 @@
 
 use Impero\Jobs\Record\Job;
 use Impero\Servers\Entity\Servers;
+use Impero\Servers\Service\ConnectionManager;
 use Impero\Services\Service\MysqlConnection;
-use Impero\Services\Service\SshConnection;
 use Pckg\Database\Record;
 
 class Server extends Record
@@ -20,8 +20,8 @@ class Server extends Record
     public function getConnection()
     {
         if (!$this->connection) {
-            $this->connection = new SshConnection($this->ip, $this->user, $this->port,
-                                                  path('storage') . 'private/keys/id_rsa_' . $this->id);
+            $connectionManager = context()->getOrCreate(ConnectionManager::class);
+            $this->connection = $connectionManager->createConnecttion($this);
         }
 
         return $this->connection;
