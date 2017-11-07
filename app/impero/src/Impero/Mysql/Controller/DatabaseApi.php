@@ -23,7 +23,6 @@ class DatabaseApi extends Controller
          * Connect to proper mysql server and execute sql.
          */
         $server = Server::gets(['id' => $data['server_id']]);
-        dd($server);
 
         /**
          * Receive mysql connection?
