@@ -46,7 +46,7 @@ class DatabaseUserApi extends Controller
          */
         $sql = null;
         if ($data['privilege'] !== 'admin') {
-            $sql = 'GRANT ' . $permissions[$data['privilege']] . ' ON `' . $database->name . '`.* TO `' .
+            $sql = 'GRANT ' . $permissions[$data['privilege']] . ' ON `' . $data['database'] . '`.* TO `' .
                    $data['username'] . '`@`localhost`';
         } else {
             $sql = 'GRANT ' . $permissions[$data['privilege']] . ' ON *.* TO `' . $data['username'] .
