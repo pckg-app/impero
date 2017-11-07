@@ -13,7 +13,7 @@ class DatabaseApi extends Controller
          * Receive posted data.
          */
         $data = post(['name', 'server_id']);
-dd($data);
+
         /**
          * Save database in our database.
          */
@@ -23,6 +23,7 @@ dd($data);
          * Connect to proper mysql server and execute sql.
          */
         $server = Server::gets(['id' => $data['server_id']]);
+        dd($server);
 
         /**
          * Receive mysql connection?
