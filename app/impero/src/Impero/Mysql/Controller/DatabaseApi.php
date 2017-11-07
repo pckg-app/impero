@@ -9,6 +9,7 @@ class DatabaseApi extends Controller
 
     public function postDatabaseAction()
     {
+        dd("saved!");
         /**
          * Receive posted data.
          */
