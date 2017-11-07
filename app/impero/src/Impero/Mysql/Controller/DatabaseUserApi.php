@@ -18,7 +18,7 @@ class DatabaseUserApi extends Controller
         /**
          * Save user in our database.
          */
-        User::create(['name' => $data['username'], 'server_id' => $data['server_id']]);
+        $user = User::create(['name' => $data['username'], 'server_id' => $data['server_id']]);
 
         /**
          * Connect to proper mysql server and execute sql.
@@ -29,9 +29,12 @@ class DatabaseUserApi extends Controller
          * Receive mysql connection?
          */
         $mysqlConnection = $server->getMysqlConnection();
-        $sql = 'CREATE USER IF NOT EXISTS `' . $data['username'] . '`@`localhost` IDENTIFIED BY \'' . $data['password'] .
+        $sql = 'CREATE USER IF NOT EXISTS `' . $data['username'] . '`@`localhost` IDENTIFIED BY \'' .
+               $data['password'] .
                '\'';
         $mysqlConnection->execute($sql);
+
+        return ['databaseUser' => $user];
     }
 
     public function postPrivilegesAction(User $databaseUser)
