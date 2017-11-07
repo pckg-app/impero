@@ -55,6 +55,7 @@ class DatabaseUserApi extends Controller
 
         $sql .= ' IDENTIFIED BY \'' . $data['password'] . '\'';
 
+        d($sql);
         $mysqlConnection->execute($sql);
 
         return [
