@@ -13,7 +13,7 @@ class DatabaseApi extends Controller
          * Receive posted data.
          */
         $data = post(['name', 'server_id']);
-
+dd($data);
         /**
          * Save database in our database.
          */
