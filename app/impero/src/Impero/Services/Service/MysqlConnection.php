@@ -15,7 +15,10 @@ class MysqlConnection
 
     public function execute($sql, &$error = null)
     {
-        return $this->sshConnection->exec('mysql -u impero -ps0m3p4ssw0rd -e' . escapeshellarg($sql . ';'), $error);
+        $command = 'mysql -u impero -ps0m3p4ssw0rd -e' . escapeshellarg($sql . ';');
+        d($command);
+
+        return $this->sshConnection->exec($command, $error);
     }
 
     public function pipeIn($pipe, $database = null, &$error = null)
