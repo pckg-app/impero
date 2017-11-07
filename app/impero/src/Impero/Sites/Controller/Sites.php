@@ -22,7 +22,7 @@ class Sites
                              ]);
 
         $site->createOnFilesystem();
-        (new DumpVirtualhosts())->executeManually(['server' => $data['server_id']]);
+        (new DumpVirtualhosts())->executeManually(['--server' => $data['server_id']]);
 
         return [
             'site' => $site,
