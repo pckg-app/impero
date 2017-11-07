@@ -1,5 +1,6 @@
 <?php namespace Impero\Sites\Controller;
 
+use Impero\Apache\Console\DumpVirtualhosts;
 use Impero\Apache\Record\Site;
 
 class Sites
@@ -21,9 +22,7 @@ class Sites
                              ]);
 
         $site->createOnFilesystem();
-
-        queue()->create('apache:dump', ['server' => $data['server_id']])->makeUniqueInFuture();
-        queue()->create('apache:restart', ['server' => $data['server_id']])->makeUniqueInFuture();
+        (new DumpVirtualhosts())->executeManually(['server' => $data['server_id']]);
 
         return [
             'site' => $site,
