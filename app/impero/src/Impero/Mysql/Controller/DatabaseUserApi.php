@@ -32,7 +32,8 @@ class DatabaseUserApi extends Controller
         $sql = 'CREATE USER IF NOT EXISTS `' . $data['username'] . '`@`localhost` IDENTIFIED BY \'' .
                $data['password'] .
                '\'';
-        $mysqlConnection->execute($sql);
+        $mysqlConnection->execute($sql, $error);
+        dd($error);
 
         return ['databaseUser' => $user];
     }
@@ -45,9 +46,6 @@ class DatabaseUserApi extends Controller
         $databaseId = post('database');
         $privilege = post('privilege');
         $database = Database::gets(['id' => $databaseId, 'server_id' => $databaseUser->server_id]);
-        if (!$database) {
-            dd("no db");
-        }
 
         /**
          * Receive correct server.
