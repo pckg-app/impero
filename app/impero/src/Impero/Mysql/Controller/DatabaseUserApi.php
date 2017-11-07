@@ -30,11 +30,9 @@ class DatabaseUserApi extends Controller
          */
         $mysqlConnection = $server->getMysqlConnection();
         $sql = 'CREATE USER IF NOT EXISTS `' . $data['username'] . '`@`localhost` IDENTIFIED BY \'' .
-               $data['password'] .
-               '\'';
+               $data['password'] . '\'';
         $error = null;
         $mysqlConnection->execute($sql, $error);
-        dd($error);
 
         return ['databaseUser' => $user];
     }
@@ -46,6 +44,7 @@ class DatabaseUserApi extends Controller
          */
         $databaseId = post('database');
         $privilege = post('privilege');
+        $password = post('password');
         $database = Database::gets(['id' => $databaseId, 'server_id' => $databaseUser->server_id]);
 
         /**
@@ -71,8 +70,6 @@ class DatabaseUserApi extends Controller
         /**
          * Connect to proper mysql server and execute sql.
          */
-        $mysqlConnection->execute('REVOKE ALL PRIVILEGES ON *.* FROM \'impero\'@\'localhost\';');
-
         $sql = null;
         if ($privilege !== 'admin') {
             $sql = 'GRANT ' . $permissions[$privilege] . ' ON `' . $database->name . '`.* TO `' . $databaseUser->name .
@@ -80,6 +77,10 @@ class DatabaseUserApi extends Controller
         } else {
             $sql = 'GRANT ' . $permissions[$privilege] . ' ON *.* TO `' . $databaseUser->name .
                    '`@`localhost` REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0';
+        }
+
+        if ($password) {
+            $sql .= ' IDENTIFIED BY \'' . $password . '\'';
         }
 
         $mysqlConnection->execute($sql);
