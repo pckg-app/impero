@@ -25,7 +25,8 @@ class Mysql extends Provider
                            'urlPrefix'  => '/api/database',
                            'namePrefix' => 'api.impero.database',
                        ]))->routes([
-                                       ''            => (new Route('', 'database'))->resolvers(),
+                                       ''            => (new Route('', 'database')),
+                                       '.search'     => (new Route('/search', 'search')),
                                        '.importFile' => (new Route('/[database]/importFile', 'importFile'))
                                            ->resolvers([
                                                            'database' => NewDatabaseResolver::class,

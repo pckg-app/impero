@@ -48,6 +48,21 @@ class DatabaseApi extends Controller
         return $this->response()->respondWithSuccess();
     }
 
+    public function postSearchAction()
+    {
+        $server = post('server');
+        $databaseName = post('name');
+
+        $database = Database::gets([
+                                       'server_id' => $server,
+                                       'name'      => $databaseName,
+                                   ]);
+
+        return [
+            'database' => $database,
+        ];
+    }
+
     public function postBackupAction()
     {
         /**

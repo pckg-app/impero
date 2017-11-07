@@ -19,8 +19,6 @@ class MysqlConnection
 
         $result = $this->sshConnection->exec($command, $error);
 
-        d($command, $error);
-
         return $result;
     }
 
