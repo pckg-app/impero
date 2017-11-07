@@ -32,6 +32,7 @@ class DatabaseUserApi extends Controller
         $sql = 'CREATE USER IF NOT EXISTS `' . $data['username'] . '`@`localhost` IDENTIFIED BY \'' .
                $data['password'] .
                '\'';
+        $error = null;
         $mysqlConnection->execute($sql, $error);
         dd($error);
 
