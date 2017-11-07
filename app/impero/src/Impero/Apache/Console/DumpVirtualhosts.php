@@ -47,7 +47,7 @@ class DumpVirtualhosts extends Command
     {
         $sshConnection = $server->getConnection();
         $local = '/tmp/server.' . $server->id . '.virtualhosts';
-        $remote = '/etc/apache2/sites-enables/002-impero.test';
+        $remote = '/etc/apache2/sites-enabled/002-impero.test';
         file_put_contents($local, $virtualhosts);
         $sshConnection->sftpSend($local, $remote);
     }
