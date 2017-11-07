@@ -40,9 +40,10 @@ class DatabaseUserApi extends Controller
          * Fetch posted data.
          */
         $databaseId = post('database');
-        $permission = post('permission');
+        $privilege = post('privilege');
         $database = Database::gets(['id' => $databaseId, 'server_id' => $databaseUser->server_id]);
         if (!$database) {
+            dd("no db");
         }
 
         /**
@@ -71,11 +72,11 @@ class DatabaseUserApi extends Controller
         $mysqlConnection->execute('REVOKE ALL PRIVILEGES ON *.* FROM \'impero\'@\'localhost\';');
 
         $sql = null;
-        if ($permission !== 'admin') {
-            $sql = 'GRANT ' . $permissions['client'] . ' ON `' . $database->name . '`.* TO `' . $databaseUser->name .
+        if ($privilege !== 'admin') {
+            $sql = 'GRANT ' . $permissions[$privilege] . ' ON `' . $database->name . '`.* TO `' . $databaseUser->name .
                    '`@`localhost`';
         } else {
-            $sql = 'GRANT ' . $permissions['client'] . ' ON *.* TO `' . $databaseUser->name .
+            $sql = 'GRANT ' . $permissions[$privilege] . ' ON *.* TO `' . $databaseUser->name .
                    '`@`localhost` REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0';
         }
 
