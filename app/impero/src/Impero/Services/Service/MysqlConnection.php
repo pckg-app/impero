@@ -15,7 +15,7 @@ class MysqlConnection
 
     public function execute($sql, &$error = null)
     {
-        return $this->sshConnection->exec('mysql -u impero -p s0m3p4ssw0rd -e\'' . $sql . ';\'', $error);
+        return $this->sshConnection->exec('mysql -u impero -ps0m3p4ssw0rd -e\'' . $sql . ';\'', $error);
     }
 
 }
