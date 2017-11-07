@@ -53,8 +53,7 @@ class DatabaseUserApi extends Controller
         /**
          * Get ssh and mysql connection.
          */
-        $sshConnection = $server->getConnection();
-        $mysqlConnection = $sshConnection->getMysqlConnection();
+        $mysqlConnection = $server->getMysqlConnection();
 
         /**
          * Permission mapper for simplified usage..

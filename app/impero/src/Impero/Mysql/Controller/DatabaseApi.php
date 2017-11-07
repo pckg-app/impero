@@ -23,12 +23,11 @@ class DatabaseApi extends Controller
          * Connect to proper mysql server and execute sql.
          */
         $server = Server::gets(['id' => $data['server_id']]);
-        $sshConnection = $server->getConnection();
 
         /**
          * Receive mysql connection?
          */
-        $mysqlConnection = $sshConnection->getMysqlConnection();
+        $mysqlConnection = $server->getMysqlConnection();
         $sql = 'CREATE DATABASE IF NOT EXISTS `' . $data['name'] . '` CHARACTER SET `utf8` COLLATE `utf8_general_ci`';
         $mysqlConnection->execute($sql);
 
