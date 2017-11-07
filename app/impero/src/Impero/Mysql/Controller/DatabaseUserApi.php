@@ -29,7 +29,7 @@ class DatabaseUserApi extends Controller
          * Receive mysql connection?
          */
         $mysqlConnection = $server->getMysqlConnection();
-        $sql = 'CREATE USER IF NOT EXISTS `' . $data['name'] . '`@`localhost` IDENTIFIED BY \'' . $data['password'] .
+        $sql = 'CREATE USER IF NOT EXISTS `' . $data['username'] . '`@`localhost` IDENTIFIED BY \'' . $data['password'] .
                '\'';
         $mysqlConnection->execute($sql);
     }
