@@ -22,6 +22,9 @@ class Sites
 
         $site->createOnFilesystem();
 
+        queue()->create('apache:dump', ['server' => $data['server_id']])->makeUniqueInFuture();
+        queue()->create('apache:restart', ['server' => $data['server_id']])->makeUniqueInFuture();
+
         return [
             'site' => $site,
         ];

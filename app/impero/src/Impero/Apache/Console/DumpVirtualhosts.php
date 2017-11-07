@@ -2,9 +2,10 @@
 
 use Impero\Apache\Entity\Sites;
 use Impero\Apache\Record\Site;
+use Impero\Servers\Entity\Servers;
+use Impero\Servers\Record\Server;
 use Pckg\Framework\Console\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Input\InputOption;
 
 class DumpVirtualhosts extends Command
 {
@@ -12,13 +13,20 @@ class DumpVirtualhosts extends Command
     protected function configure()
     {
         $this->setName('apache:dump')
-             ->setDescription('Dump all virtualhosts');
+             ->setDescription('Dump all virtualhosts')
+             ->addOptions(
+                 [
+                     'server' => 'Server ID',
+                 ],
+                 InputOption::VALUE_REQUIRED
+             );
     }
 
-    public function handle(Sites $sites)
+    public function handle()
     {
         $this->output('Building virtualhosts');
-        $sites = $sites->all();
+        $server = (new Servers())->where('id', $this->option('server'))->oneOrFail();
+        $sites = (new Sites())->where('server_id', $server->id)->all();
         $virtualhosts = [];
         $sites->each(
             function(Site $site) use (&$virtualhosts) {
@@ -30,9 +38,18 @@ class DumpVirtualhosts extends Command
 
         $this->output('Dumping virtualhosts');
 
-        file_put_contents(path('storage') . 'impero' . path('ds') . 'virtualhosts.conf', $virtualhosts);
+        $this->storeVirtualhosts($server, $virtualhosts);
 
         $this->output('Virtualhosts were dumped, waiting for apache graceful');
+    }
+
+    protected function storeVirtualhosts(Server $server, $virtualhosts)
+    {
+        $sshConnection = $server->getConnection();
+        $local = '/tmp/server.' . $server->id . '.virtualhosts';
+        $remote = '/etc/apache2/sites-enables/002-impero.test';
+        file_put_contents($local, $virtualhosts);
+        $sshConnection->sftpSend($local, $remote);
     }
 
 }
