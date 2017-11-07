@@ -6,6 +6,7 @@ use Impero\Mysql\Controller\DatabaseUserApi;
 use Impero\Mysql\Controller\User;
 use Impero\Mysql\Record\Database\Resolver as DatabaseResolver;
 use Impero\Mysql\Record\User\Resolver as UserResolver;
+use Impero\Mysql\Resolver\Database as NewDatabaseResolver;
 use Pckg\Framework\Provider;
 use Pckg\Framework\Router\Route\Group;
 use Pckg\Framework\Router\Route\Route;
@@ -24,7 +25,11 @@ class Mysql extends Provider
                            'urlPrefix'  => '/api/database',
                            'namePrefix' => 'api.impero.database',
                        ]))->routes([
-                                       '' => (new Route('', 'database'))->resolvers(),
+                                       ''            => (new Route('', 'database'))->resolvers(),
+                                       '.importFile' => (new Route('/[database]/importFile', 'importFile'))
+                                           ->resolvers([
+                                                           'database' => NewDatabaseResolver::class,
+                                                       ]),
                                    ]),
             (new Group([
                            'controller' => DatabaseUserApi::class,

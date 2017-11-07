@@ -38,6 +38,16 @@ class DatabaseApi extends Controller
         return ['database' => $database];
     }
 
+    public function postImportFileAction(Database $database)
+    {
+        $server = $database->server;
+        $file = post('file');
+        $mysqlConnection = $server->getMysqlConnection();
+        $mysqlConnection->pipeIn($file);
+
+        return $this->response()->respondWithSuccess();
+    }
+
     public function postBackupAction()
     {
         /**
