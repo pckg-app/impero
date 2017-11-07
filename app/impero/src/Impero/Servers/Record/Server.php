@@ -21,7 +21,7 @@ class Server extends Record
     {
         if (!$this->connection) {
             $connectionManager = context()->getOrCreate(ConnectionManager::class);
-            $this->connection = $connectionManager->createConnecttion($this);
+            $this->connection = $connectionManager->createConnection($this);
         }
 
         return $this->connection;
