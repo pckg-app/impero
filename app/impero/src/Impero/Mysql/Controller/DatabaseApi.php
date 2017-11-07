@@ -35,7 +35,7 @@ class DatabaseApi extends Controller
         /**
          * Return created database.
          */
-        return $this->response()->respondWithSuccess(['database' => $database]);
+        return ['database' => $database];
     }
 
     public function postBackupAction()
