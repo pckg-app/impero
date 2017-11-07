@@ -30,7 +30,7 @@ class Server extends Record
     public function getMysqlConnection()
     {
         if (!$this->mysqlConnection) {
-            $this->mysqlConnection = new MysqlConnection($this->connection);
+            $this->mysqlConnection = new MysqlConnection($this->getConnection());
         }
 
         return $this->mysqlConnection;
