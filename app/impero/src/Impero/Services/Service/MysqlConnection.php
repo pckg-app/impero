@@ -33,6 +33,7 @@ class MysqlConnection
     {
         if (!$this->pdo) {
             $tunnelPort = $this->sshConnection->tunnel();
+            $tunnelPort = 3306;
 
             $p = "mysql:host=127.0.0.1:" . $tunnelPort . ";charset=utf8;dbname=" . $database;
             $this->pdo = new PDO(

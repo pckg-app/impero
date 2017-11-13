@@ -123,10 +123,11 @@ class SshConnection
              * -L localPort:ip:remotePort - local forwarding (-R - opposite, remote forwarding)
              */
             $this->tunnelPort = 3307; // @T00D00
-            $command = 'ssh -p ' . $this->port . ' -i ' . $this->key . ' -f -L ' . $this->tunnelPort .
+            /*$command = 'ssh -p ' . $this->port . ' -i ' . $this->key . ' -f -L ' . $this->tunnelPort .
                        ':127.0.0.1:3306 ' . $this->user . '@' . $this->host . ' sleep 10 >> /tmp/tunnel.' .
                        $this->host . '.' . $this->port . '.log';
-            shell_exec($command);
+            shell_exec($command);*/
+            ssh2_tunnel($this->connection, '127.0.0.1', $this->tunnelPort);
         }
 
         return $this->tunnelPort;
