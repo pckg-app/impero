@@ -63,6 +63,18 @@ class DatabaseApi extends Controller
         ];
     }
 
+    public function postQueryAction(Database $database)
+    {
+        $server = $database->server;
+        $sql = post('sql');
+        $bind = post('bind');
+        $mysqlConnection = $server->getMysqlConnection();
+
+        $mysqlConnection->query($database->name, $sql, $bind);
+
+        return $this->response()->respondWithSuccess();
+    }
+
     public function postBackupAction()
     {
         /**

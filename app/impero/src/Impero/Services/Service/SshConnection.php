@@ -10,8 +10,21 @@ class SshConnection
      */
     protected $connection;
 
+    protected $tunnel;
+
+    protected $tunnelPort;
+
+    protected $port;
+
+    protected $user;
+
+    protected $host;
+
     public function __construct($host, $user, $port, $key, $type = 'key')
     {
+        $this->port = $port;
+        $this->host = $host;
+        $this->user = $user;
         /**
          * Create connection.
          */
@@ -95,6 +108,23 @@ class SshConnection
         @fclose($stream);
 
         return !!$ok;
+    }
+
+    public function tunnel()
+    {
+        if (!$this->tunnel) {
+            /**
+             * Create SSH tunnel.
+             * -p 22222 - connect via ssh on port 22222
+             * -f - for connection, send it to background
+             * -L localPort:ip:remotePort - local forwarding (-R - opposite, remote forwarding)
+             */
+            $this->tunnelPort = 3307; // @T00D00
+            shell_exec('ssh -p ' . $this->port . ' -f -L ' . $this->tunnelPort . ':127.0.0.1:3306 ' . $this->user
+                       . '@' . $this->host . ' sleep 10 >> /tmp/tunnel.' . $this->host . '.' . $this->port . '.log');
+        }
+
+        return $this->tunnelPort;
     }
 
 }
