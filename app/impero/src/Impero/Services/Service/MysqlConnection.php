@@ -36,11 +36,15 @@ class MysqlConnection
 
             $p = "mysql:host=127.0.0.1:" . $tunnelPort . ";charset=utf8;dbname=" . $database;
             d($p);
-            $this->pdo = new PDO(
-                $p,
-                'impero',
-                's0m3p4ssw0rd'
-            );
+            try {
+                $this->pdo = new PDO(
+                    $p,
+                    'impero',
+                    's0m3p4ssw0rd'
+                );
+            } catch (\Throwable $e) {
+                dd(exception($e));
+            }
         }
 
         $prepared = $this->pdo->prepare($sql);
