@@ -122,7 +122,9 @@ class SshConnection
             $this->tunnelPort = 3307; // @T00D00
             $command = 'ssh -p ' . $this->port . ' -f -L ' . $this->tunnelPort . ':127.0.0.1:3306 ' . $this->user
                        . '@' . $this->host . ' sleep 10 >> /tmp/tunnel.' . $this->host . '.' . $this->port . '.log';
-            shell_exec($command);
+            d($command);
+            $exec = shell_exec($command);
+            d($exec);
         }
 
         return $this->tunnelPort;
