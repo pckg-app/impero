@@ -27,7 +27,7 @@ class Mysql extends Provider
                        ]))->routes([
                                        ''            => (new Route('', 'database')),
                                        '.search'     => (new Route('/search', 'search')),
-                                       '.query'      => (new Route('/query', 'query'))
+                                       '.query'      => (new Route('/[database]/query', 'query'))
                                            ->resolvers([
                                                            'database' => NewDatabaseResolver::class,
                                                        ]),
