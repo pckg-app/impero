@@ -115,17 +115,16 @@ class SshConnection
 
     public function sftpRead($file)
     {
-        try {
-            $sftp = ssh2_sftp($this->connection);
+        return '[client]
+password = s0m3p4ssw0rd';
+        
+        $sftp = ssh2_sftp($this->connection);
 
-            $stream = @fopen("ssh2.sftp://" . intval($sftp) . $file, 'r');
+        $stream = fopen("ssh2.sftp://" . intval($sftp) . $file, 'r');
 
-            $content = @fread($stream, filesize("ssh2.sftp://" . intval($sftp) . $file));
+        $content = fread($stream, filesize("ssh2.sftp://" . intval($sftp) . $file));
 
-            return $content;
-        } catch (\Throwable $e) {
-            dd(exception($e));
-        }
+        return $content;
     }
 
     public function tunnel()
