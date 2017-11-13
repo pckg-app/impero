@@ -118,9 +118,9 @@ class SshConnection
         try {
             $sftp = ssh2_sftp($this->connection);
 
-            $stream = fopen("ssh2.sftp://" . intval($sftp) . $file, 'r');
+            $stream = @fopen("ssh2.sftp://" . intval($sftp) . $file, 'r');
 
-            $content = fread($stream, filesize("ssh2.sftp://" . intval($sftp) . $file));
+            $content = @fread($stream, filesize("ssh2.sftp://" . intval($sftp) . $file));
 
             return $content;
         } catch (\Throwable $e) {
