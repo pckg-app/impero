@@ -22,7 +22,7 @@ class MysqlConnection
 
     public function execute($sql, &$error = null)
     {
-        $command = 'mysql -u impero -ps0m3p4ssw0rd -e' . escapeshellarg($sql . ';');
+        $command = 'mysql -u impero -e' . escapeshellarg($sql . ';');
 
         $result = $this->sshConnection->exec($command, $error);
 
@@ -38,7 +38,7 @@ class MysqlConnection
             $this->pdo = new PDO(
                 $p,
                 'impero',
-                's0m3p4ssw0rd'
+                null
             );
         }
 
@@ -65,7 +65,7 @@ class MysqlConnection
 
     public function pipeIn($pipe, $database = null, &$error = null)
     {
-        return $this->sshConnection->exec('mysql -u impero -ps0m3p4ssw0rd ' . ($database ? $database . ' ' : '')
+        return $this->sshConnection->exec('mysql -u impero ' . ($database ? $database . ' ' : '')
                                           . '< ' . $pipe, $error);
     }
 
