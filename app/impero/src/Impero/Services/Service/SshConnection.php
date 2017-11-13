@@ -20,11 +20,14 @@ class SshConnection
 
     protected $host;
 
+    protected $key;
+
     public function __construct($host, $user, $port, $key, $type = 'key')
     {
         $this->port = $port;
         $this->host = $host;
         $this->user = $user;
+        $this->key = $key;
         /**
          * Create connection.
          */
@@ -120,7 +123,7 @@ class SshConnection
              * -L localPort:ip:remotePort - local forwarding (-R - opposite, remote forwarding)
              */
             $this->tunnelPort = 3307; // @T00D00
-            $command = 'ssh -p ' . $this->port . ' -f -L ' . $this->tunnelPort . ':127.0.0.1:3306 ' . $this->user
+            $command = 'ssh -p ' . $this->port . ' -i ' . $this->key . ' -f -L ' . $this->tunnelPort . ':127.0.0.1:3306 ' . $this->user
                        . '@' . $this->host . ' sleep 10 >> /tmp/tunnel.' . $this->host . '.' . $this->port . '.log';
             d($command);
             $exec = shell_exec($command);
