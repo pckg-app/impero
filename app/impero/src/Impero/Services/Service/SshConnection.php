@@ -115,11 +115,6 @@ class SshConnection
 
     public function sftpRead($file)
     {
-        return [
-            'client' => [
-                'password' => 's0m3p4ssw0rd',
-            ],
-        ];
         $sftp = ssh2_sftp($this->connection);
 
         $stream = fopen("ssh2.sftp://" . intval($sftp) . $file, 'r');
