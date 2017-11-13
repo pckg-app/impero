@@ -113,6 +113,15 @@ class SshConnection
         return !!$ok;
     }
 
+    public function sftpRead($file)
+    {
+        $sftp = ssh2_sftp($this->connection);
+
+        $stream = fopen("ssh2.sftp://" . intval($sftp) . $file, 'r');
+
+        return fread($stream, filesize("ssh2.sftp://" . intval($sftp) . $file));
+    }
+
     public function tunnel()
     {
         if (!$this->tunnel) {

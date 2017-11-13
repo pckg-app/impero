@@ -29,6 +29,11 @@ class MysqlConnection
         return $result;
     }
 
+    protected function getMysqlPassword()
+    {
+        return parse_ini_string($this->sshConnection->sftpRead('/etc/mysql/conf.d/impero.cnf'))['client']['password'];
+    }
+
     public function query($database, $sql, $binds = [])
     {
         if (!$this->pdo) {
@@ -37,7 +42,8 @@ class MysqlConnection
             $p = "mysql:host=127.0.0.1:" . $tunnelPort . ";charset=utf8;dbname=" . $database;
             $this->pdo = new PDO(
                 $p,
-                'impero'
+                'impero',
+                $this->getMysqlPassword()
             );
         }
 
@@ -64,8 +70,8 @@ class MysqlConnection
 
     public function pipeIn($pipe, $database = null, &$error = null)
     {
-        return $this->sshConnection->exec('mysql -u impero ' . ($database ? $database . ' ' : '')
-                                          . '< ' . $pipe, $error);
+        return $this->sshConnection->exec('mysql -u impero ' . ($database ? $database . ' ' : '') . '< ' . $pipe,
+                                          $error);
     }
 
 }
