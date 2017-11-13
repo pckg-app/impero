@@ -37,8 +37,7 @@ class MysqlConnection
             $p = "mysql:host=127.0.0.1:" . $tunnelPort . ";charset=utf8;dbname=" . $database;
             $this->pdo = new PDO(
                 $p,
-                'impero',
-                null
+                'impero'
             );
         }
 
