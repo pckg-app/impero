@@ -1,3 +1,133 @@
+<h2>Nightly writing</h2>
+<p>There're many tools that make app deployment simpler, but we made it crazy simple.</p>
+<p>First, create new <b>server</b> and connect it to - server. If you don't have one you can simply create new droplet
+    on one of cloud providers.</p>
+<p>Then, create new <b>site</b> - all you need to define is domain and source, for example impero.foobar.si and
+    ssh://github.com/pckg-app/impero.git.</p>
+<p>
+    All services and configuration you need is defined in 3 simple scripts in /.pckg/pckg.yaml in your git
+    repository
+<ul>
+    <li>services - services that needs to be up and running for app, for example you need php and apache on web server,
+        mysql on db server and some directories for storage and uploads
+    </li>
+    <li>init - scripts that needs to be executed on first deploy on web server, such as checkout and dependency
+        install
+    </li>
+    <li>deploy - scripts that needs to be executed on next deploys on web server, for example git pull and clean cache
+    </li>
+</ul>
+</p>
+<p>When you choose to put your website online you simply select servers on which to put your app.</p>
+<p>You can select multiple web workers and configure load balancing mechanism. You can select multiple mysql servers and
+    put them in master / slave mode replication and load balancing. You can have multiple storages in sync when hard
+    drive is bottleneck, or optimize things by caching them.</p>
+<p>Or you can simply choose one server and put all services on it - and then automatically expand to partial or full
+    structure of multiple loadbalancers, static and dynamic web servers, master and slave database servers and storage
+    servers for best performance and money usage.</p>
+<p>You click, we / computer make things happen. All through ssh connection.</p>
+
+<p>
+    Pricing (per month):
+<table class="table">
+    <thead>
+    <tr>
+        <td></td>
+        <td>Free</td>
+        <td>Basic</td>
+        <td>Pro</td>
+        <td>Enterprise</td>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Number of servers</td>
+        <td>1</td>
+        <td>10</td>
+        <td>Unlimited</td>
+        <td>Unlimited</td>
+    </tr>
+    <tr>
+        <td>Cronjobs</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>Backups</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>LetsEncrypt</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>Deployments</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>Dependencies</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>Services</td>
+        <td>Limited</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>Scaling</td>
+        <td>No</td>
+        <td>No</td>
+        <td>Yes</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>Replication</td>
+        <td>No</td>
+        <td>No</td>
+        <td>Yes</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>Load balancing</td>
+        <td>No</td>
+        <td>No</td>
+        <td>Yes</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>API</td>
+        <td>No</td>
+        <td>No</td>
+        <td>Yes</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>Price</td>
+        <td>Free</td>
+        <td>3$ per server</td>
+        <td>9$ per server</td>
+        <td>Contact us</td>
+    </tr>
+    </tbody>
+</table>
+<p>* Limited - ftp and mail services are not available in free version</p>
+
 <h2>Features</h2>
 <h3>About Impero</h3>
 <div class="row">
@@ -8,7 +138,7 @@
     </div>
     <div class="col-md-4 col-sm-6">
         <h4>Zero overhead</h4>
-        <p>We won't install services on your server. All we need is SSH access to your server.</p>
+        <p>All communication is done with ssh protocol. No services or daemons are installed.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
@@ -22,7 +152,7 @@
 <div class="row">
     <div class="col-md-4 col-sm-6">
         <h4>Load balancing</h4>
-        <p>Simply distribute TCP or HTTP traffic to any node using roundrobin or any other algorithm.</p>
+        <p>Simply distribute TCP or HTTP/S traffic to any node using roundrobin or any other algorithm.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
@@ -100,7 +230,7 @@
 <div class="row">
     <div class="col-md-4 col-sm-6">
         <h4>Email</h4>
-        <p>Hell, we can also install whole mail infrastructure for you, from postfix and sendmail, to horde and other
+        <p>Hello, we can also install whole mail infrastructure for you, from postfix and sendmail, to horde and other
             mail services.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
