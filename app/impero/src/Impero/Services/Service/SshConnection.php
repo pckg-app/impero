@@ -28,7 +28,7 @@ class SshConnection
     public function __construct($server, $host, $user, $port, $key, $type = 'key')
     {
         $this->server = $server;
-        
+
         $this->server->logCommand('Opening connection', null, null, null);
 
         $this->port = $port;
@@ -131,6 +131,7 @@ class SshConnection
             $this->server->logCommand('Closing connection', null, null, null);
 
             ssh2_exec($this->connection, 'exit');
+            unset($this->connection);
         }
 
         return $this;
