@@ -19,6 +19,14 @@ class CreateServersTables extends Migration
         $servers->varchar('port', 5);
         $servers->varchar('user');
 
+        $serverCommands = $this->table('server_commands');
+        $serverCommands->integer('server_id')->references('servers');
+        $serverCommands->text('command');
+        $serverCommands->text('info');
+        $serverCommands->text('error');
+        $serverCommands->varchar('code', 16);
+        $serverCommands->datetime('executed_at');
+
         /**
          * Services
          */

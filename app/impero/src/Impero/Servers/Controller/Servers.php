@@ -183,7 +183,7 @@ class Servers
             /**
              * Connect with password.
              */
-            $connection = new SshConnection($ip, $user, $port, $password, 'password');
+            $connection = new SshConnection($server, $ip, $user, $port, $password, 'password');
         } catch (Throwable $e) {
             die("wrong password, port not opened, user not created or copy error : " . exception($e));
         }
@@ -211,7 +211,7 @@ class Servers
          * # PermitRootLogin no / without-password
          */
         try {
-            $connection = new SshConnection($ip, $user, $port, $privateKey);
+            $connection = new SshConnection($server, $ip, $user, $port, $privateKey);
             $connection->close();
         } catch (Throwable $e) {
             echo "Add keys manually:\n";

@@ -88,4 +88,17 @@ class Server extends Record
         return $jobs;
     }
 
+    public function logCommand($command, $info, $error, $e)
+    {
+        return ServerCommand::create([
+                                         'server_id'   => $this->id,
+                                         'command'     => $command,
+                                         'info'        => $info,
+                                         'error'       => ($e ? 'EXCEPTION: ' . exception($e) . "\n" : null) .
+                                                          $error,
+                                         'executed_at' => date('Y-m-d H:i:s'),
+                                         'code'        => null,
+                                     ]);
+    }
+
 }

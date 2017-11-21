@@ -11,7 +11,7 @@ class ConnectionManager
     public function createConnection(Server $server)
     {
         if (!isset($this->connections[$server->id])) {
-            $this->connections[$server->id] = new SshConnection($server->ip, $server->user, $server->port,
+            $this->connections[$server->id] = new SshConnection($server, $server->ip, $server->user, $server->port,
                                                                 path('storage') . 'private/keys/id_rsa_' . $server->id);
         }
 

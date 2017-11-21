@@ -1,6 +1,7 @@
 <?php namespace Impero\Services\Service;
 
 use Exception;
+use Throwable;
 
 class SshConnection
 {
@@ -22,8 +23,13 @@ class SshConnection
 
     protected $key;
 
-    public function __construct($host, $user, $port, $key, $type = 'key')
+    protected $server;
+
+    public function __construct($server, $host, $user, $port, $key, $type = 'key')
     {
+        $this->server->logCommand('Opening connection', null, null, null);
+
+        $this->server = $server;
         $this->port = $port;
         $this->host = $host;
         $this->user = $user;
@@ -35,7 +41,10 @@ class SshConnection
         $this->connection = ssh2_connect($host, $port);
 
         if (!$this->connection) {
+            $this->server->logCommand('Cannot open connection', null, null, null);
             throw new Exception('Cannot estamblish SSH connection');
+        } else {
+            $this->server->logCommand('Connection opened', null, null, null);
         }
 
         /**
@@ -73,27 +82,53 @@ class SshConnection
          * Throw exception on misconfiguration.
          */
         if (!$auth) {
+            $this->server->logCommand('Cannot authenticate', null, null, null);
             throw new Exception("Cannot authenticate with key");
+        } else {
+            $this->server->logCommand('Authenticated with SSH', null, null, null);
         }
     }
 
     public function exec($command, &$errorStreamContent = null)
     {
-        $stream = ssh2_exec($this->connection, $command);
+        $e = null;
+        $infoStreamContent = null;
+        $errorStreamContent = null;
+        $serverCommand = $this->server->logCommand('Executing command ' . $command, null, null, null);
+        try {
+            $stream = ssh2_exec($this->connection, $command);
 
-        $errorStream = ssh2_fetch_stream($stream, SSH2_STREAM_STDERR);
+            $errorStream = ssh2_fetch_stream($stream, SSH2_STREAM_STDERR);
 
-        stream_set_blocking($errorStream, true);
-        stream_set_blocking($stream, true);
+            stream_set_blocking($errorStream, true);
+            stream_set_blocking($stream, true);
 
-        $errorStreamContent = stream_get_contents($errorStream);
+            $errorStreamContent = stream_get_contents($errorStream);
+            $infoStreamContent = stream_get_contents($stream);
+        } catch (Throwable $e) {
+            $serverCommand->setAndSave([
+                                           'command' => 'Error executing command ' . $command,
+                                           'info'    => $infoStreamContent,
+                                           'error'   => $errorStreamContent,
+                                       ]);
 
-        return stream_get_contents($stream);
+            return null;
+        } finally {
+            $serverCommand->setAndSave([
+                                           'command' => 'Command executed ' . $command,
+                                           'info'    => $infoStreamContent,
+                                           'error'   => $errorStreamContent,
+                                       ]);
+        }
+
+        return $infoStreamContent;
     }
 
     public function close()
     {
         if ($this->connection) {
+            $this->server->logCommand('Closing connection', null, null, null);
+
             ssh2_exec($this->connection, 'exit');
         }
 
@@ -102,6 +137,8 @@ class SshConnection
 
     public function sftpSend($local, $remote, $mode = null, $isFile = true)
     {
+        $this->server->logCommand('Copying local ' . $local . ' to remote ' . $remote, null, null, null);
+
         $sftp = ssh2_sftp($this->connection);
 
         $stream = fopen("ssh2.sftp://" . intval($sftp) . $remote, 'w');
@@ -117,7 +154,9 @@ class SshConnection
     {
         return '[client]
 password = s0m3p4ssw0rd';
-        
+
+        $this->server->logCommand('Reading remote ' . $file, null, null, null);
+
         $sftp = ssh2_sftp($this->connection);
 
         $stream = fopen("ssh2.sftp://" . intval($sftp) . $file, 'r');
@@ -130,6 +169,7 @@ password = s0m3p4ssw0rd';
     public function tunnel()
     {
         if (!$this->tunnel) {
+            $this->server->logCommand('Creating SSH tunnel', null, null, null);
             /**
              * Create SSH tunnel.
              * -p 22222 - connect via ssh on port 22222
