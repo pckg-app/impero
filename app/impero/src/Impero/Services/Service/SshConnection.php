@@ -27,9 +27,10 @@ class SshConnection
 
     public function __construct($server, $host, $user, $port, $key, $type = 'key')
     {
+        $this->server = $server;
+        
         $this->server->logCommand('Opening connection', null, null, null);
 
-        $this->server = $server;
         $this->port = $port;
         $this->host = $host;
         $this->user = $user;
