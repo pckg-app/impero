@@ -49,12 +49,12 @@ function maestro_urls($class, $slug, $record, $resolver, $alterslug = null)
             '/' . $alterslug                               => [
                 'name' => $slug . '.list',
                 'view' => 'index',
-                'tags' => ['auth:in'],
+                //'tags' => ['auth:in'],
             ],
             '/' . $alterslug . '/add'                      => [
                 'name' => $slug . '.add',
                 'view' => 'add',
-                'tags' => ['auth:in'],
+                //'tags' => ['auth:in'],
             ],
             '/' . $alterslug . '/edit/[' . $record . ']'   => [
                 'name'      => $slug . '.edit',
@@ -62,7 +62,7 @@ function maestro_urls($class, $slug, $record, $resolver, $alterslug = null)
                 'resolvers' => [
                     $record => $resolver,
                 ],
-                'tags'      => ['auth:in'],
+                //'tags'      => ['auth:in'],
             ],
             '/' . $alterslug . '/delete/[' . $record . ']' => [
                 'name'      => $slug . '.delete',

@@ -36,7 +36,7 @@ class DatabaseUserApi extends Controller
          */
         $permissions = [
             'basic'    => 'SELECT, UPDATE, DELETE, INSERT', // REFERENCES?
-            'advanced' => 'SELECT, UPDATE, DELETE, INSERT, ALTER, CREATE TABLE, INDEX',
+            'advanced' => 'SELECT, UPDATE, DELETE, INSERT, ALTER, CREATE, INDEX',
             'dump'     => 'SELECT, LOCK TABLES, SHOW VIEW, EVENT, TRIGGER',
             'admin'    => 'SELECT, CREATE, DROP, RELOAD, SHOW DATABASES, CREATE USER',
         ];
