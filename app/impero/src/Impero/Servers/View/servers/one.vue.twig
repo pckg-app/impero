@@ -47,12 +47,12 @@
                                 <tbody>
                                 <tr v-for="service in server.services">
                                     <td>${ service.name }</td>
-                                    <td>${ service.pivot.version }</td>
+                                    <td>${ service.getVersion() }</td>
                                     <td>
                                         <button class="btn btn-success btn-xs"
-                                                @click="service.refreshStatus.call(service)"><i
+                                                @click="service.refreshStatus()"><i
                                                     class="fa fa-refresh"></i></button>
-                                        ${ service.pivot.status.value }
+                                        ${ service.getStatus() }
                                     </td>
                                 </tr>
                                 </tbody>
@@ -74,9 +74,9 @@
                                     <td>${ dependency.pivot.version }</td>
                                     <td>
                                         <button class="btn btn-success btn-xs"
-                                                @click="dependency.refreshStatus.call(dependency)"><i
+                                                @click="dependency.refreshStatus()"><i
                                                     class="fa fa-refresh"></i></button>
-                                        ${ dependency.pivot.status.value }
+                                        ${ dependency.pivot.status_id }
                                     </td>
                                 </tr>
                                 </tbody>
@@ -267,7 +267,7 @@
 </script>
 
 <script>
-    var ImperoServersOneComponent = Vue.component('impero-servers-one', {
+    Vue.component('impero-servers-one', {
         mixins: [pckgDelimiters],
         template: '#impero-servers-one-template',
         props: {

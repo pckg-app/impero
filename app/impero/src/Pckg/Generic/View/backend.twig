@@ -178,6 +178,22 @@
                 return new Impero.Servers.Entity.Services();
             }
 
+            getStatus() {
+                if (!(this.pivot && this.pivot.status && this.pivot.status.value)) {
+                    return '';
+                }
+
+                return this.pivot.status.value;
+            }
+
+            getVersion() {
+                if (!(this.pivot && this.pivot.version)) {
+                    return '';
+                }
+
+                return this.pivot.version;
+            }
+
         };
 
         Impero.Servers.Record.Dependency = class extends Pckg.Database.Record {
