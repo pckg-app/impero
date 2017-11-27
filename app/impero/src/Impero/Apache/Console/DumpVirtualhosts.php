@@ -54,6 +54,7 @@ class DumpVirtualhosts extends Command
         $remote = '/etc/apache2/sites-enabled/002-impero.conf';
         file_put_contents($local, $virtualhosts);
         $sshConnection->sftpSend($local, $remote);
+        unlink($local);
         $sshConnection->exec('service apache2ctl graceful');
     }
 
