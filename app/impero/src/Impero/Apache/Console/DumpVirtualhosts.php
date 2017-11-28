@@ -27,7 +27,7 @@ class DumpVirtualhosts extends Command
         if ($this->option('server') != 2) {
             return;
         }
-        
+
         $this->output('Building virtualhosts');
         $server = (new Servers())->where('id', $this->option('server'))->oneOrFail();
         $sites = (new Sites())->where('server_id', $server->id)->all();
@@ -49,13 +49,13 @@ class DumpVirtualhosts extends Command
 
     protected function storeVirtualhosts(Server $server, $virtualhosts)
     {
-        $sshConnection = $server->getConnection();
         $local = '/tmp/server.' . $server->id . '.virtualhosts';
         $remote = '/etc/apache2/sites-enabled/002-impero.conf';
         file_put_contents($local, $virtualhosts);
+        $sshConnection = $server->getConnection();
         $sshConnection->sftpSend($local, $remote);
         unlink($local);
-        $sshConnection->exec('service apache2ctl graceful');
+        $sshConnection->exec('service apache2 graceful');
     }
 
 }
