@@ -55,7 +55,7 @@ class DumpVirtualhosts extends Command
         $sshConnection = $server->getConnection();
         $sshConnection->sftpSend($local, $remote);
         unlink($local);
-        $sshConnection->exec('service apache2 graceful');
+        $sshConnection->exec('sudo service apache2 graceful');
     }
 
 }
