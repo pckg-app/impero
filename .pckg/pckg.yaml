@@ -19,8 +19,12 @@ deploy:
   # put project down
   #- php console project:down
 
-  # pull changes with framework
-  - php console project:pull
+  # pull changes from git
+  - git pull --ff
+
+  # install dependency changes
+  - composer install --no-dev --prefer-dist --no-progress --no-suggest --optimize-autoloader --ignore-platform-reqs
+  - yarn install --production --silent
 
   # import translations
   #- php console impero translator:import
