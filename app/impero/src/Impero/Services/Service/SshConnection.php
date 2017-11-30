@@ -90,11 +90,14 @@ class SshConnection
         }
     }
 
-    public function exec($command, &$errorStreamContent = null)
+    public function exec($command, &$errorStreamContent = null, $dir = null)
     {
         $e = null;
         $infoStreamContent = null;
         $errorStreamContent = null;
+        if ($dir) {
+            $command = 'cd ' . $dir . ' && ' . $command;
+        }
         $serverCommand = $this->server->logCommand('Executing command ' . $command, null, null, null);
         try {
             $stream = ssh2_exec($this->connection, $command);
@@ -119,6 +122,7 @@ class SshConnection
                                            'command' => 'Command executed ' . $command,
                                            'info'    => $infoStreamContent,
                                            'error'   => $errorStreamContent,
+                                           'code'    => 1,
                                        ]);
         }
 

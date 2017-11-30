@@ -40,7 +40,7 @@ class Sites
         foreach ($commands as $command) {
             $output = null;
             $error = null;
-            $output = $connection->exec('cd ' . $site->getHtdocsPath() . ' && ' . $command, $error);
+            $output = $connection->exec($command, $error, $site->getHtdocsPath());
             //d($output, $error);
         }
         $connection->close();
