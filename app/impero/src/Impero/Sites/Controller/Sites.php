@@ -60,4 +60,11 @@ class Sites
         ];
     }
 
+    public function postLetsencryptAction(Site $site)
+    {
+        return [
+            'success' => true,
+        ];
+    }
+
 }

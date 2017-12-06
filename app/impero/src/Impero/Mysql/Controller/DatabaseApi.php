@@ -82,6 +82,19 @@ class DatabaseApi extends Controller
         /**
          * Enable or disable mysql backup.
          */
+        return [
+            'success' => true,
+        ];
+    }
+
+    public function postReplicateAction()
+    {
+        /**
+         * Enable or disable mysql replication.
+         */
+        return [
+            'success' => true,
+        ];
     }
 
 }

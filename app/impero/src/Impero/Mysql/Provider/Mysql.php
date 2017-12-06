@@ -35,6 +35,14 @@ class Mysql extends Provider
                                            ->resolvers([
                                                            'database' => NewDatabaseResolver::class,
                                                        ]),
+                                       '.replicate'  => (new Route('/[database]/replicate', 'replicate'))
+                                           ->resolvers([
+                                                           'database' => NewDatabaseResolver::class,
+                                                       ]),
+                                       '.backup'     => (new Route('/[database]/backup', 'backup'))
+                                           ->resolvers([
+                                                           'database' => NewDatabaseResolver::class,
+                                                       ]),
                                    ]),
             (new Group([
                            'controller' => DatabaseUserApi::class,
