@@ -137,7 +137,6 @@ class Site extends Record
         $cronjobFile = '/backup/run-cronjobs.sh';
         $connection = $this->server->getConnection();
         $currentCronjob = $connection->sftpRead($cronjobFile);
-        dd($currentCronjob);
         $cronjobs = explode("\n", $currentCronjob);
 
         /**
@@ -147,7 +146,7 @@ class Site extends Record
             /**
              * Add to file if nonexistent.
              */
-            $connection->exec('echo "\n\r' . $command . '" >> ' . $cronjobFile);
+            $connection->exec('sudo echo "' . "\n\r" . $command . '" >> ' . $cronjobFile);
         }
     }
 
