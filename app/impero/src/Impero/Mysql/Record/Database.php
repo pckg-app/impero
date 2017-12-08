@@ -51,13 +51,11 @@ class Database extends Record
          * Check for existance.
          */
         if (!in_array($this->name, $databases)) {
-            dd('putting');
             /**
              * Add to file if nonexistent.
              */
             $connection->exec('echo "\n\r' . $this->name . '" >> ' . $backupFile);
         }
-        dd('already in');
     }
 
 }
