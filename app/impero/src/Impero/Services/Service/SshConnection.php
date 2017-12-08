@@ -169,6 +169,7 @@ password = s0m3p4ssw0rd';*/
 
         $content = fread($stream, filesize("ssh2.sftp://" . intval($sftp) . $file));
 
+        dd($content);
         return $content;
     }
 
