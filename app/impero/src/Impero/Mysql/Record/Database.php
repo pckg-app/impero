@@ -37,4 +37,26 @@ class Database extends Record
         return $this;
     }
 
+    public function configureBackup()
+    {
+        /**
+         * Get current backup configuration.
+         */
+        $backupFile = '/backup/dbarray.conf';
+        $connection = $this->server->getConnection();
+        $currentBackup = $connection->sftpRead($backupFile);
+        dd($currentBackup);
+        $databases = explode("\n", $currentBackup);
+
+        /**
+         * Check for existance.
+         */
+        if (!in_array($this->name, $databases)) {
+            /**
+             * Add to file if nonexistent.
+             */
+            $connection->exec('echo "\n\r' . $this->name . '" >> ' . $backupFile);
+        }
+    }
+
 }

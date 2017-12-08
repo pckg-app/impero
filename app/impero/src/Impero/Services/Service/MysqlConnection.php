@@ -31,7 +31,9 @@ class MysqlConnection
 
     protected function getMysqlPassword()
     {
-        return parse_ini_string($this->sshConnection->sftpRead('/etc/mysql/conf.d/impero.cnf'))['password'];
+        $content = $this->sshConnection->sftpRead('/etc/mysql/conf.d/impero.cnf');
+
+        return parse_ini_string($content)['password'];
     }
 
     public function query($database, $sql, $binds = [])

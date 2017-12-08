@@ -77,11 +77,13 @@ class DatabaseApi extends Controller
         ];
     }
 
-    public function postBackupAction()
+    public function postBackupAction(Database $database)
     {
         /**
          * Enable or disable mysql backup.
          */
+        $database->configureBackup();
+
         return [
             'success' => true,
         ];

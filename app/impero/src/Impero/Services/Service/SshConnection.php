@@ -158,8 +158,8 @@ class SshConnection
 
     public function sftpRead($file)
     {
-        return '[client]
-password = s0m3p4ssw0rd';
+        /*return '[client]
+password = s0m3p4ssw0rd';*/
 
         $this->server->logCommand('Reading remote ' . $file, null, null, null);
 
