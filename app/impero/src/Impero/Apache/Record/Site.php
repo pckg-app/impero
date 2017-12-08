@@ -146,7 +146,7 @@ class Site extends Record
             /**
              * Add to file if nonexistent.
              */
-            $connection->exec('sudo echo "' . "\n\r" . $command . '" >> ' . $cronjobFile);
+            $connection->exec('sudo echo "' . "\n" . $command . '" >> ' . $cronjobFile);
         }
     }
 
