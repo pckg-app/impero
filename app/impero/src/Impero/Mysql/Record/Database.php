@@ -45,6 +45,7 @@ class Database extends Record
         $backupFile = '/backup/dbarray.conf';
         $connection = $this->server->getConnection();
         $currentBackup = $connection->sftpRead($backupFile);
+        d('test');
         dd($currentBackup);
         $databases = explode("\n", $currentBackup);
 
