@@ -44,25 +44,20 @@ class Database extends Record
          */
         $backupFile = '/backup/dbarray.conf';
         $connection = $this->server->getConnection();
-        try {
-            $currentBackup = $connection->sftpRead($backupFile);
-        } catch (\Throwable $e) {
-            dd(exception($e));
-        }
-        dd('test');
-        //dd($currentBackup);
-        dd('ok');
+        $currentBackup = $connection->sftpRead($backupFile);
         $databases = explode("\n", $currentBackup);
 
         /**
          * Check for existance.
          */
         if (!in_array($this->name, $databases)) {
+            dd('putting');
             /**
              * Add to file if nonexistent.
              */
             $connection->exec('echo "\n\r' . $this->name . '" >> ' . $backupFile);
         }
+        dd('already in');
     }
 
 }
