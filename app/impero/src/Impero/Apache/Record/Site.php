@@ -129,4 +129,26 @@ class Site extends Record
 </VirtualHost>';
     }
 
+    public function addCronjob($command)
+    {
+        /**
+         * Get current cronjob configuration.
+         */
+        $cronjobFile = '/backup/run-cronjobs.sh';
+        $connection = $this->server->getConnection();
+        $currentCronjob = $connection->sftpRead($cronjobFile);
+        dd($currentCronjob);
+        $cronjobs = explode("\n", $currentCronjob);
+
+        /**
+         * Check for existance.
+         */
+        if (!in_array($this->name, $cronjobs)) {
+            /**
+             * Add to file if nonexistent.
+             */
+            $connection->exec('echo "\n\r' . $command . '" >> ' . $cronjobFile);
+        }
+    }
+
 }

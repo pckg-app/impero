@@ -65,10 +65,17 @@ class Sites
         // certbot --expand -d existing.com -d example.com -d newdomain.com
         // certbot certonly --cert-name example.com -d example.org,www.example.org
         // certbot delete --cert-name example.com
-        
+
         return [
             'success' => true,
         ];
+    }
+
+    public function postCronjobAction(Site $site)
+    {
+        $site->addCronjob(post('command'));
+
+        return ['success' => true];
     }
 
 }
