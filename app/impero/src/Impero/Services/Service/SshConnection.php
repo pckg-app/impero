@@ -163,12 +163,17 @@ password = s0m3p4ssw0rd';*/
 
         $this->server->logCommand('Reading remote ' . $file, null, null, null);
 
+        d('sftp');
         $sftp = ssh2_sftp($this->connection);
 
+        d('open');
         $stream = fopen("ssh2.sftp://" . intval($sftp) . $file, 'r');
 
+        d('content');
         $content = fread($stream, filesize("ssh2.sftp://" . intval($sftp) . $file));
 
+        d('return');
+        dd($content);
         return $content;
     }
 
