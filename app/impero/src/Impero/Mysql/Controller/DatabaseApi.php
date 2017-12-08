@@ -77,6 +77,11 @@ class DatabaseApi extends Controller
         ];
     }
 
+    public function getBackupAction(Database $database)
+    {
+        return $this->postBackupAction($database);
+    }
+
     public function postBackupAction(Database $database)
     {
         /**
