@@ -142,7 +142,7 @@ class Site extends Record
         /**
          * Check for existance.
          */
-        if (!in_array($this->name, $cronjobs)) {
+        if (!in_array($command, $cronjobs)) {
             /**
              * Add to file if nonexistent.
              */
