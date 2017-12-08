@@ -46,7 +46,8 @@ class Database extends Record
         $connection = $this->server->getConnection();
         $currentBackup = $connection->sftpRead($backupFile);
         d('test');
-        dd($currentBackup);
+        //dd($currentBackup);
+        dd('ok');
         $databases = explode("\n", $currentBackup);
 
         /**
