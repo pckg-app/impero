@@ -76,7 +76,7 @@ class Database extends Record
             /**
              * Add to file if nonexistent.
              */
-            $connection->exec('sudo echo "' . "\n\r" . $line . '" >> ' . $replicationFile);
+            $connection->exec('sudo echo "' . $line . '" >> ' . $replicationFile);
             $connection->exec('sudo service mysql reload');
         }
     }
