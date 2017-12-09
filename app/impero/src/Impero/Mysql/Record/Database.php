@@ -58,4 +58,27 @@ class Database extends Record
         }
     }
 
+    public function replicate()
+    {
+        /**
+         * Get current backup configuration.
+         */
+        $replicationFile = '/etc/mysql/conf.d/replication.cnf';
+        $connection = $this->server->getConnection();
+        $currentReplication = $connection->sftpRead($replicationFile);
+        $replications = explode("\n", $currentReplication);
+
+        /**
+         * Check for existance.
+         */
+        $line = 'binlog_do_db = ' . $this->name;
+        if (!in_array($line, $replications)) {
+            /**
+             * Add to file if nonexistent.
+             */
+            $connection->exec('sudo echo "' . "\n\r" . $line . '" >> ' . $replicationFile);
+            $connection->exec('sudo service mysql reload');
+        }
+    }
+
 }
