@@ -186,13 +186,13 @@ class Site extends Record
          * Execute command.
          */
         $connection = $this->server->getConnection();
-        $connection->exec($command . ' ' . $params);
+        //$connection->exec($command . ' ' . $params);
 
         /**
          * If command is successful update site, dump config and restart apache.
          */
         $dir = '/etc/letsencrypt/live/sonus.demo.startmaestro.com/';
-        d($connection->dirExists($dir), $connection->fileExists($dir . 'cert.pem'));
+        d($connection->dirExists($dir), $connection->fileExists($dir . 'cert.pem'));dd();
         if ($connection->dirExists($dir) && $connection->fileExists($dir . 'cert.pem')) {
             /**
              * Create symlinks.
