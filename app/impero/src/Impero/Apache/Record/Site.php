@@ -192,7 +192,8 @@ class Site extends Record
          * If command is successful update site, dump config and restart apache.
          */
         $dir = '/etc/letsencrypt/live/sonus.demo.startmaestro.com/';
-        d($connection->dirExists($dir), $connection->fileExists($dir . 'cert.pem'));dd();
+        d($connection->exec('test -d ' . $dir . ' && echo 1'), $connection->exec('test -f ' . $dir . ' && echo 1'));
+        dd();
         if ($connection->dirExists($dir) && $connection->fileExists($dir . 'cert.pem')) {
             /**
              * Create symlinks.
