@@ -62,9 +62,7 @@ class Sites
 
     public function postLetsencryptAction(Site $site)
     {
-        // certbot --expand -d existing.com -d example.com -d newdomain.com
-        // certbot certonly --cert-name example.com -d example.org,www.example.org
-        // certbot delete --cert-name example.com
+        $site->letsencrypt();
 
         return [
             'success' => true,

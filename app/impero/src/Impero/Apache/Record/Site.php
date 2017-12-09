@@ -1,5 +1,6 @@
 <?php namespace Impero\Apache\Record;
 
+use Impero\Apache\Console\DumpVirtualhosts;
 use Impero\Apache\Entity\Sites;
 use Pckg\Database\Record;
 
@@ -148,6 +149,46 @@ class Site extends Record
              */
             $connection->exec('sudo echo "' . $command . '" >> ' . $cronjobFile);
         }
+    }
+
+    public function letsencrypt()
+    {
+        /**
+         * Generate certificate only, agree with tos, run in non interactive mode, set rsa key size,
+         * set admin email, default webroot path, certificate name, domains, usage with apache
+         * and auto expansion.
+         */
+        $command = 'sudo /opt/letsencrypt/certbot-auto certonly';
+        $email = 'letsencrypt.zero.gonparty.eu@schtr4jh.net';
+        $webroot = '/var/www/default/html';
+        $domain = 'demo.startmaestro.com';
+        $domains = 'demo.startmaestro.com,clean.demo.startmaestro.com';
+        $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email
+                  . ' --webroot-path ' . $webroot . ' --cert-name ' . $domain . ' --domains "'
+                  . $domains . '" --apache --expand';
+
+        /**
+         * Execute command.
+         */
+        $connection = $this->server->getConnection();
+        $connection->exec($command . ' ' . $params);
+
+        /**
+         * If command is successful update site, dump config and restart apache.
+         */
+        /*$this->setAndSave([
+                              'ssl'                        => 'letsencrypt',
+                              'ssl_certificate_file'       => 'cert.pem',
+                              'ssl_certificate_key_file'   => 'privkey.pem',
+                              'ssl_certificate_chain_file' => 'fullchain.pem',
+                              'ssl_letsencrypt_autorenew'  => true,
+                          ]);
+        $this->restartApache();*/
+    }
+
+    public function restartApache()
+    {
+        (new DumpVirtualhosts())->executeManually(['--server' => $this->server_id]);
     }
 
 }
