@@ -162,7 +162,7 @@ class Site extends Record
         $email = 'letsencrypt.zero.gonparty.eu@schtr4jh.net';
         $webroot = '/var/www/default/html';
         $domain = $this->server_name;
-        $domains = collect($domain)->pushArray(explode(' ', $this->document_root))->removeEmpty()->implode(',');
+        $domains = collect([$domain])->pushArray(explode(' ', $this->document_root))->removeEmpty()->implode(',');
         $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email
                   . ' --webroot-path ' . $webroot . ' --cert-name ' . $domain . ' --domains "'
                   . $domains . '" --apache --expand';
