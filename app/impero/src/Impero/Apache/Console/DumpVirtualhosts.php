@@ -55,6 +55,10 @@ class DumpVirtualhosts extends Command
         $sshConnection = $server->getConnection();
         $sshConnection->sftpSend($local, $remote);
         unlink($local);
+
+        /**
+         * @T00D00 - check if apache is offline and apply previous configuration.
+         */
         $sshConnection->exec('sudo service apache2 graceful');
     }
 

@@ -186,12 +186,19 @@ class Site extends Record
          * Execute command.
          */
         $connection = $this->server->getConnection();
-        //$connection->exec($command . ' ' . $params);
+        $response = $connection->exec($command . ' ' . $params);
+
+        if (strpos($response, 'Congratulations! Your certificate and chain have been saved at:') === false
+            && strpos($response, 'Certificate not yet due for renewal') === false
+        ) {
+            return false;
+        }
 
         /**
          * If command is successful update site, dump config and restart apache.
          */
-        $dir = '/etc/letsencrypt/live/sonus.demo.startmaestro.com/';
+        $dir = '/etc/letsencrypt/live/' . $domain . '/';
+
         /**
          * Create symlinks.
          */
@@ -204,18 +211,18 @@ class Site extends Record
         /**
          * Update site in impero.
          */
-        /*$this->setAndSave([
+        $this->setAndSave([
                               'ssl'                        => 'letsencrypt',
                               'ssl_certificate_file'       => 'cert.pem',
                               'ssl_certificate_key_file'   => 'privkey.pem',
                               'ssl_certificate_chain_file' => 'fullchain.pem',
                               'ssl_letsencrypt_autorenew'  => true,
-                          ]);*/
+                          ]);
 
         /**
          * Dump virtualhosts and restart apache.
          */
-        //(new DumpVirtualhosts())->executeManually(['--server' => $this->server_id]);
+        (new DumpVirtualhosts())->executeManually(['--server' => $this->server_id]);
     }
 
     public function restartApache()
