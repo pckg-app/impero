@@ -161,8 +161,8 @@ class Site extends Record
         $command = 'sudo /opt/letsencrypt/certbot-auto certonly';
         $email = 'letsencrypt.zero.gonparty.eu@schtr4jh.net';
         $webroot = '/var/www/default/html';
-        $domain = 'demo.startmaestro.com';
-        $domains = 'demo.startmaestro.com,clean.demo.startmaestro.com';
+        $domain = $this->server_name;
+        $domains = collect(explode(' ', $this->document_root))->push($domain)->removeEmpty()->implode(',');
         $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email
                   . ' --webroot-path ' . $webroot . ' --cert-name ' . $domain . ' --domains "'
                   . $domains . '" --apache --expand';
