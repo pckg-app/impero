@@ -192,34 +192,30 @@ class Site extends Record
          * If command is successful update site, dump config and restart apache.
          */
         $dir = '/etc/letsencrypt/live/sonus.demo.startmaestro.com/';
-        d($connection->exec('if test -d "' . $dir . '"; then echo 1; fi'), $connection->exec('if test -f "' . $dir . 'cert.pem' . '"; then echo 1; fi'));
-        dd();
-        if ($connection->dirExists($dir) && $connection->fileExists($dir . 'cert.pem')) {
-            /**
-             * Create symlinks.
-             */
-            $files = ['cert.pem', 'privkey.pem', 'fullchain.pem'];
-            $sslPath = $this->getSslPath();
-            foreach ($files as $file) {
-                $connection->exec('sudo ln -s ' . $dir . $file . ' ' . $sslPath . $file);
-            }
-
-            /**
-             * Update site in impero.
-             */
-            /*$this->setAndSave([
-                                  'ssl'                        => 'letsencrypt',
-                                  'ssl_certificate_file'       => 'cert.pem',
-                                  'ssl_certificate_key_file'   => 'privkey.pem',
-                                  'ssl_certificate_chain_file' => 'fullchain.pem',
-                                  'ssl_letsencrypt_autorenew'  => true,
-                              ]);*/
-
-            /**
-             * Dump virtualhosts and restart apache.
-             */
-            //(new DumpVirtualhosts())->executeManually(['--server' => $this->server_id]);
+        /**
+         * Create symlinks.
+         */
+        $files = ['cert.pem', 'privkey.pem', 'fullchain.pem'];
+        $sslPath = $this->getSslPath();
+        foreach ($files as $file) {
+            $connection->exec('sudo ln -s ' . $dir . $file . ' ' . $sslPath . $file);
         }
+
+        /**
+         * Update site in impero.
+         */
+        /*$this->setAndSave([
+                              'ssl'                        => 'letsencrypt',
+                              'ssl_certificate_file'       => 'cert.pem',
+                              'ssl_certificate_key_file'   => 'privkey.pem',
+                              'ssl_certificate_chain_file' => 'fullchain.pem',
+                              'ssl_letsencrypt_autorenew'  => true,
+                          ]);*/
+
+        /**
+         * Dump virtualhosts and restart apache.
+         */
+        //(new DumpVirtualhosts())->executeManually(['--server' => $this->server_id]);
     }
 
     public function restartApache()
