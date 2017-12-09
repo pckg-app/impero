@@ -163,7 +163,7 @@ password = s0m3p4ssw0rd';*/
 
         $this->server->logCommand('Reading remote ' . $file, null, null, null);
 
-        $sftp = ssh2_sftp($this->connection);
+        $sftp = $this->openSftp();
 
         $stream = @fopen("ssh2.sftp://" . intval($sftp) . $file, 'r');
 
@@ -176,6 +176,11 @@ password = s0m3p4ssw0rd';*/
         @fclose($stream);
 
         return $content;
+    }
+
+    protected function openSftp()
+    {
+        return ssh2_sftp($this->connection);
     }
 
     public function tunnel()
@@ -196,6 +201,20 @@ password = s0m3p4ssw0rd';*/
         }
 
         return $this->tunnelPort;
+    }
+
+    public function dirExists($dir)
+    {
+        $sftp = $this->openSftp();
+
+        return is_dir("ssh2.sftp://" . intval($sftp) . $dir);
+    }
+
+    public function fileExists($file)
+    {
+        $sftp = $this->openSftp();
+
+        return file_exists("ssh2.sftp://" . intval($sftp) . $file);
     }
 
 }
