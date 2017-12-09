@@ -163,7 +163,7 @@ class Site extends Record
         $webroot = '/var/www/default/html';
         $domain = $this->server_name;
         $domains = collect([$domain])->pushArray(explode(' ', $this->document_root))->removeEmpty();
-        
+
         $ip = null;
         $realDomains = [];
         foreach ($domains as $d) {
@@ -191,14 +191,33 @@ class Site extends Record
         /**
          * If command is successful update site, dump config and restart apache.
          */
-        /*$this->setAndSave([
-                              'ssl'                        => 'letsencrypt',
-                              'ssl_certificate_file'       => 'cert.pem',
-                              'ssl_certificate_key_file'   => 'privkey.pem',
-                              'ssl_certificate_chain_file' => 'fullchain.pem',
-                              'ssl_letsencrypt_autorenew'  => true,
-                          ]);
-        $this->restartApache();*/
+        $dir = '/etc/letsencrypt/live/sonus.demo.startmaestro.com/';
+        if ($connection->dirExists($dir) && $connection->fileExists($dir . 'cert.pem')) {
+            /**
+             * Create symlinks.
+             */
+            $files = ['cert.pem', 'privkey.pem', 'fullchain.pem'];
+            $sslPath = $this->getSslPath();
+            foreach ($files as $file) {
+                $connection->exec('sudo ln -s ' . $dir . $file . ' ' . $sslPath . $file);
+            }
+
+            /**
+             * Update site in impero.
+             */
+            /*$this->setAndSave([
+                                  'ssl'                        => 'letsencrypt',
+                                  'ssl_certificate_file'       => 'cert.pem',
+                                  'ssl_certificate_key_file'   => 'privkey.pem',
+                                  'ssl_certificate_chain_file' => 'fullchain.pem',
+                                  'ssl_letsencrypt_autorenew'  => true,
+                              ]);*/
+
+            /**
+             * Dump virtualhosts and restart apache.
+             */
+            //(new DumpVirtualhosts())->executeManually(['--server' => $this->server_id]);
+        }
     }
 
     public function restartApache()
