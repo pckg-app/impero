@@ -8,7 +8,7 @@ class Composer extends AbstractDependency
     public function getVersion()
     {
         $response = $this->getConnection()
-                         ->exec('yarn --version');
+                         ->exec('composer --version');
 
         $versionStart = strpos($response, 'Composer version ') + strlen('Composer version ');
         $versionEnd = strpos($response, ' ', $versionStart);
