@@ -54,6 +54,9 @@
                                                 @click="service.refreshStatus()"><i
                                                     class="fa fa-refresh"></i></button>
                                         ${ service.getStatus() }
+                                        <button class="btn btn-success btn-xs"
+                                                @click="service.install()"
+                                                v-if="!service.isInstalled()"><i class="fa fa-install"></i></button>
                                     </td>
                                 </tr>
                                 </tbody>

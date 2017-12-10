@@ -168,6 +168,14 @@
                 }.bind(this));
             }
 
+            isInstalled() {
+                return true;
+            }
+
+            install() {
+                return true;
+            }
+
             getUrl(type) {
                 if (type == 'refreshServersServiceStatus') {
                     return utils.url('{{ url('impero.servers.refreshServersServiceStatus') }}', {serversService: this.pivot.id});
