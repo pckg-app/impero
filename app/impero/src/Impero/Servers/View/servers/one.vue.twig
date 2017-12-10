@@ -1,6 +1,7 @@
 <script type="text/x-template" id="impero-servers-one-template">
     <div class="impero-servers-one-component">
         <h1>${ server.name } / ${ server.ip } / ${ server.status }</h1>
+        <h6>#web + #db + #cron + #mail</h6>
         <span v-for="tag in server.tags">#${ tag.tag } </span>
 
         <div>

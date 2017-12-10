@@ -5,6 +5,7 @@ use Impero\Dependencies\Dependency\Bower;
 use Impero\Dependencies\Dependency\Composer;
 use Impero\Dependencies\Dependency\Git;
 use Impero\Dependencies\Dependency\Npm;
+use Impero\Dependencies\Dependency\Yarn;
 use Impero\Dependencies\Entity\Dependencies;
 use Impero\Services\Service\SshConnection;
 use Pckg\Concept\Reflect;
@@ -22,6 +23,7 @@ class Dependency extends Record
         'npm'      => Npm::class,
         'git'      => Git::class,
         'bower'    => Bower::class,
+        'yarn'     => Yarn::class,
     ];
 
     public function getHandler(SshConnection $connection)
