@@ -1,29 +1,27 @@
 <?php namespace Impero\Dependencies\Dependency;
 
-class Npm extends AbstractDependency
+class Less extends AbstractDependency
 {
 
-    protected $dependency = 'npm';
+    protected $dependency = 'less';
+
+    protected $via = 'npm';
 
     protected $dependencies = [
-        Node::class,
+        Npm::class,
     ];
 
     public function getVersion()
     {
         $response = $this->getConnection()
-                         ->exec('npm --version');
+                         ->exec('less version');
 
         return $response;
     }
 
     public function getStatus()
     {
-        $outdated = false;
-
-        return $outdated
-            ? 'outdated'
-            : 'ok';
+        return 'ok';
     }
 
 }

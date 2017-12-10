@@ -1,29 +1,27 @@
 <?php namespace Impero\Dependencies\Dependency;
 
-class Npm extends AbstractDependency
+class Webpack extends AbstractDependency
 {
 
-    protected $dependency = 'npm';
+    protected $dependency = 'webpack';
+
+    protected $via = 'npm';
 
     protected $dependencies = [
-        Node::class,
+        Npm::class,
     ];
 
     public function getVersion()
     {
         $response = $this->getConnection()
-                         ->exec('npm --version');
+                         ->exec('webpack version');
 
         return $response;
     }
 
     public function getStatus()
     {
-        $outdated = false;
-
-        return $outdated
-            ? 'outdated'
-            : 'ok';
+        return 'ok';
     }
 
 }

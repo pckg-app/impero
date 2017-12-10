@@ -1,29 +1,27 @@
 <?php namespace Impero\Dependencies\Dependency;
 
-class Npm extends AbstractDependency
+class Curl extends AbstractDependency
 {
 
-    protected $dependency = 'npm';
+    protected $dependency = 'curl';
+
+    protected $install = 'curl';
 
     protected $dependencies = [
-        Node::class,
+        AptTransportHttps::class,
     ];
 
     public function getVersion()
     {
         $response = $this->getConnection()
-                         ->exec('npm --version');
+                         ->exec('curl version');
 
         return $response;
     }
 
     public function getStatus()
     {
-        $outdated = false;
-
-        return $outdated
-            ? 'outdated'
-            : 'ok';
+        return 'ok';
     }
 
 }

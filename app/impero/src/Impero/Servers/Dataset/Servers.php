@@ -70,86 +70,32 @@ class Servers
     public function getServerServices()
     {
         $connection = new SshConnection();
-        $apache = new Apache($connection);
-        $mysql = new Mysql($connection);
-        $ufw = new Ufw($connection);
-        $php = new Php($connection);
-        $phpfpm = new PhpFpm($connection);
-        $nginx = new Nginx($connection);
-        $ssh = new Ssh($connection);
-        $cron = new Cron($connection);
-        $openvpn = new Openvpn($connection);
-        $sendmail = new Sendmail($connection);
-        $pureftpd = new Pureftpd($connection);
 
-        return [
-            [
-                'name'      => 'Apache',
-                'version'   => $apache->getVersion(),
-                'status'    => $apache->getStatus(),
-                'installed' => $apache->isInstalled() ? 'yes' : 'no',
-            ],
-            [
-                'name'      => $php->getName(),
-                'version'   => $php->getVersion(),
-                'status'    => $php->getStatus(),
-                'installed' => $php->isInstalled() ? 'yes' : 'no',
-            ],
-            [
-                'name'      => $phpfpm->getName(),
-                'version'   => $phpfpm->getVersion(),
-                'status'    => $phpfpm->getStatus(),
-                'installed' => $phpfpm->isInstalled() ? 'yes' : 'no',
-            ],
-            [
-                'name'      => $ufw->getName(),
-                'version'   => $ufw->getVersion(),
-                'status'    => $ufw->getStatus(),
-                'installed' => $ufw->isInstalled() ? 'yes' : 'no',
-            ],
-            [
-                'name'      => $mysql->getName(),
-                'version'   => $mysql->getVersion(),
-                'status'    => $mysql->getStatus(),
-                'installed' => $mysql->isInstalled() ? 'yes' : 'no',
-            ],
-            [
-                'name'      => $nginx->getName(),
-                'version'   => $nginx->getVersion(),
-                'status'    => $nginx->getStatus(),
-                'installed' => $nginx->isInstalled() ? 'yes' : 'no',
-            ],
-            [
-                'name'      => $ssh->getName(),
-                'version'   => $ssh->getVersion(),
-                'status'    => $ssh->getStatus(),
-                'installed' => $ssh->isInstalled() ? 'yes' : 'no',
-            ],
-            [
-                'name'      => $cron->getName(),
-                'version'   => $cron->getVersion(),
-                'status'    => $cron->getStatus(),
-                'installed' => $cron->isInstalled() ? 'yes' : 'no',
-            ],
-            [
-                'name'      => $openvpn->getName(),
-                'version'   => $openvpn->getVersion(),
-                'status'    => $openvpn->getStatus(),
-                'installed' => $openvpn->isInstalled() ? 'yes' : 'no',
-            ],
-            [
-                'name'      => $sendmail->getName(),
-                'version'   => $sendmail->getVersion(),
-                'status'    => $sendmail->getStatus(),
-                'installed' => $sendmail->isInstalled() ? 'yes' : 'no',
-            ],
-            [
-                'name'      => $pureftpd->getName(),
-                'version'   => $pureftpd->getVersion(),
-                'status'    => $pureftpd->getStatus(),
-                'installed' => $pureftpd->isInstalled() ? 'yes' : 'no',
-            ],
+        $services = [
+            new Apache($connection),
+            new Mysql($connection),
+            new Ufw($connection),
+            new Php($connection),
+            new PhpFpm($connection),
+            new Nginx($connection),
+            new Ssh($connection),
+            new Cron($connection),
+            new Openvpn($connection),
+            new Sendmail($connection),
+            new Pureftpd($connection),
         ];
+
+        $data = [];
+        foreach ($services as $service) {
+            $data[] = [
+                'name'      => $service->getName(),
+                'version'   => $service->getVersion(),
+                'status'    => $service->getStatus(),
+                'installed' => $service->isInstalled() ? 'yes' : 'no',
+            ];
+        }
+
+        return $data;
     }
 
     public function getServerDependencies()

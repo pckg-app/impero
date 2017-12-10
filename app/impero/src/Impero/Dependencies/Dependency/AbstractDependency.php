@@ -14,6 +14,10 @@ abstract class AbstractDependency implements DependencyInterface
 
     protected $name;
 
+    protected $dependencies = [];
+
+    protected $via = [];
+
     public function getName()
     {
         return $this->name;
@@ -39,6 +43,15 @@ abstract class AbstractDependency implements DependencyInterface
         }
 
         return true;
+    }
+
+    public function install()
+    {
+        if ($this->via == 'apt') {
+            $this->getConnection()->exec('sudo apt-get install -y ' . ($this->install ?? $this->service));
+        } else if ($this->via == 'npm') {
+            $this->getConnection()->exec('sudo npm install -g ' . ($this->install ?? $this->service));
+        }
     }
 
 }
