@@ -56,6 +56,9 @@
                                         <button class="btn btn-success btn-xs"
                                                 @click="service.install()"
                                                 v-if="!service.isInstalled()"><i class="fa fa-plus"></i></button>
+                                        <button class="btn btn-warning btn-xs"
+                                                @click="service.configure()"
+                                                v-else><i class="fa fa-cogs"></i></button>
                                         ${ service.getStatus() }
                                     </td>
                                 </tr>

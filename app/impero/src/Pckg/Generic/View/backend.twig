@@ -178,6 +178,10 @@
                 return true;
             }
 
+            configure() {
+                return true;
+            }
+
             getUrl(type) {
                 if (type == 'refreshServersServiceStatus') {
                     return utils.url('{{ url('impero.servers.refreshServersServiceStatus') }}', {serversService: this.pivot.id});
