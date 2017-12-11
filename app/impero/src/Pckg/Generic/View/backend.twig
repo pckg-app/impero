@@ -162,12 +162,6 @@
 
         Impero.Servers.Record.Service = class extends Pckg.Database.Record {
 
-            refreshStatus() {
-                http.getJSON(this.getUrl('refreshServersServiceStatus'), function (data) {
-                    this.pivot = new Impero.Servers.Record.ServersService(data.serversService);
-                }.bind(this));
-            }
-
             isInstalled() {
                 var status = this.getStatus();
 
