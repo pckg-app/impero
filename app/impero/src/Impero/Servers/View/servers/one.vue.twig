@@ -3,10 +3,6 @@
         <h1>${ server.name } / ${ server.ip } / ${ server.status }</h1>
         <h6>#web + #db + #cron + #mail</h6>
         <span v-for="tag in server.tags">#${ tag.tag } </span>
-        <button class="btn btn-success btn-xs"
-                title="Refresh services"
-                @click="server.refreshServicesStatuses()"><i
-                    class="fa fa-refresh"></i></button>
 
         <div>
             <!-- Nav tabs -->
@@ -38,6 +34,16 @@
             <!-- Tab panes -->
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane" id="services">
+                    <button class="btn btn-success btn-xs"
+                            title="Refresh services"
+                            @click="server.refreshServicesStatuses()"><i
+                                class="fa fa-refresh"></i></button>
+
+                    <button class="btn btn-success btn-xs"
+                            title="Install services"
+                            @click.prevent><i
+                                class="fa fa-plus"></i></button>
+
                     <div class="row">
                         <div class="col-md-6">
                             <h3>Services</h3>
@@ -54,9 +60,6 @@
                                     <td>${ service.name }</td>
                                     <td>${ service.getVersion() }</td>
                                     <td>
-                                        <button class="btn btn-success btn-xs"
-                                                @click="service.install()"
-                                                v-if="!service.isInstalled()"><i class="fa fa-plus"></i></button>
                                         <button class="btn btn-warning btn-xs"
                                                 @click="service.configure()"
                                                 v-else><i class="fa fa-cogs"></i></button>
