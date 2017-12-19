@@ -24,7 +24,8 @@ class DumpVirtualhosts extends Command
 
     public function handle()
     {
-        if ($this->option('server') != 2) {
+        if (!$this->option('server')) {
+            $this->output('No server selected');
             return;
         }
 
