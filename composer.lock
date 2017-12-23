@@ -1608,12 +1608,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/collection.git",
-                "reference": "fc987e283e4471fc2f5857127fe3ed06032a405f"
+                "reference": "bff7be81c865248818cd82f3d7865e22767ecb0c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/collection/zipball/fc987e283e4471fc2f5857127fe3ed06032a405f",
-                "reference": "fc987e283e4471fc2f5857127fe3ed06032a405f",
+                "url": "https://api.github.com/repos/pckg/collection/zipball/bff7be81c865248818cd82f3d7865e22767ecb0c",
+                "reference": "bff7be81c865248818cd82f3d7865e22767ecb0c",
                 "shasum": ""
             },
             "type": "library",
@@ -1637,7 +1637,7 @@
             ],
             "description": "Implementation for more human-like dealing with collections",
             "homepage": "https://github.com/pckg/collection",
-            "time": "2017-11-08T09:50:49+00:00"
+            "time": "2017-12-21T00:01:28+00:00"
         },
         {
             "name": "pckg/concept",
@@ -1725,12 +1725,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/framework.git",
-                "reference": "b7cf500c4ae5ee5a1f986e3a461acb33f38586f0"
+                "reference": "9f1f695056043db8c49a693325bf09a156a148c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/framework/zipball/b7cf500c4ae5ee5a1f986e3a461acb33f38586f0",
-                "reference": "b7cf500c4ae5ee5a1f986e3a461acb33f38586f0",
+                "url": "https://api.github.com/repos/pckg/framework/zipball/9f1f695056043db8c49a693325bf09a156a148c8",
+                "reference": "9f1f695056043db8c49a693325bf09a156a148c8",
                 "shasum": ""
             },
             "require": {
@@ -1766,7 +1766,7 @@
             ],
             "description": "Fully featured lightweight php framework with multilingual support, twig templating engine, and tons of other features.",
             "homepage": "https://github.com/pckg/framework",
-            "time": "2017-12-20T13:16:11+00:00"
+            "time": "2017-12-23T01:22:56+00:00"
         },
         {
             "name": "pckg/generic",
@@ -1774,12 +1774,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/generic.git",
-                "reference": "c81fd90bed31f4384d335c8feb503c74eaa6fe9b"
+                "reference": "d51aeb1fabd236ca5b7c78fb72dc3d7dc68a5ad4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/generic/zipball/c81fd90bed31f4384d335c8feb503c74eaa6fe9b",
-                "reference": "c81fd90bed31f4384d335c8feb503c74eaa6fe9b",
+                "url": "https://api.github.com/repos/pckg/generic/zipball/d51aeb1fabd236ca5b7c78fb72dc3d7dc68a5ad4",
+                "reference": "d51aeb1fabd236ca5b7c78fb72dc3d7dc68a5ad4",
                 "shasum": ""
             },
             "require": {
@@ -1805,7 +1805,7 @@
             ],
             "description": "Building admin interface and generic frontend made simple",
             "homepage": "https://github.com/pckg/generic",
-            "time": "2017-12-20T14:19:12+00:00"
+            "time": "2017-12-23T01:26:32+00:00"
         },
         {
             "name": "pckg/helpers-js",
@@ -1984,12 +1984,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/mail.git",
-                "reference": "17f93863919d08ce24993146fb8e962016fddc4b"
+                "reference": "ef1d8187918764b36991a67694937a77ef576c2e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/mail/zipball/17f93863919d08ce24993146fb8e962016fddc4b",
-                "reference": "17f93863919d08ce24993146fb8e962016fddc4b",
+                "url": "https://api.github.com/repos/pckg/mail/zipball/ef1d8187918764b36991a67694937a77ef576c2e",
+                "reference": "ef1d8187918764b36991a67694937a77ef576c2e",
                 "shasum": ""
             },
             "require": {
@@ -2015,7 +2015,7 @@
             ],
             "description": "Sending mail via local mail server, smtp or api; global implementation of recipients and senders; subscriptions for mailchimp; made simple :)",
             "homepage": "https://github.com/pckg/mail",
-            "time": "2017-12-01T12:28:18+00:00"
+            "time": "2017-12-23T01:23:25+00:00"
         },
         {
             "name": "pckg/manager",
@@ -2145,12 +2145,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/queue.git",
-                "reference": "9e97ce2167d2cfefbf67cba5ecfe198942365cdf"
+                "reference": "0541a87dbfc0007776cdf4db5c31cbd90fc3c7de"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/queue/zipball/9e97ce2167d2cfefbf67cba5ecfe198942365cdf",
-                "reference": "9e97ce2167d2cfefbf67cba5ecfe198942365cdf",
+                "url": "https://api.github.com/repos/pckg/queue/zipball/0541a87dbfc0007776cdf4db5c31cbd90fc3c7de",
+                "reference": "0541a87dbfc0007776cdf4db5c31cbd90fc3c7de",
                 "shasum": ""
             },
             "type": "library",
@@ -2173,7 +2173,7 @@
             ],
             "description": "Queue, cronjobs and tasks simplified",
             "homepage": "https://github.com/pckg/queue",
-            "time": "2017-11-08T10:36:52+00:00"
+            "time": "2017-12-21T00:02:05+00:00"
         },
         {
             "name": "pckg/tempus",
@@ -2761,12 +2761,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpspec/prophecy.git",
-                "reference": "3d0b3928bb1f6b1046a4547e96da9397a165f10e"
+                "reference": "9a84d1c09fbf7918e9d3cf998b83ecbf7555261d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpspec/prophecy/zipball/3d0b3928bb1f6b1046a4547e96da9397a165f10e",
-                "reference": "3d0b3928bb1f6b1046a4547e96da9397a165f10e",
+                "url": "https://api.github.com/repos/phpspec/prophecy/zipball/9a84d1c09fbf7918e9d3cf998b83ecbf7555261d",
+                "reference": "9a84d1c09fbf7918e9d3cf998b83ecbf7555261d",
                 "shasum": ""
             },
             "require": {
@@ -2778,7 +2778,7 @@
             },
             "require-dev": {
                 "phpspec/phpspec": "^2.5|^3.2",
-                "phpunit/phpunit": "^4.8.35 || ^5.7"
+                "phpunit/phpunit": "^4.8.35 || ^5.7 || ^6.5"
             },
             "type": "library",
             "extra": {
@@ -2816,7 +2816,7 @@
                 "spy",
                 "stub"
             ],
-            "time": "2017-12-07T16:59:59+00:00"
+            "time": "2017-12-21T16:59:48+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -4799,12 +4799,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "bb3ef65d493a6d57297cad6c560ee04e2a8f5098"
+                "reference": "0e37081da6aec1d7063e95280c7ca53999fadf8b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/bb3ef65d493a6d57297cad6c560ee04e2a8f5098",
-                "reference": "bb3ef65d493a6d57297cad6c560ee04e2a8f5098",
+                "url": "https://api.github.com/repos/symfony/process/zipball/0e37081da6aec1d7063e95280c7ca53999fadf8b",
+                "reference": "0e37081da6aec1d7063e95280c7ca53999fadf8b",
                 "shasum": ""
             },
             "require": {
@@ -4840,7 +4840,7 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "https://symfony.com",
-            "time": "2017-12-14T19:40:10+00:00"
+            "time": "2017-12-22T22:00:09+00:00"
         },
         {
             "name": "symfony/translation",
