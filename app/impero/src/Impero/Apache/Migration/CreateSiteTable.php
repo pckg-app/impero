@@ -30,6 +30,11 @@ class CreateSiteTable extends Migration
 
         $siteTable->timeable();
 
+        $siteServers = $this->table('site_servers');
+        $siteServers->integer('site_id')->references('sites');
+        $siteServers->integer('server_id')->references('servers');
+        $siteServers->varchar('type'); // web:dynamic, web:static, loadbalancer, mysql:master, mysql:slave, data
+
         $this->save();
     }
 
