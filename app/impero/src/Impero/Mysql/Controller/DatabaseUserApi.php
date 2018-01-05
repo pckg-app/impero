@@ -26,6 +26,11 @@ class DatabaseUserApi extends Controller
         $server = Server::gets(['id' => $data['server_id']]);
         $database = Database::gets(['id' => $data['database'], 'server_id' => $data['server_id']]);
 
+        if (!$database) {
+            throw new \Exception('Database with set id doesnt exist');
+        }
+        $data['database'] = $database['name'];
+
         /**
          * Get ssh and mysql connection.
          */
