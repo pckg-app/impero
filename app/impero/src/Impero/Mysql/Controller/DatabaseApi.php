@@ -50,7 +50,7 @@ class DatabaseApi extends Controller
 
     public function postSearchAction()
     {
-        $server = post('server');
+        $server = post('server_id');
         $databaseName = post('name');
 
         $database = Database::gets([
