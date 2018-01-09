@@ -50,7 +50,7 @@ class MysqlConnection
         }
 
         $prepared = $this->pdo->prepare($sql);
-        $i = 0;
+        $i = 1;
         foreach ($binds as $bind) {
             $prepared->bindValue($i, $bind);
             $i++;
