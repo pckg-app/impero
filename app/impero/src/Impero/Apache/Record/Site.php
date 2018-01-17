@@ -160,9 +160,9 @@ class Site extends Record
          */
         $command = 'sudo /opt/letsencrypt/certbot-auto certonly';
         $email = 'letsencrypt.zero.gonparty.eu@schtr4jh.net';
-        $webroot = '/var/www/default/html';
+        $webroot = '/var/www/default';
         $domain = $this->server_name;
-        $domains = collect([$domain])->pushArray(explode(' ', $this->document_root))->removeEmpty();
+        $domains = collect([$domain])->pushArray(explode(' ', $this->document_root))->unique()->removeEmpty();
 
         $ip = null;
         $realDomains = [];
@@ -180,7 +180,7 @@ class Site extends Record
         $realDomains = implode(',', $realDomains);
         $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email
                   . ' --webroot-path ' . $webroot . ' --cert-name ' . $domain . ' --domains "'
-                  . $realDomains . '" --apache --expand';
+                  . $realDomains . '" --webroot --expand';
 
         /**
          * Execute command.
