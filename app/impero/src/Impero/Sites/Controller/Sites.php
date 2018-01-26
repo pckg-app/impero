@@ -75,4 +75,25 @@ class Sites
         return ['success' => true];
     }
 
+    public function postHasSiteDirAction(Site $site)
+    {
+        return [
+            'hasSiteDir' => $site->hasSiteDir(post('dir')),
+        ];
+    }
+
+    public function postHasRootDirAction(Site $site)
+    {
+        return [
+            'hasSiteDir' => $site->hasRootDir(post('dir')),
+        ];
+    }
+
+    public function postHasSiteSymlinkAction(Site $site)
+    {
+        return [
+            'hasSiteDir' => $site->hasSiteSymlink(post('symlink')),
+        ];
+    }
+
 }

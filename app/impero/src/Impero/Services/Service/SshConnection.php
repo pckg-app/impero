@@ -217,4 +217,11 @@ password = s0m3p4ssw0rd';*/
         return file_exists("ssh2.sftp://" . intval($sftp) . $file);
     }
 
+    public function symlinkExists($symlink)
+    {
+        $sftp = $this->openSftp();
+
+        return is_link("ssh2.sftp://" . intval($sftp) . $symlink);
+    }
+
 }
