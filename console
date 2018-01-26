@@ -4,8 +4,10 @@
 /**
  * Simply require console entry point, framework will take care of things.
  */
-try {
-    require_once "vendor/pckg/framework/src/console.php";
-} catch (Exception $e) {
-    dd(exception($e));
+if (isset($_SERVER['PHP_SELF']) && strpos($_SERVER['PHP_SELF'], '/') === 0) {
+    define('__ROOT__', dirname($_SERVER['PHP_SELF']) . '/');
+} else {
+    define('__ROOT__', dirname(__FILE__) . '/');
 }
+
+require_once __ROOT__ . 'vendor/pckg/framework/src/console.php';
