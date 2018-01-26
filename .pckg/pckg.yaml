@@ -1,42 +1,57 @@
 repository: git@github.com:pckg-app/impero.git
 branch: master
+services:
+  storage:
+    dir:
+      - storage
+      - storage/cache
+      - storage/cache/framework
+      - storage/cache/view
+  web:
+    https: true
+  cron:
+    commands:
+      sth:
+        command: php $webDirconsole cron:run >> $logsDircron.log
+
+checkout:
+  type: standalone
 
 init:
-  # install dependencies
-  - composer install --no-dev --prefer-dist
-  - bower install
-  - npm install
+  - composer install --no-dev --prefer-dist --no-progress --no-suggest --optimize-autoloader --ignore-platform-reqs
+  - yarn install --production --silent
 
-  # initial init of project, create framework directories
-
-  # chown to impero:www-data
-  - sudo chown impero:www-data . -R
+prepare:
+  # chown to www-data:impero
+  - sudo chown www-data:impero . -R
 
   # chown storage to www-data
   - sudo chown www-data:www-data storage -R
 
 deploy:
-  # put project down
-  #- php console project:down
-
-  # pull changes from git
+  # pull changes
   - git pull --ff
 
   # install dependency changes
   - composer install --no-dev --prefer-dist --no-progress --no-suggest --optimize-autoloader --ignore-platform-reqs
   - yarn install --production --silent
 
+migrate:
   # import translations
-  #- php console impero translator:import
+  #- php console $app translator:import
+
+  # import generic data
+  #- php console $app generic:import-actions
+  #- php console $app generic:import-lists
 
   # clear cache
   #- php console cache:clear
 
   # install migrations
-  #- php console impero migrator:install
+  #- php console $app migrator:install --repository=default --fields --yes
+
+  # upgrade slugs
+  # - php console $app translator:upgrade-slugs
 
   # clear cache
   - php console cache:clear
-
-  # put project up
-  #- php console project:up
