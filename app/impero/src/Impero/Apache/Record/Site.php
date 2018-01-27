@@ -175,6 +175,7 @@ class Site extends Record
 
         $ip = null;
         $realDomains = [];
+        $skipped = [];
         foreach ($domains as $d) {
             $i = gethostbyname($d);
             if (!$ip) {
@@ -183,6 +184,7 @@ class Site extends Record
                 /**
                  * Skip domains on invalid ip.
                  */
+                $skipped[] = $d;
                 continue;
             }
 
@@ -192,6 +194,11 @@ class Site extends Record
         $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email
                   . ' --webroot-path ' . $webroot . ' --cert-name ' . $domain . ' --domains "'
                   . $realDomains . '" --webroot --expand';
+
+        if ($skipped) {
+            $this->server->logCommand('Skipping obtaining certificate for domains ' . collect($skipped)->implode(', '),
+                                      null, null, null);
+        }
 
         /**
          * Execute command.
