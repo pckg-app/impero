@@ -177,10 +177,12 @@ class Site extends Record
         $realDomains = [];
         foreach ($domains as $d) {
             $i = gethostbyname($d);
-
             if (!$ip) {
                 $ip = $i;
             } elseif ($i != $ip) {
+                /**
+                 * Skip domains on invalid ip.
+                 */
                 continue;
             }
 
@@ -214,6 +216,10 @@ class Site extends Record
         $files = ['cert.pem', 'privkey.pem', 'fullchain.pem'];
         $sslPath = $this->getSslPath();
         foreach ($files as $file) {
+            if ($connection->symlinkExists($sslPath . $file)) {
+                continue;
+            }
+
             $connection->exec('sudo ln -s ' . $dir . $file . ' ' . $sslPath . $file);
         }
 
