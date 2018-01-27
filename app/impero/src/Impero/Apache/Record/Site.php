@@ -171,7 +171,7 @@ class Site extends Record
         $email = 'letsencrypt.zero.gonparty.eu@schtr4jh.net';
         $webroot = '/var/www/default';
         $domain = $this->server_name;
-        $domains = collect([$domain])->pushArray(explode(' ', $this->document_root))->unique()->removeEmpty();
+        $domains = collect([$domain])->pushArray(explode(' ', $this->server_alias))->unique()->removeEmpty();
 
         $ip = null;
         $realDomains = [];
