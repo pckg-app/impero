@@ -179,6 +179,9 @@ class Site extends Record
         foreach ($domains as $d) {
             $i = gethostbyname($d);
             if (!$ip) {
+                /**
+                 * First ip is real ip.
+                 */
                 $ip = $i;
             } elseif ($i != $ip) {
                 /**
@@ -196,8 +199,13 @@ class Site extends Record
                   . $realDomains . '" --webroot --expand';
 
         if ($skipped) {
-            $this->server->logCommand('Skipping obtaining certificate for domains ' . collect($skipped)->implode(', '),
-                                      null, null, null);
+            $this->server->logCommand('Skipping obtaining certificate(s) for domains ' .
+                                      collect($skipped)->implode(', ') . ' on ip ' . $ip, null, null, null);
+        }
+
+        if ($realDomains) {
+            $this->server->logCommand('Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') .
+                                      ' on ip ' . $ip, null, null, null);
         }
 
         /**
