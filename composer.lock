@@ -1726,12 +1726,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/framework.git",
-                "reference": "8617626b8c88f8cbc0b13fdfd7dccd55a37b3c54"
+                "reference": "5511c48a106e678a26062f063b846f2e2ab5ef0c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/framework/zipball/8617626b8c88f8cbc0b13fdfd7dccd55a37b3c54",
-                "reference": "8617626b8c88f8cbc0b13fdfd7dccd55a37b3c54",
+                "url": "https://api.github.com/repos/pckg/framework/zipball/5511c48a106e678a26062f063b846f2e2ab5ef0c",
+                "reference": "5511c48a106e678a26062f063b846f2e2ab5ef0c",
                 "shasum": ""
             },
             "require": {
@@ -1767,7 +1767,7 @@
             ],
             "description": "Fully featured lightweight php framework with multilingual support, twig templating engine, and tons of other features.",
             "homepage": "https://github.com/pckg/framework",
-            "time": "2018-01-26T23:08:58+00:00"
+            "time": "2018-01-27T16:36:03+00:00"
         },
         {
             "name": "pckg/generic",
@@ -1775,12 +1775,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/generic.git",
-                "reference": "f7bc6dcf454d99209c3373dd18c0666418566406"
+                "reference": "7b89ddc56588f47cc4fa258f0436e6492067158e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/generic/zipball/f7bc6dcf454d99209c3373dd18c0666418566406",
-                "reference": "f7bc6dcf454d99209c3373dd18c0666418566406",
+                "url": "https://api.github.com/repos/pckg/generic/zipball/7b89ddc56588f47cc4fa258f0436e6492067158e",
+                "reference": "7b89ddc56588f47cc4fa258f0436e6492067158e",
                 "shasum": ""
             },
             "require": {
@@ -1806,7 +1806,7 @@
             ],
             "description": "Building admin interface and generic frontend made simple",
             "homepage": "https://github.com/pckg/generic",
-            "time": "2018-01-26T11:39:02+00:00"
+            "time": "2018-01-27T14:44:51+00:00"
         },
         {
             "name": "pckg/helpers-js",
@@ -1985,12 +1985,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/mail.git",
-                "reference": "d4d1d39d205339943fcb505a564a44edd3a6592e"
+                "reference": "51258ee9d8ab6cb055f27900996dab01e784bae7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/mail/zipball/d4d1d39d205339943fcb505a564a44edd3a6592e",
-                "reference": "d4d1d39d205339943fcb505a564a44edd3a6592e",
+                "url": "https://api.github.com/repos/pckg/mail/zipball/51258ee9d8ab6cb055f27900996dab01e784bae7",
+                "reference": "51258ee9d8ab6cb055f27900996dab01e784bae7",
                 "shasum": ""
             },
             "require": {
@@ -2016,7 +2016,7 @@
             ],
             "description": "Sending mail via local mail server, smtp or api; global implementation of recipients and senders; subscriptions for mailchimp; made simple :)",
             "homepage": "https://github.com/pckg/mail",
-            "time": "2018-01-24T14:46:40+00:00"
+            "time": "2018-01-27T14:12:14+00:00"
         },
         {
             "name": "pckg/manager",
@@ -2024,12 +2024,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/manager.git",
-                "reference": "a3229e866154a0060ba9caa665787675091da817"
+                "reference": "077008e04119253959f3008a32bc037a85ab96db"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/manager/zipball/a3229e866154a0060ba9caa665787675091da817",
-                "reference": "a3229e866154a0060ba9caa665787675091da817",
+                "url": "https://api.github.com/repos/pckg/manager/zipball/077008e04119253959f3008a32bc037a85ab96db",
+                "reference": "077008e04119253959f3008a32bc037a85ab96db",
                 "shasum": ""
             },
             "require": {
@@ -2053,7 +2053,7 @@
             ],
             "description": "Asset management, meta / seo, locale, vue.js and everything else that projects need to manage",
             "homepage": "https://github.com/pckg/manager",
-            "time": "2018-01-23T15:50:51+00:00"
+            "time": "2018-01-27T10:46:04+00:00"
         },
         {
             "name": "pckg/migrator",
