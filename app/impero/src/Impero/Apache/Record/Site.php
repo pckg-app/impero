@@ -231,7 +231,7 @@ class Site extends Record
         /**
          * Dump virtualhosts and restart apache.
          */
-        (new DumpVirtualhosts())->executeManually(['--server' => $this->server_id]);
+        $this->restartApache();
     }
 
     public function restartApache()

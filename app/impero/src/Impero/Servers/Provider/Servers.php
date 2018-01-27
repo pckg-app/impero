@@ -87,6 +87,10 @@ class Servers extends Provider
                                            ->resolvers([
                                                            'site' => Site::class,
                                                        ]),
+                                       '.setDomain'      => (new Route('/[site]/set-domain', 'setDomain'))
+                                           ->resolvers([
+                                                           'site' => Site::class,
+                                                       ]),
                                        '.letsencrypt'    => (new Route('/[site]/letsencrypt', 'letsencrypt'))
                                            ->resolvers([
                                                            'site' => Site::class,

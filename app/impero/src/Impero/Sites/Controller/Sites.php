@@ -1,6 +1,6 @@
 <?php namespace Impero\Sites\Controller;
 
-use Impero\Apache\Console\DumpVirtualhosts;
+use Exception;
 use Impero\Apache\Record\Site;
 
 class Sites
@@ -22,7 +22,7 @@ class Sites
                              ]);
 
         $site->createOnFilesystem();
-        (new DumpVirtualhosts())->executeManually(['--server' => $data['server_id']]);
+        $site->restartApache();
 
         return [
             'site' => $site,
@@ -93,6 +93,25 @@ class Sites
     {
         return [
             'hasSiteDir' => $site->hasSiteSymlink(post('symlink')),
+        ];
+    }
+
+    public function postSetDomainAction(Site $site)
+    {
+        $domain = post('domain', null);
+        $domains = post('domains', null);
+
+        if (!$domain) {
+            throw new Exception('Domain is required');
+        }
+
+        $site->setAndSave(['server_name' => $domain, 'server_alias' => $domains]);
+        if (post('restart_apache')) {
+            $site->restartApache();
+        }
+
+        return [
+            'site' => $site,
         ];
     }
 
