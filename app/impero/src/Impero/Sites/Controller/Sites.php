@@ -40,8 +40,7 @@ class Sites
         foreach ($commands as $command) {
             $output = null;
             $error = null;
-            $output = $connection->exec($command, $error, $site->getHtdocsPath());
-            //d($output, $error);
+            $output = $connection->exec($command, $error, $site->getHtdocsPath() . post('cd', null));
         }
         $connection->close();
 
@@ -74,6 +73,27 @@ class Sites
         $site->addCronjob(post('command'));
 
         return ['success' => true];
+    }
+
+    public function postHasSiteDirAction(Site $site)
+    {
+        return [
+            'hasSiteDir' => $site->hasSiteDir(post('dir')),
+        ];
+    }
+
+    public function postHasRootDirAction(Site $site)
+    {
+        return [
+            'hasSiteDir' => $site->hasRootDir(post('dir')),
+        ];
+    }
+
+    public function postHasSiteSymlinkAction(Site $site)
+    {
+        return [
+            'hasSiteDir' => $site->hasSiteSymlink(post('symlink')),
+        ];
     }
 
 }

@@ -2,12 +2,21 @@
 
 use Impero\Apache\Console\DumpVirtualhosts;
 use Impero\Apache\Entity\Sites;
+use Impero\Services\Service\SshConnection;
 use Pckg\Database\Record;
 
 class Site extends Record
 {
 
     protected $entity = Sites::class;
+
+    /**
+     * @return SshConnection
+     */
+    public function getServerConnection()
+    {
+        return $this->server->getConnection();
+    }
 
     /**
      * Build edit url.
@@ -40,7 +49,7 @@ class Site extends Record
 
     public function createOnFilesystem()
     {
-        $connection = $this->server->getConnection();
+        $connection = $this->getServerConnection();
 
         $connection->exec('mkdir -p ' . $this->getHtdocsPath());
         $connection->exec('mkdir -p ' . $this->getLogPath());
@@ -136,7 +145,7 @@ class Site extends Record
          * Get current cronjob configuration.
          */
         $cronjobFile = '/backup/run-cronjobs.sh';
-        $connection = $this->server->getConnection();
+        $connection = $this->getServerConnection();
         $currentCronjob = $connection->sftpRead($cronjobFile);
         $cronjobs = explode("\n", $currentCronjob);
 
@@ -185,7 +194,7 @@ class Site extends Record
         /**
          * Execute command.
          */
-        $connection = $this->server->getConnection();
+        $connection = $this->getServerConnection();
         $response = $connection->exec($command . ' ' . $params);
 
         if (strpos($response, 'Congratulations! Your certificate and chain have been saved at:') === false
@@ -228,6 +237,27 @@ class Site extends Record
     public function restartApache()
     {
         (new DumpVirtualhosts())->executeManually(['--server' => $this->server_id]);
+    }
+
+    public function hasSiteDir($dir)
+    {
+        $connection = $this->getServerConnection();
+
+        return $connection->dirExists($this->getHtdocsPath() . $dir);
+    }
+
+    public function hasRootDir($dir)
+    {
+        $connection = $this->getServerConnection();
+
+        return $connection->dirExists($dir);
+    }
+
+    public function hasSiteSymlink($symlink)
+    {
+        $connection = $this->getServerConnection();
+
+        return $connection->symlinkExists($symlink);
     }
 
 }
