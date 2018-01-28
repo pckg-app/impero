@@ -92,14 +92,14 @@ class Sites
     public function postHasRootDirAction(Site $site)
     {
         return [
-            'hasSiteDir' => $site->hasRootDir(post('dir')),
+            'hasRootDir' => $site->hasRootDir(post('dir')),
         ];
     }
 
     public function postHasSiteSymlinkAction(Site $site)
     {
         return [
-            'hasSiteDir' => $site->hasSiteSymlink(post('symlink')),
+            'hasSiteSymlink' => $site->hasSiteSymlink(post('symlink')),
         ];
     }
 
