@@ -203,7 +203,7 @@ class Site extends Record
             $this->server->logCommand('Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') .
                                       ' on ip ' . $ip, null, null, null);
         }
-        
+
         $realDomains = implode(',', $realDomains);
         $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email
                   . ' --webroot-path ' . $webroot . ' --cert-name ' . $domain . ' --domains "'

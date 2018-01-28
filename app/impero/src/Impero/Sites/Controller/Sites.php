@@ -6,7 +6,14 @@ use Impero\Apache\Record\Site;
 class Sites
 {
 
-    public function postSiteAction()
+    public function getSiteAction(Site $site)
+    {
+        return [
+            'site' => $site,
+        ];
+    }
+
+    public function postCreateAction()
     {
         $data = only(post()->all(), ['user_id', 'server_id', 'name', 'aliases', 'ssl']);
 

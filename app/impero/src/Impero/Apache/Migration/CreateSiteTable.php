@@ -13,7 +13,7 @@ class CreateSiteTable extends Migration
         $siteTable->integer('user_id')->references('users', 'id');
 
         $siteTable->varchar('server_name', 128)->required();
-        $siteTable->varchar('server_alias', 255)->nullable();
+        $siteTable->text('server_alias')->nullable();
         $siteTable->varchar('document_root', 255)->required();
 
         $siteTable->varchar('ssl', 16)->nullable();
