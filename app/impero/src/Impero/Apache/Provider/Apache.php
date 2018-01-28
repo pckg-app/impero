@@ -22,8 +22,8 @@ class Apache extends Provider
 
             (new Group([
                            'controller' => Sites::class,
-                           'urlPrefix'  => '/api/sites',
-                           'namePrefix' => 'api.impero.sites',
+                           'urlPrefix'  => '/api/site',
+                           'namePrefix' => 'api.impero.site',
                        ]))->routes([
                                        '.cronjob' => (new Route('/[site]/cronjob', 'cronjob'))
                                            ->resolvers([
