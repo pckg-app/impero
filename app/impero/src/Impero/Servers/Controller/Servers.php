@@ -269,4 +269,11 @@ class Servers
                                               ]);
     }
 
+    public function postCronjobAction(Server $server)
+    {
+        $server->addCronjob(post('command'));
+
+        return ['success' => true];
+    }
+
 }

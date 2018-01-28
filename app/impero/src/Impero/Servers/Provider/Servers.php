@@ -74,6 +74,15 @@ class Servers extends Provider
                                                                                                                     ]),
                                    ]),
             (new Group([
+                           'controller' => ServersController::class,
+                           'urlPrefix'  => '/api/server',
+                           'namePrefix' => 'api.server',
+                       ]))->routes([
+                                       '.cronjob' => (new Route('/[server]/cronjob', 'cronjob'))->resolvers([
+                                                                                                                'server' => Server::class,
+                                                                                                            ]),
+                                   ]),
+            (new Group([
                            'controller' => Sites::class,
                            'urlPrefix'  => '/api/site',
                            'namePrefix' => 'api.impero.site',

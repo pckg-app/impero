@@ -101,4 +101,25 @@ class Server extends Record
                                      ]);
     }
 
+    public function addCronjob($command)
+    {
+        /**
+         * Get current cronjob configuration.
+         */
+        $cronjobFile = '/backup/run-cronjobs.sh';
+        $connection = $this->getConnection();
+        $currentCronjob = $connection->sftpRead($cronjobFile);
+        $cronjobs = explode("\n", $currentCronjob);
+
+        /**
+         * Check for existance.
+         */
+        if (!in_array($command, $cronjobs)) {
+            /**
+             * Add to file if nonexistent.
+             */
+            $connection->exec('sudo echo "' . $command . '" >> ' . $cronjobFile);
+        }
+    }
+
 }

@@ -141,23 +141,7 @@ class Site extends Record
 
     public function addCronjob($command)
     {
-        /**
-         * Get current cronjob configuration.
-         */
-        $cronjobFile = '/backup/run-cronjobs.sh';
-        $connection = $this->getServerConnection();
-        $currentCronjob = $connection->sftpRead($cronjobFile);
-        $cronjobs = explode("\n", $currentCronjob);
-
-        /**
-         * Check for existance.
-         */
-        if (!in_array($command, $cronjobs)) {
-            /**
-             * Add to file if nonexistent.
-             */
-            $connection->exec('sudo echo "' . $command . '" >> ' . $cronjobFile);
-        }
+        $this->server->addCronjob($command);
     }
 
     public function letsencrypt()
