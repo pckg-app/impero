@@ -487,7 +487,7 @@ class Site extends Record
          */
         $hasSiteDir = $connection->dirExists($siteStoragePath);
         if (!$hasSiteDir) {
-            $connection->exec('mkdir -p ' . $siteStoragePath);
+            $connection->makeAndAllow($siteStoragePath);
         }
 
         foreach ($pckg['services']['storage']['dir'] ?? [] as $storageDir) {
@@ -505,7 +505,11 @@ class Site extends Record
                  * Existing dirs are copied to storage server.
                  * Recreation is skipped.
                  */
-                $connection->exec('mkdir -p ' . $siteStoragePath . $storageDir);
+                $connection->makeAndAllow($siteStoragePath . $storageDir);
+
+                /**
+                 * Transfer contents.
+                 */
                 $connection->exec('rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath .
                                   $storageDir . '/ --stats');
                 continue;
@@ -514,7 +518,7 @@ class Site extends Record
             /**
              * Create $storageDir directory in site's directory on storage server.
              */
-            $connection->exec('mkdir -p ' . $siteStoragePath . $storageDir);
+            $connection->makeAndAllow($siteStoragePath . $storageDir);
         }
 
         /**
