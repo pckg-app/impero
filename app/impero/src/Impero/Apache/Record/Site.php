@@ -407,12 +407,11 @@ class Site extends Record
                         : null);
         }
         foreach ($pckg['services']['web']['mount'] ?? [] as $link => $dir) {
-            $parsed = $this->replaceVars($storageDir . $link);
-            $checks['dirs'][$link] = $connection->symlinkExists($link)
+            $checks['dirs'][$storageDir . $link] = $connection->symlinkExists($storageDir . $link)
                 ? 'ok:symlink'
-                : ($connection->dirExists($link)
+                : ($connection->dirExists($storageDir . $link)
                     ? 'dir'
-                    : $connection->fileExists($link)
+                    : $connection->fileExists($storageDir . $link)
                         ? 'file'
                         : null);
         }
