@@ -350,6 +350,71 @@ class Site extends Record
         $connection->exec('mkdir ' . $this->getHtdocsPath());
     }
 
+    public function check($pckg)
+    {
+        /**
+         * Checks:
+         *  - htdocs path exists
+         */
+        $htdocsDir = $this->getHtdocsPath();
+        $storageDir = $this->getStorageDir();
+        $checks = [];
+        $connection = $this->getServerConnection();
+
+        $checkDirs = [$htdocsDir, $storageDir];
+        foreach ($checkDirs as $dir) {
+            $checks['dirs'][] = $connection->dirExists($dir) ? 'dir' : null;
+        }
+
+        foreach ($pckg['checkout']['create']['dir'] ?? [] as $dir) {
+            $checks['dirs'][$storageDir . $dir] = $connection->symlinkExists($htdocsDir . $dir)
+                ? 'symlink'
+                : ($connection->dirExists($htdocsDir . $dir)
+                    ? 'dir'
+                    : $connection->fileExists($htdocsDir . $dir)
+                        ? 'file'
+                        : null);
+        }
+        foreach ($pckg['checkout']['symlink']['dir'] ?? [] as $dir) {
+            $checks['dirs'][$storageDir . $dir] = $connection->symlinkExists($htdocsDir . $dir)
+                ? 'symlink'
+                : ($connection->dirExists($htdocsDir . $dir)
+                    ? 'dir'
+                    : $connection->fileExists($htdocsDir . $dir)
+                        ? 'file'
+                        : null);
+        }
+        foreach ($pckg['checkout']['symlink']['file'] ?? [] as $dir) {
+            $checks['dirs'][$storageDir . $dir] = $connection->symlinkExists($htdocsDir . $dir)
+                ? 'symlink'
+                : ($connection->dirExists($htdocsDir . $dir)
+                    ? 'dir'
+                    : $connection->fileExists($htdocsDir . $dir)
+                        ? 'file'
+                        : null);
+        }
+        foreach ($pckg['services']['storage']['dir'] ?? [] as $dir) {
+            $checks['dirs'][$storageDir . $dir] = $connection->symlinkExists($storageDir . $dir)
+                ? 'symlink'
+                : ($connection->dirExists($storageDir . $dir)
+                    ? 'dir'
+                    : $connection->fileExists($storageDir . $dir)
+                        ? 'file'
+                        : null);
+        }
+        foreach ($pckg['services']['web']['mount'] ?? [] as $dir) {
+            $checks['dirs'][$storageDir . $dir] = $connection->symlinkExists($storageDir . $dir)
+                ? 'symlink'
+                : ($connection->dirExists($storageDir . $dir)
+                    ? 'dir'
+                    : $connection->fileExists($storageDir . $dir)
+                        ? 'file'
+                        : null);
+        }
+
+        return $checks;
+    }
+
     public function redeploy($pckg, $vars)
     {
         $this->vars = $vars;

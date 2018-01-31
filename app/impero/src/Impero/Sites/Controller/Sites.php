@@ -131,4 +131,9 @@ class Sites
         ];
     }
 
+    public function postCheckAction(Site $site)
+    {
+        return ['check' => $site->check(post('pckg'))];
+    }
+
 }
