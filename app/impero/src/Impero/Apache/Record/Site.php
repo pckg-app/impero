@@ -363,7 +363,7 @@ class Site extends Record
 
         $checkDirs = [$htdocsDir, $storageDir];
         foreach ($checkDirs as $dir) {
-            $checks['dirs'][] = $connection->dirExists($dir) ? 'dir' : null;
+            $checks['dirs'][$dir] = $connection->dirExists($dir) ? 'dir' : null;
         }
 
         foreach ($pckg['checkout']['create']['dir'] ?? [] as $dir) {
