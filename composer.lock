@@ -1609,12 +1609,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/collection.git",
-                "reference": "7531d3e5a921e5c8c3ccc803570a924568b338f2"
+                "reference": "15b6b2da3f897b849e4728ba12613d2d4a0fc5a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/collection/zipball/7531d3e5a921e5c8c3ccc803570a924568b338f2",
-                "reference": "7531d3e5a921e5c8c3ccc803570a924568b338f2",
+                "url": "https://api.github.com/repos/pckg/collection/zipball/15b6b2da3f897b849e4728ba12613d2d4a0fc5a1",
+                "reference": "15b6b2da3f897b849e4728ba12613d2d4a0fc5a1",
                 "shasum": ""
             },
             "type": "library",
@@ -1638,7 +1638,7 @@
             ],
             "description": "Implementation for more human-like dealing with collections",
             "homepage": "https://github.com/pckg/collection",
-            "time": "2018-01-27T00:24:34+00:00"
+            "time": "2018-01-30T12:13:57+00:00"
         },
         {
             "name": "pckg/concept",
@@ -1646,12 +1646,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/concept.git",
-                "reference": "d4e39b89b45f2c0be55841eda2a9dbbf5f0af822"
+                "reference": "3726bc32183daed5cfc0a2c4440dcb8d80aa5cde"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/concept/zipball/d4e39b89b45f2c0be55841eda2a9dbbf5f0af822",
-                "reference": "d4e39b89b45f2c0be55841eda2a9dbbf5f0af822",
+                "url": "https://api.github.com/repos/pckg/concept/zipball/3726bc32183daed5cfc0a2c4440dcb8d80aa5cde",
+                "reference": "3726bc32183daed5cfc0a2c4440dcb8d80aa5cde",
                 "shasum": ""
             },
             "type": "library",
@@ -1675,7 +1675,7 @@
             ],
             "description": "Simple php concepts",
             "homepage": "https://github.com/pckg/concept",
-            "time": "2018-01-26T11:38:35+00:00"
+            "time": "2018-01-29T14:16:10+00:00"
         },
         {
             "name": "pckg/database",
@@ -1775,12 +1775,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/generic.git",
-                "reference": "7b89ddc56588f47cc4fa258f0436e6492067158e"
+                "reference": "308c0986bd2dd27554cdd55ccb9958187d4f5517"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/generic/zipball/7b89ddc56588f47cc4fa258f0436e6492067158e",
-                "reference": "7b89ddc56588f47cc4fa258f0436e6492067158e",
+                "url": "https://api.github.com/repos/pckg/generic/zipball/308c0986bd2dd27554cdd55ccb9958187d4f5517",
+                "reference": "308c0986bd2dd27554cdd55ccb9958187d4f5517",
                 "shasum": ""
             },
             "require": {
@@ -1806,7 +1806,7 @@
             ],
             "description": "Building admin interface and generic frontend made simple",
             "homepage": "https://github.com/pckg/generic",
-            "time": "2018-01-27T14:44:51+00:00"
+            "time": "2018-01-31T13:41:31+00:00"
         },
         {
             "name": "pckg/helpers-js",
@@ -1872,12 +1872,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/htmlbuilder.git",
-                "reference": "80e9eb0837370f277c59f037715ebf56f556ab5a"
+                "reference": "20e94305e3ac22e05c93c651a7cb1f96dfe8af00"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/htmlbuilder/zipball/80e9eb0837370f277c59f037715ebf56f556ab5a",
-                "reference": "80e9eb0837370f277c59f037715ebf56f556ab5a",
+                "url": "https://api.github.com/repos/pckg/htmlbuilder/zipball/20e94305e3ac22e05c93c651a7cb1f96dfe8af00",
+                "reference": "20e94305e3ac22e05c93c651a7cb1f96dfe8af00",
                 "shasum": ""
             },
             "require": {
@@ -1909,7 +1909,7 @@
             ],
             "description": "Build advanced forms in php with datasources, decorators, handlers and validators",
             "homepage": "https://bitbucket.org/lfw/htmlbuilder",
-            "time": "2018-01-02T15:13:51+00:00"
+            "time": "2018-01-30T00:50:43+00:00"
         },
         {
             "name": "pckg/import",
@@ -2061,12 +2061,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/migrator.git",
-                "reference": "fab605efc45135540f17005b93100a61185287b8"
+                "reference": "ad42dffcf934d89ba2fa5a1f869a345b043351f0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/migrator/zipball/fab605efc45135540f17005b93100a61185287b8",
-                "reference": "fab605efc45135540f17005b93100a61185287b8",
+                "url": "https://api.github.com/repos/pckg/migrator/zipball/ad42dffcf934d89ba2fa5a1f869a345b043351f0",
+                "reference": "ad42dffcf934d89ba2fa5a1f869a345b043351f0",
                 "shasum": ""
             },
             "require": {
@@ -2091,7 +2091,7 @@
             ],
             "description": "Database and config migrations made simple",
             "homepage": "https://github.com/pckg/migrator",
-            "time": "2018-01-26T23:02:02+00:00"
+            "time": "2018-01-30T21:00:37+00:00"
         },
         {
             "name": "pckg/payment",
@@ -2099,12 +2099,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/payment.git",
-                "reference": "3922f10a3fd90e2770542b28cd401a3e653bc990"
+                "reference": "912564a20372297149965022277dbeb06b10d82f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/payment/zipball/3922f10a3fd90e2770542b28cd401a3e653bc990",
-                "reference": "3922f10a3fd90e2770542b28cd401a3e653bc990",
+                "url": "https://api.github.com/repos/pckg/payment/zipball/912564a20372297149965022277dbeb06b10d82f",
+                "reference": "912564a20372297149965022277dbeb06b10d82f",
                 "shasum": ""
             },
             "require": {
@@ -2138,7 +2138,7 @@
                 "proforma",
                 "sepa"
             ],
-            "time": "2018-01-11T16:15:21+00:00"
+            "time": "2018-01-30T01:15:20+00:00"
         },
         {
             "name": "pckg/queue",
@@ -2654,6 +2654,7 @@
                 "xls",
                 "xlsx"
             ],
+            "abandoned": "phpoffice/phpspreadsheet",
             "time": "2017-12-25T02:39:38+00:00"
         },
         {
@@ -4283,12 +4284,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "6a353cd1c0f21ae465ad64217ff24779ce25b2db"
+                "reference": "361106a3b8c122d9aa267f71d1a7b5ec94ef9f13"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/6a353cd1c0f21ae465ad64217ff24779ce25b2db",
-                "reference": "6a353cd1c0f21ae465ad64217ff24779ce25b2db",
+                "url": "https://api.github.com/repos/symfony/console/zipball/361106a3b8c122d9aa267f71d1a7b5ec94ef9f13",
+                "reference": "361106a3b8c122d9aa267f71d1a7b5ec94ef9f13",
                 "shasum": ""
             },
             "require": {
@@ -4344,7 +4345,7 @@
             ],
             "description": "Symfony Console Component",
             "homepage": "https://symfony.com",
-            "time": "2018-01-24T15:57:03+00:00"
+            "time": "2018-01-31T10:38:55+00:00"
         },
         {
             "name": "symfony/css-selector",
@@ -4461,12 +4462,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/dependency-injection.git",
-                "reference": "df4eb15ed3f95c6af4cc239fc147bef0eb3c8d64"
+                "reference": "4b2717ee2499390e371e1fc7abaf886c1c83e83d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/df4eb15ed3f95c6af4cc239fc147bef0eb3c8d64",
-                "reference": "df4eb15ed3f95c6af4cc239fc147bef0eb3c8d64",
+                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/4b2717ee2499390e371e1fc7abaf886c1c83e83d",
+                "reference": "4b2717ee2499390e371e1fc7abaf886c1c83e83d",
                 "shasum": ""
             },
             "require": {
@@ -4524,7 +4525,7 @@
             ],
             "description": "Symfony DependencyInjection Component",
             "homepage": "https://symfony.com",
-            "time": "2018-01-23T06:50:41+00:00"
+            "time": "2018-01-29T09:16:57+00:00"
         },
         {
             "name": "symfony/dom-crawler",
@@ -4749,12 +4750,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "750a2b259dd68436e3b918a4241e80b023a80663"
+                "reference": "78be803ce01e55d3491c1397cf1c64beb9c1b63b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/750a2b259dd68436e3b918a4241e80b023a80663",
-                "reference": "750a2b259dd68436e3b918a4241e80b023a80663",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/78be803ce01e55d3491c1397cf1c64beb9c1b63b",
+                "reference": "78be803ce01e55d3491c1397cf1c64beb9c1b63b",
                 "shasum": ""
             },
             "require": {
@@ -4766,7 +4767,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.6-dev"
+                    "dev-master": "1.7-dev"
                 }
             },
             "autoload": {
@@ -4800,7 +4801,7 @@
                 "portable",
                 "shim"
             ],
-            "time": "2017-12-17T16:08:10+00:00"
+            "time": "2018-01-30T19:27:44+00:00"
         },
         {
             "name": "symfony/process",
@@ -4808,12 +4809,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "7db10ba044077fc7c906138f75940f6830b85098"
+                "reference": "09a5172057be8fc677840e591b17f385e58c7c0d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/7db10ba044077fc7c906138f75940f6830b85098",
-                "reference": "7db10ba044077fc7c906138f75940f6830b85098",
+                "url": "https://api.github.com/repos/symfony/process/zipball/09a5172057be8fc677840e591b17f385e58c7c0d",
+                "reference": "09a5172057be8fc677840e591b17f385e58c7c0d",
                 "shasum": ""
             },
             "require": {
@@ -4849,7 +4850,7 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "https://symfony.com",
-            "time": "2018-01-21T19:05:02+00:00"
+            "time": "2018-01-29T09:03:43+00:00"
         },
         {
             "name": "symfony/translation",
@@ -4925,12 +4926,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-dumper.git",
-                "reference": "87426fa24619cd5a232807b1b95c1f8449f8aa11"
+                "reference": "7b915b7bc01669f0787637230aa7c21d0f47c498"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/87426fa24619cd5a232807b1b95c1f8449f8aa11",
-                "reference": "87426fa24619cd5a232807b1b95c1f8449f8aa11",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/7b915b7bc01669f0787637230aa7c21d0f47c498",
+                "reference": "7b915b7bc01669f0787637230aa7c21d0f47c498",
                 "shasum": ""
             },
             "require": {
@@ -4986,7 +4987,7 @@
                 "debug",
                 "dump"
             ],
-            "time": "2018-01-10T11:30:01+00:00"
+            "time": "2018-01-31T10:38:55+00:00"
         },
         {
             "name": "symfony/yaml",
@@ -5204,12 +5205,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/webmozart/assert.git",
-                "reference": "4a8bf11547e139e77b651365113fc12850c43d9a"
+                "reference": "0df1908962e7a3071564e857d86874dad1ef204a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webmozart/assert/zipball/4a8bf11547e139e77b651365113fc12850c43d9a",
-                "reference": "4a8bf11547e139e77b651365113fc12850c43d9a",
+                "url": "https://api.github.com/repos/webmozart/assert/zipball/0df1908962e7a3071564e857d86874dad1ef204a",
+                "reference": "0df1908962e7a3071564e857d86874dad1ef204a",
                 "shasum": ""
             },
             "require": {
@@ -5246,7 +5247,7 @@
                 "check",
                 "validate"
             ],
-            "time": "2016-11-23T20:04:41+00:00"
+            "time": "2018-01-29T19:49:41+00:00"
         },
         {
             "name": "zendframework/zend-escaper",
