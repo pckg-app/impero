@@ -355,7 +355,7 @@ class Site extends Record
         $this->vars = $vars;
         $this->createNewHtdocsPath();
         $this->checkoutPlatform($pckg);
-        $this->preparePlatform($pckg, true);
+        $this->preparePlatform($pckg);
         $this->copyOldConfig();
         $this->enableCronjobs($pckg);
     }
@@ -476,55 +476,45 @@ class Site extends Record
         return '/mnt/volume-fra1-01/live/' . $this->user->username . '/' . $this->document_root . '/';
     }
 
-    public function preparePlatform($pckg, $existanceCheck = true)
+    public function preparePlatform($pckg)
     {
-        $rootCommands = [];
         $siteStoragePath = $this->getStorageDir();
         $htdocsOldPath = $this->getHtdocsOldPath();
         $connection = $this->getServerConnection();
 
         /**
-         * Create dir.
+         * Create site dir.
          */
+        $hasSiteDir = $connection->dirExists($siteStoragePath);
+        if (!$hasSiteDir) {
+            $connection->exec('mkdir -p ' . $siteStoragePath);
+        }
+
         foreach ($pckg['services']['storage']['dir'] ?? [] as $storageDir) {
-            if ($existanceCheck) {
-                $hasRootDir = $connection->dirExists($siteStoragePath . $storageDir);
-                if ($hasRootDir) {
-                    /**
-                     * Storage already exists and will be mounted.
-                     */
-                    continue;
-                }
+            $hasStorageDir = $connection->dirExists($siteStoragePath . $storageDir);
+            if ($hasStorageDir) {
+                /**
+                 * Storage already exists and will be mounted.
+                 */
+                continue;
+            }
 
-                $hasDir = $connection->dirExists($htdocsOldPath . $storageDir);
-                if ($hasDir) {
-                    /**
-                     * Existing dirs are copied to storage server.
-                     * Recreation is skipped.
-                     */
-                    $rootCommands[] = 'mkdir -p ' . $siteStoragePath . $storageDir;
-                    $rootCommands[] = 'rsync -a ' . $htdocsOldPath . $storageDir . ' ' . $siteStoragePath .
-                                      $storageDir . ' --stats';
-                    continue;
-                }
-
-                $hasSymlink = $connection->symlinkExists($htdocsOldPath . $storageDir);
-                if ($hasSymlink) {
-                    /**
-                     * Storage doesn't exist in storage, doesn't exist in old and was symlinked.
-                     * It was probably linked to some other location?
-                     */
-                } else {
-                    /**
-                     * Storage is totally new, create it.
-                     */
-                }
+            $hasOldDir = $connection->dirExists($htdocsOldPath . $storageDir);
+            if ($hasOldDir) {
+                /**
+                 * Existing dirs are copied to storage server.
+                 * Recreation is skipped.
+                 */
+                $connection->exec('mkdir -p ' . $siteStoragePath . $storageDir);
+                $connection->exec('rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath .
+                                  $storageDir . '/ --stats');
+                continue;
             }
 
             /**
              * Create $storageDir directory in site's directory on storage server.
              */
-            $rootCommands[] = 'mkdir -p ' . $siteStoragePath . $storageDir;
+            $connection->exec('mkdir -p ' . $siteStoragePath . $storageDir);
         }
 
         /**
@@ -537,13 +527,8 @@ class Site extends Record
              * If it was directory and it does
              */
             $originPoint = $this->replaceVars($storageDir);
-            $rootCommands[] = 'ln -s ' . $originPoint . ' ' . $this->getHtdocsPath() . $linkPoint;
+            $connection->exec('ln -s ' . $originPoint . ' ' . $this->getHtdocsPath() . $linkPoint);
         }
-
-        /**
-         * Sync old files, create new directories and symlinks.
-         */
-        $connection->execMultiple($rootCommands);
 
         /**
          * Execute prepare commands.
