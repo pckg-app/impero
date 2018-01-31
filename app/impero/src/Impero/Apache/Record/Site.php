@@ -503,7 +503,7 @@ class Site extends Record
                      * Recreation is skipped.
                      */
                     $rootCommands[] = 'sudo mkdir -p ' . $siteStoragePath . $storageDir;
-                    $rootCommands[] = 'rsync -a ' . $htdocsOldPath . $storageDir . ' ' . $siteStoragePath .
+                    $rootCommands[] = 'sudo rsync -a ' . $htdocsOldPath . $storageDir . ' ' . $siteStoragePath .
                                       $storageDir . ' --stats';
                     continue;
                 }
