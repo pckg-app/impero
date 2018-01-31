@@ -350,7 +350,7 @@ class Site extends Record
         $connection->exec('mkdir ' . $this->getHtdocsPath());
     }
 
-    public function check($pckg)
+    public function check($pckg, $fix = false)
     {
         /**
          * Checks:
@@ -406,13 +406,13 @@ class Site extends Record
                         ? 'file'
                         : null);
         }
-        foreach ($pckg['services']['web']['mount'] ?? [] as $dir) {
-            $parsed = $this->replaceVars($storageDir . $dir);
-            $checks['dirs'][$parsed] = $connection->symlinkExists($parsed)
+        foreach ($pckg['services']['web']['mount'] ?? [] as $link => $dir) {
+            $parsed = $this->replaceVars($storageDir . $link);
+            $checks['dirs'][$parsed] = $connection->symlinkExists($link)
                 ? 'ok:symlink'
-                : ($connection->dirExists($parsed)
+                : ($connection->dirExists($link)
                     ? 'dir'
-                    : $connection->fileExists($parsed)
+                    : $connection->fileExists($link)
                         ? 'file'
                         : null);
         }
