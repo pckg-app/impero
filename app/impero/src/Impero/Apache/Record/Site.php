@@ -12,6 +12,8 @@ class Site extends Record
 
     protected $entity = Sites::class;
 
+    protected $vars = [];
+
     /**
      * @return SshConnection
      */
@@ -350,6 +352,7 @@ class Site extends Record
 
     public function redeploy($pckg, $vars)
     {
+        $this->vars = $vars;
         $this->createNewHtdocsPath();
         $this->checkoutPlatform($pckg);
         $this->preparePlatform($pckg, true);
@@ -359,7 +362,7 @@ class Site extends Record
 
     public function copyOldConfig()
     {
-        $this->getServerConnection()->exec('cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
+        $this->getServerConnection()->exec('sudo cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
                                            $this->getHtdocsPath() . 'config/env.php');
     }
 
@@ -548,7 +551,7 @@ class Site extends Record
         $connection->execMultiple($pckg['prepare'], $errorStreamContext, $this->getHtdocsPath());
     }
 
-    public function replaceVars($command, $replaces = [])
+    public function replaceVars($command)
     {
         /**
          * @T00D00 - get identifier and app
@@ -558,7 +561,7 @@ class Site extends Record
             '$logsDir'    => $this->getLogPath(),
             '$storageDir' => $this->getStorageDir(),
         ];
-        $replaces = array_merge($defaults, $replaces);
+        $replaces = array_merge($defaults, $this->vars);
 
         return str_replace(array_keys($replaces), $replaces, $command);
     }
