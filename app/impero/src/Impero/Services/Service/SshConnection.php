@@ -25,6 +25,8 @@ class SshConnection
 
     protected $server;
 
+    protected $ssh2Sftp = null;
+
     public function __construct($server, $host, $user, $port, $key, $type = 'key')
     {
         $this->server = $server;
@@ -165,7 +167,7 @@ class SshConnection
     {
         $this->server->logCommand('Copying local ' . $local . ' to remote ' . $remote, null, null, null);
 
-        $sftp = ssh2_sftp($this->connection);
+        $sftp = $this->openSftp();
 
         $stream = fopen("ssh2.sftp://" . intval($sftp) . $remote, 'w');
 
@@ -200,7 +202,11 @@ password = s0m3p4ssw0rd';*/
 
     protected function openSftp()
     {
-        return ssh2_sftp($this->connection);
+        if (!$this->ssh2Sftp) {
+            $this->ssh2Sftp = ssh2_sftp($this->connection);
+        }
+
+        return $this->ssh2Sftp;
     }
 
     public function tunnel()
