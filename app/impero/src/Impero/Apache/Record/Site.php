@@ -429,17 +429,17 @@ class Site extends Record
              * We won't store any data in those directories.
              */
             foreach ($pckg['checkout']['create']['dir'] as $dir) {
-                $commands[] = 'mkdir ' . $this->getHtdocsPath() . $dir;
+                $commands[] = 'sudo mkdir ' . $this->getHtdocsPath() . $dir;
             }
 
             /**
              * Create dir and file symlinks for shared stuff.
              */
             foreach ($pckg['checkout']['symlink']['dir'] as $dir) {
-                $commands[] = 'ln -s ' . $aliasDir . $dir . ' ' . $this->getHtdocsPath() . $dir;
+                $commands[] = 'sudo ln -s ' . $aliasDir . $dir . ' ' . $this->getHtdocsPath() . $dir;
             }
             foreach ($pckg['checkout']['symlink']['file'] as $file) {
-                $commands[] = 'ln -s ' . $aliasDir . $file . ' ' . $this->getHtdocsPath() . $file;
+                $commands[] = 'sudo ln -s ' . $aliasDir . $file . ' ' . $this->getHtdocsPath() . $file;
             }
 
             $connection->execMultiple($commands);
@@ -520,7 +520,7 @@ class Site extends Record
             /**
              * Create $storageDir directory in site's directory on storage server.
              */
-            $rootCommands[] = 'mkdir -p ' . $siteStoragePath . $storageDir;
+            $rootCommands[] = 'sudo mkdir -p ' . $siteStoragePath . $storageDir;
         }
 
         /**
@@ -533,7 +533,7 @@ class Site extends Record
              * If it was directory and it does
              */
             $originPoint = $this->replaceVars($storageDir);
-            $rootCommands[] = 'ln -s ' . $originPoint . ' ' . $this->getHtdocsPath() . $linkPoint;
+            $rootCommands[] = 'sudo ln -s ' . $originPoint . ' ' . $this->getHtdocsPath() . $linkPoint;
         }
 
         /**
