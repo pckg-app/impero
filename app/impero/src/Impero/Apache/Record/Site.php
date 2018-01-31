@@ -610,7 +610,7 @@ class Site extends Record
         $connection->execMultiple($pckg['prepare'], $errorStreamContext, $this->getHtdocsPath());
     }
 
-    public function replaceVars($command)
+    public function replaceVars($command, $vars = [])
     {
         /**
          * @T00D00 - get identifier and app
@@ -620,7 +620,8 @@ class Site extends Record
             '$logsDir'    => $this->getLogPath(),
             '$storageDir' => $this->getStorageDir(),
         ];
-        $replaces = array_merge($defaults, $this->vars);
+        $replaces = array_merge($defaults, $vars);
+        $replaces = array_merge($replaces, $this->vars);
 
         return str_replace(array_keys($replaces), $replaces, $command);
     }

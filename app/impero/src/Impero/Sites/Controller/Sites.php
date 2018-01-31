@@ -43,10 +43,12 @@ class Sites
          * Commands are sent in action post.
          */
         $commands = post('commands', []);
+        $vars = post('vars', []);
         $connection = $site->server->getConnection();
         foreach ($commands as $command) {
             $output = null;
             $error = null;
+            $command = $vars ? $site->replaceVars($command, $vars) : $command;
             $output = $connection->exec($command, $error, $site->getHtdocsPath() . post('cd', null));
         }
         $connection->close();
