@@ -363,21 +363,21 @@ class Site extends Record
 
         $checkDirs = [$htdocsDir, $storageDir];
         foreach ($checkDirs as $dir) {
-            $checks['dirs'][$dir] = $connection->dirExists($dir) ? 'dir' : null;
+            $checks['dirs'][$dir] = $connection->dirExists($dir) ? 'ok:dir' : null;
         }
 
         foreach ($pckg['checkout']['create']['dir'] ?? [] as $dir) {
-            $checks['dirs'][$storageDir . $dir] = $connection->symlinkExists($htdocsDir . $dir)
-                ? 'symlink'
-                : ($connection->dirExists($htdocsDir . $dir)
-                    ? 'dir'
+            $checks['dirs'][$storageDir . $dir] = $connection->dirExists($htdocsDir . $dir)
+                ? 'ok:dir'
+                : ($connection->symlinkExists($htdocsDir . $dir)
+                    ? 'symlink'
                     : $connection->fileExists($htdocsDir . $dir)
                         ? 'file'
                         : null);
         }
         foreach ($pckg['checkout']['symlink']['dir'] ?? [] as $dir) {
             $checks['dirs'][$storageDir . $dir] = $connection->symlinkExists($htdocsDir . $dir)
-                ? 'symlink'
+                ? 'ok:symlink'
                 : ($connection->dirExists($htdocsDir . $dir)
                     ? 'dir'
                     : $connection->fileExists($htdocsDir . $dir)
@@ -385,26 +385,26 @@ class Site extends Record
                         : null);
         }
         foreach ($pckg['checkout']['symlink']['file'] ?? [] as $dir) {
-            $checks['dirs'][$storageDir . $dir] = $connection->symlinkExists($htdocsDir . $dir)
-                ? 'symlink'
+            $checks['dirs'][$storageDir . $dir] = $connection->fileExists($htdocsDir . $dir)
+                ? 'ok:file'
                 : ($connection->dirExists($htdocsDir . $dir)
                     ? 'dir'
-                    : $connection->fileExists($htdocsDir . $dir)
-                        ? 'file'
+                    : $connection->symlinkExists($htdocsDir . $dir)
+                        ? 'symlink'
                         : null);
         }
         foreach ($pckg['services']['storage']['dir'] ?? [] as $dir) {
-            $checks['dirs'][$storageDir . $dir] = $connection->symlinkExists($storageDir . $dir)
-                ? 'symlink'
-                : ($connection->dirExists($storageDir . $dir)
-                    ? 'dir'
+            $checks['dirs'][$storageDir . $dir] = $connection->dirExists($storageDir . $dir)
+                ? 'ok:dir'
+                : ($connection->symlinkExists($storageDir . $dir)
+                    ? 'symlink'
                     : $connection->fileExists($storageDir . $dir)
                         ? 'file'
                         : null);
         }
         foreach ($pckg['services']['web']['mount'] ?? [] as $dir) {
             $checks['dirs'][$storageDir . $dir] = $connection->symlinkExists($storageDir . $dir)
-                ? 'symlink'
+                ? 'ok:symlink'
                 : ($connection->dirExists($storageDir . $dir)
                     ? 'dir'
                     : $connection->fileExists($storageDir . $dir)
