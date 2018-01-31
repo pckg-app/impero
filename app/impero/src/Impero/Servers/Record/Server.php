@@ -114,7 +114,7 @@ class Server extends Record
         /**
          * Check for existance.
          */
-        if (!in_array($command, $cronjobs)) {
+        if (!in_array($command, $cronjobs) && !in_array('#' . $command, $cronjobs)) {
             /**
              * Add to file if nonexistent.
              */
