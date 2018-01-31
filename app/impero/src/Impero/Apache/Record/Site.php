@@ -408,7 +408,7 @@ class Site extends Record
         }
         foreach ($pckg['services']['web']['mount'] ?? [] as $link => $dir) {
             $parsed = $this->replaceVars($storageDir . $link);
-            $checks['dirs'][$parsed] = $connection->symlinkExists($link)
+            $checks['dirs'][$link] = $connection->symlinkExists($link)
                 ? 'ok:symlink'
                 : ($connection->dirExists($link)
                     ? 'dir'
