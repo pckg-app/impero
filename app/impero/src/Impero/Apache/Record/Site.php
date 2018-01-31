@@ -420,7 +420,8 @@ class Site extends Record
             /**
              * We need to make sure that repository and branch are already checked-out on filesystem.
              */
-            $aliasDir = '/www/_linked/' . $pckg['repository'] . '/' . $pckg['branch'];
+            $aliasDir = '/www/_linked/' . str_replace(['.', '@', '/'], '-', $pckg['repository']) . '/' .
+                        $pckg['branch'];
             $this->prepareLinkedCheckout($pckg, $aliasDir);
 
             /**
