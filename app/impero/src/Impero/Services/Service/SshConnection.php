@@ -90,6 +90,19 @@ class SshConnection
         }
     }
 
+    public function execMultiple($commands, &$errorStreamContent = null, $dir = null)
+    {
+        if (!$commands) {
+            return $this;
+        }
+
+        foreach ($commands as $command) {
+            $this->exec($command, $errorStreamContent, $dir);
+        }
+
+        return $this;
+    }
+
     public function exec($command, &$errorStreamContent = null, $dir = null)
     {
         $e = null;

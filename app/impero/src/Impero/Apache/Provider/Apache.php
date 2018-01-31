@@ -25,7 +25,11 @@ class Apache extends Provider
                            'urlPrefix'  => '/api/site',
                            'namePrefix' => 'api.impero.site',
                        ]))->routes([
-                                       '.cronjob' => (new Route('/[site]/cronjob', 'cronjob'))
+                                       '.cronjob'  => (new Route('/[site]/cronjob', 'cronjob'))
+                                           ->resolvers([
+                                                           'site' => SiteResolver::class,
+                                                       ]),
+                                       '.redeploy' => (new Route('/[site]/redeploy', 'redeploy'))
                                            ->resolvers([
                                                            'site' => SiteResolver::class,
                                                        ]),

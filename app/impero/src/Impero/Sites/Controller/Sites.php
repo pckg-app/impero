@@ -58,8 +58,8 @@ class Sites
     {
         $file = post('file');
         $content = post('content');
-        $connection = $site->server->getConnection();
-        $connection->sftpSend($content, $site->getHtdocsPath() . $file, null, false);
+
+        $site->createFile($file, $content);
 
         return [
             'created' => 'ok',
@@ -116,6 +116,15 @@ class Sites
         if (post('restart_apache')) {
             $site->restartApache();
         }
+
+        return [
+            'site' => $site,
+        ];
+    }
+
+    public function postRedeployAction(Site $site)
+    {
+        $site->redeploy(post('pckg'), post('vars'));
 
         return [
             'site' => $site,

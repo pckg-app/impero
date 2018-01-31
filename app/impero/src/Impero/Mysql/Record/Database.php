@@ -1,6 +1,7 @@
 <?php namespace Impero\Mysql\Record;
 
 use Impero\Mysql\Entity\Databases;
+use Impero\Servers\Record\Server;
 use Pckg\Database\Record;
 
 class Database extends Record
@@ -37,7 +38,7 @@ class Database extends Record
         return $this;
     }
 
-    public function configureBackup()
+    public function backup()
     {
         /**
          * Get current backup configuration.
@@ -56,6 +57,18 @@ class Database extends Record
              */
             $connection->exec('sudo echo "' . $this->name . '" >> ' . $backupFile);
         }
+    }
+
+    public function importFile($file)
+    {
+        $this->server->getMysqlConnection()->pipeIn($file, $this->name);
+    }
+
+    public function query($sql, $bind)
+    {
+        $mysqlConnection = $this->server->getMysqlConnection();
+
+        return $mysqlConnection->query($this->name, $sql, $bind);
     }
 
     public function replicate()
@@ -79,6 +92,34 @@ class Database extends Record
             $connection->exec('sudo echo "' . $line . '" >> ' . $replicationFile);
             $connection->exec('sudo service mysql reload');
         }
+    }
+
+    /**
+     * @param $data
+     *
+     * @return $this|Database
+     */
+    public static function createFromPost($data)
+    {
+        /**
+         * Save database in our database.
+         */
+        $database = Database::create(['name' => $data['name'], 'server_id' => $data['server_id']]);
+
+        /**
+         * Connect to proper mysql server and execute sql.
+         */
+        $server = Server::gets(['id' => $data['server_id']]);
+
+        /**
+         * Receive mysql connection?
+         */
+        $mysqlConnection = $server->getMysqlConnection();
+
+        $sql = 'CREATE DATABASE IF NOT EXISTS `' . $data['name'] . '` CHARACTER SET `utf8` COLLATE `utf8_general_ci`';
+        $mysqlConnection->execute($sql);
+
+        return $database;
     }
 
 }
