@@ -502,6 +502,7 @@ class Site extends Record
                      * Existing dirs are copied to storage server.
                      * Recreation is skipped.
                      */
+                    $rootCommands[] = 'sudo mkdir -p ' . $siteStoragePath . $storageDir;
                     $rootCommands[] = 'rsync -a ' . $htdocsOldPath . $storageDir . ' ' . $siteStoragePath .
                                       $storageDir . ' --stats';
                     continue;
