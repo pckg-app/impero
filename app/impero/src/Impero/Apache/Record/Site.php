@@ -234,7 +234,7 @@ class Site extends Record
                 continue;
             }
 
-            $connection->exec('sudo ln -s ' . $dir . $file . ' ' . $sslPath . $file);
+            $connection->exec('ln -s ' . $dir . $file . ' ' . $sslPath . $file);
         }
 
         /**
@@ -336,18 +336,18 @@ class Site extends Record
          * Move existent htdocs-old to htdocs-old-$datetime
          */
         if ($connection->dirExists($this->getHtdocsOldPath())) {
-            $connection->exec('sudo mv ' . $this->getHtdocsOldPath() . ' ' . $this->getHtdocsOlderPath());
+            $connection->exec('mv ' . $this->getHtdocsOldPath() . ' ' . $this->getHtdocsOlderPath());
         }
 
         /**
          * Move existent htdocs to htdocs-old
          */
-        $connection->exec('sudo mv ' . $this->getHtdocsPath() . ' ' . $this->getHtdocsOldPath());
+        $connection->exec('mv ' . $this->getHtdocsPath() . ' ' . $this->getHtdocsOldPath());
 
         /**
          * Create new htdocs path
          */
-        $connection->exec('sudo mkdir ' . $this->getHtdocsPath());
+        $connection->exec('mkdir ' . $this->getHtdocsPath());
     }
 
     public function redeploy($pckg, $vars)
@@ -362,7 +362,7 @@ class Site extends Record
 
     public function copyOldConfig()
     {
-        $this->getServerConnection()->exec('sudo cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
+        $this->getServerConnection()->exec('cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
                                            $this->getHtdocsPath() . 'config/env.php');
     }
 
@@ -432,17 +432,17 @@ class Site extends Record
              * We won't store any data in those directories.
              */
             foreach ($pckg['checkout']['create']['dir'] as $dir) {
-                $commands[] = 'sudo mkdir ' . $this->getHtdocsPath() . $dir;
+                $commands[] = 'mkdir ' . $this->getHtdocsPath() . $dir;
             }
 
             /**
              * Create dir and file symlinks for shared stuff.
              */
             foreach ($pckg['checkout']['symlink']['dir'] as $dir) {
-                $commands[] = 'sudo ln -s ' . $aliasDir . $dir . ' ' . $this->getHtdocsPath() . $dir;
+                $commands[] = 'ln -s ' . $aliasDir . $dir . ' ' . $this->getHtdocsPath() . $dir;
             }
             foreach ($pckg['checkout']['symlink']['file'] as $file) {
-                $commands[] = 'sudo ln -s ' . $aliasDir . $file . ' ' . $this->getHtdocsPath() . $file;
+                $commands[] = 'ln -s ' . $aliasDir . $file . ' ' . $this->getHtdocsPath() . $file;
             }
 
             $connection->execMultiple($commands);
@@ -502,8 +502,8 @@ class Site extends Record
                      * Existing dirs are copied to storage server.
                      * Recreation is skipped.
                      */
-                    $rootCommands[] = 'sudo mkdir -p ' . $siteStoragePath . $storageDir;
-                    $rootCommands[] = 'sudo rsync -a ' . $htdocsOldPath . $storageDir . ' ' . $siteStoragePath .
+                    $rootCommands[] = 'mkdir -p ' . $siteStoragePath . $storageDir;
+                    $rootCommands[] = 'rsync -a ' . $htdocsOldPath . $storageDir . ' ' . $siteStoragePath .
                                       $storageDir . ' --stats';
                     continue;
                 }
@@ -524,7 +524,7 @@ class Site extends Record
             /**
              * Create $storageDir directory in site's directory on storage server.
              */
-            $rootCommands[] = 'sudo mkdir -p ' . $siteStoragePath . $storageDir;
+            $rootCommands[] = 'mkdir -p ' . $siteStoragePath . $storageDir;
         }
 
         /**
@@ -537,7 +537,7 @@ class Site extends Record
              * If it was directory and it does
              */
             $originPoint = $this->replaceVars($storageDir);
-            $rootCommands[] = 'sudo ln -s ' . $originPoint . ' ' . $this->getHtdocsPath() . $linkPoint;
+            $rootCommands[] = 'ln -s ' . $originPoint . ' ' . $this->getHtdocsPath() . $linkPoint;
         }
 
         /**
