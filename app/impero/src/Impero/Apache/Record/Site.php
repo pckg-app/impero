@@ -441,11 +441,11 @@ class Site extends Record
          * Standalone platforms are checkout in site's dir.
          */
         if ($checkAlias) {
-            foreach ($pckg['deploy'] as $command) {
+            foreach ($pckg['deploy'] ?? [] as $command) {
                 $connection->exec($command, $errorStream, $this->getLinkedDir($pckg));
             }
         } else if (!$isAlias) {
-            foreach ($pckg['deploy'] as $command) {
+            foreach ($pckg['deploy'] ?? [] as $command) {
                 $connection->exec($command, $errorStream, $htdocsDir);
             }
         }
@@ -453,7 +453,7 @@ class Site extends Record
         /**
          * Standalone and aliased platforms are migrated.
          */
-        foreach ($pckg['migrate'] as $command) {
+        foreach ($pckg['migrate'] ?? [] as $command) {
             $connection->exec($command, $errorStream, $htdocsDir);
         }
     }
