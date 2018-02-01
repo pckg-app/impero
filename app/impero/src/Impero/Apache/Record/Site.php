@@ -442,7 +442,7 @@ class Site extends Record
          */
         if ($checkAlias) {
             foreach ($pckg['deploy'] ?? [] as $command) {
-                $connection->exec($command, $errorStream, $this->getLinkedDir($pckg));
+                $connection->exec($this->replaceVars($command), $errorStream, $this->getLinkedDir($pckg));
             }
         } else if (!$isAlias) {
             foreach ($pckg['deploy'] ?? [] as $command) {
@@ -454,7 +454,7 @@ class Site extends Record
          * Standalone and aliased platforms are migrated.
          */
         foreach ($pckg['migrate'] ?? [] as $command) {
-            $connection->exec($command, $errorStream, $htdocsDir);
+            $connection->exec($this->replaceVars($command), $errorStream, $htdocsDir);
         }
     }
 
