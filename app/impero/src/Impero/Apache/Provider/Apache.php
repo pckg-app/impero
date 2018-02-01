@@ -33,6 +33,10 @@ class Apache extends Provider
                                            ->resolvers([
                                                            'site' => SiteResolver::class,
                                                        ]),
+                                       '.deploy' => (new Route('/[site]/deploy', 'deploy'))
+                                           ->resolvers([
+                                                           'site' => SiteResolver::class,
+                                                       ]),
                                        '.check'    => (new Route('/[site]/check', 'check'))
                                            ->resolvers([
                                                            'site' => SiteResolver::class,

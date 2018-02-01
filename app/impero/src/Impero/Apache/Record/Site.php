@@ -429,6 +429,35 @@ class Site extends Record
         $this->enableCronjobs($pckg);
     }
 
+    public function deploy($pckg, $vars, $isAlias = false, $checkAlias = false)
+    {
+        $this->vars = $vars;
+        $connection = $this->getServerConnection();
+        $htdocsDir = $this->getHtdocsPath();
+
+        $errorStream = null;
+        /**
+         * Aliased platforms are checkout in _linked.
+         * Standalone platforms are checkout in site's dir.
+         */
+        if ($checkAlias) {
+            foreach ($pckg['deploy'] as $command) {
+                $connection->exec($command, $errorStream, $this->getLinkedDir($pckg));
+            }
+        } else if (!$isAlias) {
+            foreach ($pckg['deploy'] as $command) {
+                $connection->exec($command, $errorStream, $htdocsDir);
+            }
+        }
+
+        /**
+         * Standalone and aliased platforms are migrated.
+         */
+        foreach ($pckg['migrate'] as $command) {
+            $connection->exec($command, $errorStream, $htdocsDir);
+        }
+    }
+
     public function copyOldConfig()
     {
         $this->getServerConnection()->exec('cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
@@ -480,6 +509,12 @@ class Site extends Record
         $connection->execMultiple($pckg['prepare'], $errorStream, $aliasDir);
     }
 
+    public function getLinkedDir($pckg)
+    {
+        return '/www/_linked/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' .
+               $pckg['branch'] . '/';
+    }
+
     public function checkoutPlatform($pckg)
     {
         /**
@@ -492,8 +527,7 @@ class Site extends Record
             /**
              * We need to make sure that repository and branch are already checked-out on filesystem.
              */
-            $aliasDir = '/www/_linked/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' .
-                        $pckg['branch'] . '/';
+            $aliasDir = $this->getLinkedDir($pckg);
             $this->prepareLinkedCheckout($pckg, $aliasDir);
 
             /**

@@ -133,6 +133,15 @@ class Sites
         ];
     }
 
+    public function postDeployAction(Site $site)
+    {
+        $site->deploy(post('pckg', []), post('vars', []), post('isAlias', false), post('checkAlias', false));
+
+        return [
+            'site' => $site,
+        ];
+    }
+
     public function postCheckAction(Site $site)
     {
         return ['check' => $site->check(post('pckg'))];
