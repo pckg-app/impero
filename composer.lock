@@ -1609,12 +1609,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/collection.git",
-                "reference": "15b6b2da3f897b849e4728ba12613d2d4a0fc5a1"
+                "reference": "5d964f1dbdafe34be70a5bd1f602421b3fee9de8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/collection/zipball/15b6b2da3f897b849e4728ba12613d2d4a0fc5a1",
-                "reference": "15b6b2da3f897b849e4728ba12613d2d4a0fc5a1",
+                "url": "https://api.github.com/repos/pckg/collection/zipball/5d964f1dbdafe34be70a5bd1f602421b3fee9de8",
+                "reference": "5d964f1dbdafe34be70a5bd1f602421b3fee9de8",
                 "shasum": ""
             },
             "type": "library",
@@ -1638,7 +1638,7 @@
             ],
             "description": "Implementation for more human-like dealing with collections",
             "homepage": "https://github.com/pckg/collection",
-            "time": "2018-01-30T12:13:57+00:00"
+            "time": "2018-01-31T20:23:43+00:00"
         },
         {
             "name": "pckg/concept",
@@ -1726,12 +1726,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/framework.git",
-                "reference": "5511c48a106e678a26062f063b846f2e2ab5ef0c"
+                "reference": "6aeeb9bdde7dfe643a000c42d341d632e31303eb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/framework/zipball/5511c48a106e678a26062f063b846f2e2ab5ef0c",
-                "reference": "5511c48a106e678a26062f063b846f2e2ab5ef0c",
+                "url": "https://api.github.com/repos/pckg/framework/zipball/6aeeb9bdde7dfe643a000c42d341d632e31303eb",
+                "reference": "6aeeb9bdde7dfe643a000c42d341d632e31303eb",
                 "shasum": ""
             },
             "require": {
@@ -1767,7 +1767,7 @@
             ],
             "description": "Fully featured lightweight php framework with multilingual support, twig templating engine, and tons of other features.",
             "homepage": "https://github.com/pckg/framework",
-            "time": "2018-01-27T16:36:03+00:00"
+            "time": "2018-02-01T01:45:46+00:00"
         },
         {
             "name": "pckg/generic",
@@ -2024,12 +2024,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/manager.git",
-                "reference": "077008e04119253959f3008a32bc037a85ab96db"
+                "reference": "70ccf75aa7ec36d8bbc1c7ff8dfdb474b393073e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/manager/zipball/077008e04119253959f3008a32bc037a85ab96db",
-                "reference": "077008e04119253959f3008a32bc037a85ab96db",
+                "url": "https://api.github.com/repos/pckg/manager/zipball/70ccf75aa7ec36d8bbc1c7ff8dfdb474b393073e",
+                "reference": "70ccf75aa7ec36d8bbc1c7ff8dfdb474b393073e",
                 "shasum": ""
             },
             "require": {
@@ -2053,7 +2053,7 @@
             ],
             "description": "Asset management, meta / seo, locale, vue.js and everything else that projects need to manage",
             "homepage": "https://github.com/pckg/manager",
-            "time": "2018-01-27T10:46:04+00:00"
+            "time": "2018-01-31T21:01:24+00:00"
         },
         {
             "name": "pckg/migrator",
@@ -4019,7 +4019,7 @@
         },
         {
             "name": "sebastian/version",
-            "version": "dev-master",
+            "version": "2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/version.git",
@@ -4462,12 +4462,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/dependency-injection.git",
-                "reference": "4b2717ee2499390e371e1fc7abaf886c1c83e83d"
+                "reference": "f0faac98fbb8b7f1f55cec52d6a8cfdcfbd7d60d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/4b2717ee2499390e371e1fc7abaf886c1c83e83d",
-                "reference": "4b2717ee2499390e371e1fc7abaf886c1c83e83d",
+                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/f0faac98fbb8b7f1f55cec52d6a8cfdcfbd7d60d",
+                "reference": "f0faac98fbb8b7f1f55cec52d6a8cfdcfbd7d60d",
                 "shasum": ""
             },
             "require": {
@@ -4525,7 +4525,7 @@
             ],
             "description": "Symfony DependencyInjection Component",
             "homepage": "https://symfony.com",
-            "time": "2018-01-29T09:16:57+00:00"
+            "time": "2018-01-31T10:29:08+00:00"
         },
         {
             "name": "symfony/dom-crawler",
