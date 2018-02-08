@@ -434,24 +434,40 @@ class Site extends Record
         $this->vars = $vars;
         $connection = $this->getServerConnection();
         $htdocsDir = $this->getHtdocsPath();
+        $blueGreen = ($pckg['checkout']['type'] ?? null) == 'ab';
 
         $errorStream = null;
-        /**
-         * Aliased platforms are checkout in _linked.
-         * Standalone platforms are checkout in site's dir.
-         */
-        if ($checkAlias) {
-            foreach ($pckg['deploy'] ?? [] as $command) {
-                $connection->exec($this->replaceVars($command), $errorStream, $this->getLinkedDir($pckg));
-            }
+        $deployDir = null;
+        if ($blueGreen) {
+            /**
+             * We should also support blue-green (or a-b deployments).
+             * This would mean that we checkout code in new directory (/www/_ab/[repository]/[branch]/[a|b|gitCommit].
+             * And then change symlink of /www/_abc/[repository]/[branch] to /www/_ab/[repository]/[branch]/[a|b|gitCommit].
+             * ln -sfn /www/_ab/[repository]/[branch]/[a|b|gitCommit] /www/_abc/[repository]/[branch]
+             *
+             * Sites are still linked to /www/_abc/[repository]/[branch] and gets updated immediately after symlink change.
+             */
+            $deployDir = $this->getBlueGreenDir($pckg);
+        } elseif ($checkAlias) {
+            /**
+             * Aliased platforms are checkout in _linked directory.
+             */
+            $deployDir = $this->getLinkedDir($pckg);
         } else if (!$isAlias) {
+            /**
+             * Standalone platforms are checkout in site's htdocs dir.
+             */
+            $deployDir = $htdocsDir;
+        }
+
+        if ($deployDir) {
             foreach ($pckg['deploy'] ?? [] as $command) {
-                $connection->exec($command, $errorStream, $htdocsDir);
+                $connection->exec($this->replaceVars($command), $errorStream, $deployDir);
             }
         }
 
         /**
-         * Standalone and aliased platforms are migrated.
+         * Standalone and aliased platforms are migrated in their htdocs directory.
          */
         foreach ($pckg['migrate'] ?? [] as $command) {
             $connection->exec($this->replaceVars($command), $errorStream, $htdocsDir);
@@ -513,6 +529,12 @@ class Site extends Record
     {
         return '/www/_linked/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' .
                $pckg['branch'] . '/';
+    }
+
+    public function getBlueGreenDir($pckg)
+    {
+        return '/www/_ab/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' .
+               $pckg['branch'] . '/a|b|giTcommit' . '/';
     }
 
     public function checkoutPlatform($pckg)

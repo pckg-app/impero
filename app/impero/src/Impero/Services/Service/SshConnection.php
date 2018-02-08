@@ -110,6 +110,7 @@ class SshConnection
         $this->exec('mkdir -p ' . $dir);
         $this->exec('chgrp ' . $group . ' ' . $dir);
         $this->exec('chmod ' . $permissions . ' ' . $dir);
+        $this->exec('chown www-data:www-data ' . $permissions . ' ' . $dir);
     }
 
     public function exec($command, &$errorStreamContent = null, $dir = null)
