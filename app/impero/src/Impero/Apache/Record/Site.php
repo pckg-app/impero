@@ -100,6 +100,86 @@ class Site extends Record
         return $this->getInsecureVirtualhost() . "\n\n" . $this->getSecureVirtualhost();
     }
 
+    public function getVirtualhostNginx()
+    {
+        $allHttpToHttps = 'server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    return 301 https://$host$request_uri;
+}';
+
+        /**
+         * 80 -> 8080
+         * 443 -> 8082
+         */
+        $appName = 'www' . $this->id;
+        $httpPort = 8080;
+        $httpsPort = 8082;
+        $toPort = 443;
+
+        $vh = '';
+        $vh .= 'upstream ' . $appName . ' {' . "\n";
+
+        $loadBalancers = [
+            '10.8.0.1',
+        ];
+        foreach ($loadBalancers as $loadBalancer) {
+            $vh .= '    server ' . $loadBalancer . ':' . $toPort . ';' . "\n";
+        }
+        $vh .= '}' . "\n";
+
+        // http
+        /*$vh .= 'server {' . "\n";
+        $vh .= '    listen ' . $httpPort . ";\n";
+        $vh .= '    listen [::]:' . $httpPort . ";\n";
+        $vh .= '    server_name ' . collect([$this->server_name])
+                ->pushArray(explode(' ', $this->server_alias))
+                ->removeEmpty()
+                ->unique()
+                ->implode(' ') . ";\n";
+
+        $vh .= '    location / {' . "\n";
+        $vh .= '	    proxy_pass http://' . $appName . ';' . "\n";
+        $vh .= '	    proxy_set_header X-Real-IP $remote_addr;' . "\n";
+        $vh .= '	    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;' . "\n";
+        $vh .= '	    proxy_set_header X-Forwarded-Proto $scheme;' . "\n";
+        $vh .= '    }' . "\n";
+        $vh .= '}' . "\n";*/
+
+        // https
+        $vh .= 'server {' . "\n";
+        $vh .= '    listen ' . $httpsPort . " default ssl;\n";
+        $vh .= '    listen [::]:' . $httpsPort . " default ssl;\n";
+        $vh .= '    server_name ' . collect([$this->server_name])
+                ->pushArray(explode(' ', $this->server_alias))
+                ->removeEmpty()
+                ->unique()
+                ->implode(' ') . ";\n";
+
+        $vh .= '    ssl on;' . "\n";
+        $vh .= '    ssl_certificate ' . $this->getSslPath() . 'fullchain.pem;' . "\n";
+        $vh .= '    ssl_certificate_key ' . $this->getSslPath() . 'privkey.pem;' . "\n";
+
+        $vh .= 'location /storage/ {
+    alias ' . $this->getHtdocsPath() . 'storage/;
+  }' . "\n";
+
+        $vh .= 'location /cache/ {
+    alias ' . $this->getHtdocsPath() . 'storage/cache/www/;
+  }' . "\n";
+
+        $vh .= '    location / {' . "\n";
+        $vh .= '	    proxy_pass https://' . $appName . ';' . "\n";
+        $vh .= '	    proxy_set_header X-Real-IP $remote_addr;' . "\n";
+        $vh .= '	    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;' . "\n";
+        $vh .= '	    proxy_set_header X-Forwarded-Proto $scheme;' . "\n";
+        $vh .= '    }' . "\n";
+        $vh .= '}' . "\n";
+
+        return $vh;
+    }
+
     public function getFullDocumentRoot()
     {
         return '/www/USER/' . $this->document_root . '/htdocs/';

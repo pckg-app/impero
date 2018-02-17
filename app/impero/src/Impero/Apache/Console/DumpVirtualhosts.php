@@ -26,6 +26,7 @@ class DumpVirtualhosts extends Command
     {
         if (!$this->option('server')) {
             $this->output('No server selected');
+
             return;
         }
 
@@ -33,17 +34,21 @@ class DumpVirtualhosts extends Command
         $server = (new Servers())->where('id', $this->option('server'))->oneOrFail();
         $sites = (new Sites())->where('server_id', $server->id)->all();
         $virtualhosts = [];
+        //$virtualhostsNginx = [];
         $sites->each(
-            function(Site $site) use (&$virtualhosts) {
+            function(Site $site) use (&$virtualhosts/*, &$virtualhostsNginx*/) {
                 $virtualhosts[] = $site->getVirtualhost();
+                //$virtualhostsNginx[] = $site->getVirtualhostNginx();
             }
         );
 
         $virtualhosts = implode("\n\n", $virtualhosts);
+        //$virtualhostsNginx = implode("\n\n", $virtualhostsNginx);
 
         $this->output('Dumping virtualhosts');
 
         $this->storeVirtualhosts($server, $virtualhosts);
+        //$this->storeVirtualhostsNginx($server, $virtualhostsNginx);
 
         $this->output('Virtualhosts were dumped, waiting for apache graceful');
     }
@@ -61,6 +66,22 @@ class DumpVirtualhosts extends Command
          * @T00D00 - check if apache is offline and apply previous configuration.
          */
         $sshConnection->exec('sudo service apache2 graceful');
+    }
+
+    protected function storeVirtualhostsNginx(Server $server, $virtualhosts)
+    {
+        return;
+        $local = '/tmp/server.' . $server->id . '.virtualhosts';
+        $remote = '/etc/apache2/sites-enabled/002-impero.conf';
+        file_put_contents($local, $virtualhosts);
+        $sshConnection = $server->getConnection();
+        $sshConnection->sftpSend($local, $remote);
+        unlink($local);
+
+        /**
+         * @T00D00 - check if apache is offline and apply previous configuration.
+         */
+        $sshConnection->exec('sudo service nginx restart');
     }
 
 }
