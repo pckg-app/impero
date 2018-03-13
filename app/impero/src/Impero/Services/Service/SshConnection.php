@@ -108,9 +108,9 @@ class SshConnection
     public function makeAndAllow($dir, $group = 'www-data', $permissions = 'g+rwx')
     {
         $this->exec('mkdir -p ' . $dir);
+        $this->exec('chown www-data:www-data ' . $dir);
         $this->exec('chgrp ' . $group . ' ' . $dir);
         $this->exec('chmod ' . $permissions . ' ' . $dir);
-        $this->exec('chown www-data:www-data ' . $permissions . ' ' . $dir);
     }
 
     public function exec($command, &$errorStreamContent = null, $dir = null)
