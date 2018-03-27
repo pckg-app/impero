@@ -772,9 +772,6 @@ class Site extends Record
 
     public function replaceVars($command, $vars = [])
     {
-        /**
-         * @T00D00 - get identifier and app
-         */
         $defaults = [
             '$webDir'     => $this->getHtdocsPath(),
             '$logsDir'    => $this->getLogPath(),
