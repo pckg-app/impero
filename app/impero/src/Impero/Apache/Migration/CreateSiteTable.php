@@ -30,10 +30,18 @@ class CreateSiteTable extends Migration
 
         $siteTable->timeable();
 
+        /**
+         * Each site use some services: db (mysql), web (apache), lb (haproxy), storage (?), cron (?).
+         * They can be all put on single server and in that case we do not fill table below.
+         * When app is loadbalanced in any way or distributed over multiple servers, then we need to define to whose.
+         * For example, at one point we'll move cronjobs to separate server.
+         */
         $siteServers = $this->table('site_servers');
         $siteServers->integer('site_id')->references('sites');
         $siteServers->integer('server_id')->references('servers');
-        $siteServers->varchar('type'); // web:dynamic, web:static, loadbalancer, mysql:master, mysql:slave, data
+        $siteServers->varchar('type'); // web:dynamic, web:static, loadbalancer, mysql:master, mysql:slave, data, cron
+
+        $volumes = $this->table('volumes');
 
         $this->save();
     }

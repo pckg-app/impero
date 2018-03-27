@@ -124,9 +124,23 @@ class Sites
         ];
     }
 
-    public function postRedeployAction(Site $site)
+    /**
+     * @param Site $site
+     *
+     * @return array
+     */
+    public function postCheckoutAction(Site $site)
     {
-        $site->redeploy(post('pckg'), post('vars'));
+        $site->checkout(post('pckg', []), post('vars', []));
+
+        return [
+            'site' => $site,
+        ];
+    }
+
+    public function postRecheckoutAction(Site $site)
+    {
+        $site->recheckout(post('pckg', []), post('vars', []));
 
         return [
             'site' => $site,
@@ -144,7 +158,7 @@ class Sites
 
     public function postCheckAction(Site $site)
     {
-        return ['check' => $site->check(post('pckg'))];
+        return ['check' => $site->check(post('pckg', []))];
     }
 
 }

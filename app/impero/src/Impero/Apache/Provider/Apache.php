@@ -25,19 +25,23 @@ class Apache extends Provider
                            'urlPrefix'  => '/api/site',
                            'namePrefix' => 'api.impero.site',
                        ]))->routes([
-                                       '.cronjob'  => (new Route('/[site]/cronjob', 'cronjob'))
+                                       '.cronjob'    => (new Route('/[site]/cronjob', 'cronjob'))
                                            ->resolvers([
                                                            'site' => SiteResolver::class,
                                                        ]),
-                                       '.redeploy' => (new Route('/[site]/redeploy', 'redeploy'))
+                                       '.checkout'   => (new Route('/[site]/checkout', 'checkout'))
                                            ->resolvers([
                                                            'site' => SiteResolver::class,
                                                        ]),
-                                       '.deploy' => (new Route('/[site]/deploy', 'deploy'))
+                                       '.recheckout' => (new Route('/[site]/recheckout', 'recheckout'))
                                            ->resolvers([
                                                            'site' => SiteResolver::class,
                                                        ]),
-                                       '.check'    => (new Route('/[site]/check', 'check'))
+                                       '.deploy'     => (new Route('/[site]/deploy', 'deploy'))
+                                           ->resolvers([
+                                                           'site' => SiteResolver::class,
+                                                       ]),
+                                       '.check'      => (new Route('/[site]/check', 'check'))
                                            ->resolvers([
                                                            'site' => SiteResolver::class,
                                                        ]),

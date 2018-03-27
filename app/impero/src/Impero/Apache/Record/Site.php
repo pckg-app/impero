@@ -1,5 +1,6 @@
 <?php namespace Impero\Apache\Record;
 
+use Defuse\Crypto\Key;
 use Impero\Apache\Console\DumpVirtualhosts;
 use Impero\Apache\Entity\Sites;
 use Impero\Mysql\Record\Database;
@@ -360,7 +361,7 @@ class Site extends Record
         return $connection->symlinkExists($symlink);
     }
 
-    public function checkout($pckg, $password)
+    public function checkout($pckg, $vars)
     {
         /**
          * If needed we enable https / letsencrypt.
@@ -383,12 +384,19 @@ class Site extends Record
          * Create database, privileges, enable backups and replication.
          * Also imports clean database, creates admin user and writes configuration.
          */
-        $this->prepareDatabase($pckg, $password);
+        $vars = $this->prepareDatabase($pckg, $vars);
+
+        $this->copyConfig($pckg, $vars);
 
         /**
          * Everything is ready, we may enable cronjobs.
          */
         $this->enableCronjobs($pckg);
+    }
+
+    public function copyConfig($pckg, $vars)
+    {
+        $this->createFile('config/env.php', $this->getConfigContent($vars));
     }
 
     /**
@@ -499,7 +507,7 @@ class Site extends Record
         return $checks;
     }
 
-    public function redeploy($pckg, $vars)
+    public function recheckout($pckg, $vars)
     {
         $this->vars = $vars;
         $this->createNewHtdocsPath();
@@ -767,7 +775,7 @@ class Site extends Record
         $this->getServerConnection()->sftpSend($content, $this->getHtdocsPath() . $file, null, false);
     }
 
-    public function prepareDatabase($pckg, $password)
+    public function prepareDatabase($pckg, $vars)
     {
         /**
          * Some defaults.
@@ -799,35 +807,9 @@ class Site extends Record
                 $database->replicate();
 
                 /**
-                 * Create initial database.
-                 *
-                 * @T00D00 - migrations should take care of this ...
+                 * For configuration.
                  */
-                $database->importFile(['file' => '/www/clean_derive.sql']);
-
-                /**
-                 * Create admin user account.
-                 *
-                 * @T00D00 - this is per project?
-                 */
-                $userPass = $password ?? auth()->createPassword(10);
-                $database->query('INSERT INTO users (status_id, password, email, name, surname, enabled, language_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                                 [
-                                     1,
-                                     password_hash($userPass, PASSWORD_DEFAULT),
-                                     $this->client->email,
-                                     $this->client->name,
-                                     $this->client->surname,
-                                     1,
-                                     'en',
-                                 ]);
-
-                /**
-                 * Copy configuration
-                 *
-                 * @T00D00
-                 */
-                $this->createFile('config/env.php', $this->getConfigContent($dbname, $dbuser, $dbpass));
+                $vars = array_merge($vars, ['$dbname' => $dbname, '$dbuser' => $dbuser, '$dbpass' => $dbpass]);
             } else if ($config['type'] == 'search') {
                 $database = Database::gets([
                                                'server_id' => 2,
@@ -848,6 +830,55 @@ class Site extends Record
                                              ]);
             }
         }
+
+        return $vars;
+    }
+
+    public function getConfigContent($vars)
+    {
+        /**
+         * Create new security key for passwords and hashes.
+         */
+        $vars['$securityKey'] = Key::createNewRandomKey()->saveToAsciiSafeString();
+
+        return $this->replaceVars('<?php
+
+return [
+    \'identifier\' => \'$identifier\',
+    \'domain\'     => \'$domain\',
+    \'database\'   => [
+        \'default\' => [
+            \'user\' => \'$dbuser\',
+            \'pass\' => \'$dbpass\',
+            \'db\'   => \'$dbname\',
+        ],
+        \'dynamic\' => [
+            \'user\' => \'$dbuser\',
+            \'pass\' => \'$dbpass\',
+        ],
+    ],
+    \'security\'   => [
+        \'key\' => \'$securityKey\',
+    ],
+    \'pckg\'       => [
+        \'mailo\' => [
+            \'apiKey\' => \'$newMailoApiKey\',
+        ],
+        \'pendo\' => [
+            \'apiKey\' => \'$newPendoApiKey\',
+        ],
+    ],
+    \'router\'     => [
+        \'apps\' => [
+            \'$app\' => [
+                \'host\' => [
+                    \'(.*)\', // allow any host
+                ],
+            ],
+        ],
+    ],
+];
+', $vars);
     }
 
 }
