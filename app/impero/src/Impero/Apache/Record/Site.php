@@ -363,10 +363,12 @@ class Site extends Record
 
     public function checkout($pckg, $vars)
     {
+        $this->vars = $vars;
+
         /**
          * If needed we enable https / letsencrypt.
          */
-        $site = $this->prepareSite($pckg);
+        $this->prepareSite($pckg);
 
         /**
          * We checkout and initialize standalone platforms or create directory structure and symlinks for linked ones.
@@ -378,15 +380,20 @@ class Site extends Record
          * We need to apply storage service and execute 'prepare' commands.
          * Here we create proper directories and symlinks.
          */
-        $this->preparePlatform($pckg);
+        $this->preparePlatformDirs($pckg);
 
         /**
          * Create database, privileges, enable backups and replication.
          * Also imports clean database, creates admin user and writes configuration.
          */
-        $vars = $this->prepareDatabase($pckg, $vars);
+        $this->prepareDatabase($pckg);
 
-        $this->copyConfig($pckg, $vars);
+        $this->copyConfig($pckg);
+
+        /**
+         * We probably need to import few things.
+         */
+        $this->preparePlatform($pckg);
 
         /**
          * Everything is ready, we may enable cronjobs.
@@ -394,9 +401,24 @@ class Site extends Record
         $this->enableCronjobs($pckg);
     }
 
-    public function copyConfig($pckg, $vars)
+    public function preparePlatform($pckg)
     {
-        $this->createFile('config/env.php', $this->getConfigContent($vars));
+        /**
+         * Execute prepare commands.
+         */
+        $commands = [];
+        foreach ($pckg['prepare'] ?? [] as $command) {
+            $commands[] = $this->replaceVars($command);
+        }
+        $connection = $this->getServerConnection();
+        $connection->execMultiple($commands);
+    }
+
+    public function copyConfig($pckg)
+    {
+        foreach ($pckg['services']['web']['config'] ?? [] as $dest => $copy) {
+            $this->createFile($dest, $this->getConfigContent());
+        }
     }
 
     /**
@@ -510,10 +532,15 @@ class Site extends Record
     public function recheckout($pckg, $vars)
     {
         $this->vars = $vars;
+        $this->prepareSite($pckg);
         $this->createNewHtdocsPath();
         $this->checkoutPlatform($pckg);
-        $this->preparePlatform($pckg);
+        $this->preparePlatformDirs($pckg);
         $this->copyOldConfig();
+
+        /**
+         * Everything is ready, we may enable cronjobs.
+         */
         $this->enableCronjobs($pckg);
     }
 
@@ -606,11 +633,6 @@ class Site extends Record
          * Init platform.
          */
         $connection->execMultiple($pckg['init'], $errorStream, $aliasDir);
-
-        /**
-         * Prepare platform.
-         */
-        $connection->execMultiple($pckg['prepare'], $errorStream, $aliasDir);
     }
 
     public function getLinkedDir($pckg)
@@ -689,7 +711,7 @@ class Site extends Record
         return '/mnt/volume-fra1-01/live/' . $this->user->username . '/' . $this->document_root . '/';
     }
 
-    public function preparePlatform($pckg)
+    public function preparePlatformDirs($pckg)
     {
         $siteStoragePath = $this->getStorageDir();
         $htdocsOldPath = $this->getHtdocsOldPath();
@@ -746,12 +768,6 @@ class Site extends Record
             $originPoint = $this->replaceVars($storageDir);
             $connection->exec('ln -s ' . $originPoint . ' ' . $this->getHtdocsPath() . $linkPoint);
         }
-
-        /**
-         * Execute prepare commands.
-         */
-        $errorStreamContext = null;
-        $connection->execMultiple($pckg['prepare'], $errorStreamContext, $this->getHtdocsPath());
     }
 
     public function replaceVars($command, $vars = [])
@@ -775,7 +791,7 @@ class Site extends Record
         $this->getServerConnection()->sftpSend($content, $this->getHtdocsPath() . $file, null, false);
     }
 
-    public function prepareDatabase($pckg, $vars)
+    public function prepareDatabase($pckg)
     {
         /**
          * Some defaults.
@@ -809,7 +825,8 @@ class Site extends Record
                 /**
                  * For configuration.
                  */
-                $vars = array_merge($vars, ['$dbname' => $dbname, '$dbuser' => $dbuser, '$dbpass' => $dbpass]);
+                $this->vars = array_merge($this->vars,
+                                          ['$dbname' => $dbname, '$dbuser' => $dbuser, '$dbpass' => $dbpass]);
             } else if ($config['type'] == 'search') {
                 $database = Database::gets([
                                                'server_id' => 2,
@@ -830,16 +847,14 @@ class Site extends Record
                                              ]);
             }
         }
-
-        return $vars;
     }
 
-    public function getConfigContent($vars)
+    public function getConfigContent()
     {
         /**
          * Create new security key for passwords and hashes.
          */
-        $vars['$securityKey'] = Key::createNewRandomKey()->saveToAsciiSafeString();
+        $this->vars['$securityKey'] = Key::createNewRandomKey()->saveToAsciiSafeString();
 
         return $this->replaceVars('<?php
 
@@ -878,7 +893,7 @@ return [
         ],
     ],
 ];
-', $vars);
+');
     }
 
 }
