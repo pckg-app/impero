@@ -1507,12 +1507,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/auth.git",
-                "reference": "ee879f4aeb3680033bf271b0fc00b834656d1fc1"
+                "reference": "3c09fa2048febb23b44d1e87f94419f9a61f3cfc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/auth/zipball/ee879f4aeb3680033bf271b0fc00b834656d1fc1",
-                "reference": "ee879f4aeb3680033bf271b0fc00b834656d1fc1",
+                "url": "https://api.github.com/repos/pckg/auth/zipball/3c09fa2048febb23b44d1e87f94419f9a61f3cfc",
+                "reference": "3c09fa2048febb23b44d1e87f94419f9a61f3cfc",
                 "shasum": ""
             },
             "require": {
@@ -1537,7 +1537,7 @@
             ],
             "description": "Provides basic functionality for authentication and authorization users in database, on Twitter, Facebook and with OAuth2 standard",
             "homepage": "https://github.com/pckg/auth",
-            "time": "2018-03-27T14:11:29+00:00"
+            "time": "2018-03-27T17:46:36+00:00"
         },
         {
             "name": "pckg/cache",
@@ -2065,12 +2065,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/migrator.git",
-                "reference": "e675f63146428fb819ffa558e047c7f6566780f0"
+                "reference": "e0ed796d83881cddd73609fc914c0a28836ec7df"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/migrator/zipball/e675f63146428fb819ffa558e047c7f6566780f0",
-                "reference": "e675f63146428fb819ffa558e047c7f6566780f0",
+                "url": "https://api.github.com/repos/pckg/migrator/zipball/e0ed796d83881cddd73609fc914c0a28836ec7df",
+                "reference": "e0ed796d83881cddd73609fc914c0a28836ec7df",
                 "shasum": ""
             },
             "require": {
@@ -2095,7 +2095,7 @@
             ],
             "description": "Database and config migrations made simple",
             "homepage": "https://github.com/pckg/migrator",
-            "time": "2018-03-27T14:19:25+00:00"
+            "time": "2018-03-27T17:47:31+00:00"
         },
         {
             "name": "pckg/payment",
