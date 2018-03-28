@@ -65,8 +65,8 @@ class User extends Record
          * Permission mapper for simplified usage..
          */
         $permissions = [
-            'basic'    => 'SELECT, UPDATE, DELETE, INSERT', // REFERENCES?
-            'advanced' => 'SELECT, UPDATE, DELETE, INSERT, ALTER, CREATE, INDEX',
+            'basic'    => 'SELECT, UPDATE, DELETE, INSERT',
+            'advanced' => 'SELECT, UPDATE, DELETE, INSERT, ALTER, CREATE, INDEX, REFERENCES',
             'dump'     => 'SELECT, LOCK TABLES, SHOW VIEW, EVENT, TRIGGER',
             'admin'    => 'SELECT, CREATE, DROP, RELOAD, SHOW DATABASES, CREATE USER',
         ];

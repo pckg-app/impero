@@ -5,6 +5,7 @@ use Impero\Apache\Console\DumpVirtualhosts;
 use Impero\Apache\Entity\Sites;
 use Impero\Mysql\Record\Database;
 use Impero\Mysql\Record\User as DatabaseUser;
+use Impero\Servers\Record\Server;
 use Impero\Services\Service\SshConnection;
 use Pckg\Database\Record;
 
@@ -61,9 +62,26 @@ class Site extends Record
         $connection->exec('mkdir -p ' . $this->getSslPath());
     }
 
+    public function getMountpoint()
+    {
+        /**
+         * volume1 - /www/ /backups/ /logs/
+         * volume2 - /www/ /backups/ /logs/
+         *
+         * zero - /www/ -> /volume1/www/
+         *
+         * We should change this so on every server storage path is the same. We won't use www folder anymore.
+         * Sites will point to /mnt/$volume/www/.
+         * Volumes are mounted on one server and shared over nfs on other servers, locations are the same.
+         * When there's no volume attached we create /www/ folder and mount /mnt/www/ to it.
+         *
+         */
+        return '/www/';
+    }
+
     public function getUserPath()
     {
-        return '/www/' . $this->user->username . '/';
+        return $this->getMountpoint() . $this->user->username . '/';
     }
 
     public function getDomainPath()
@@ -800,10 +818,9 @@ class Site extends Record
          */
         foreach ($pckg['services']['db']['mysql']['database'] as $key => $config) {
             $database = null;
-            $dbuser = $dbname = null;
 
             if ($config['type'] == 'searchOrCreate') {
-                $dbname = $dbuser = $this->replaceVars($config['name']);
+                $dbname = $this->replaceVars($config['name']);
 
                 /**
                  * Create mysql database, user and set privileges.
@@ -823,7 +840,7 @@ class Site extends Record
                  * For configuration.
                  */
                 $this->vars = array_merge($this->vars,
-                                          ['$dbname' => $dbname, '$dbuser' => $dbuser, '$dbpass' => $dbpass]);
+                                          ['$dbname' => $dbname, '$dbpass' => $dbpass]);
             } else if ($config['type'] == 'search') {
                 $database = Database::gets([
                                                'server_id' => 2,
@@ -834,13 +851,21 @@ class Site extends Record
             /**
              * Check for access.
              */
-            if ($dbuser && $database && isset($pckg['services']['db']['mysql']['user']['access'][$key])) {
+            if (!$database) {
+                continue; // skip?
+            }
+
+            foreach ($config['user'] ?? [] as $user => $privilege) {
+                $dbuser = $this->replaceVars($user);
+                if (!isset($this->vars['$dbUser'])) {
+                    $this->vars['$dbUser'] = $dbuser;
+                }
                 DatabaseUser::createFromPost([
                                                  'username'  => $dbuser,
                                                  'password'  => $dbpass,
                                                  'server_id' => 2,
                                                  'database'  => $database->id,
-                                                 'privilege' => $pckg['services']['db']['mysql']['user']['access'][$key],
+                                                 'privilege' => $privilege,
                                              ]);
             }
         }
@@ -891,6 +916,13 @@ return [
     ],
 ];
 ');
+    }
+
+    public function hasServiceOnServer(Server $server, $service)
+    {
+        if ($service == 'apache') {
+            return true;
+        }
     }
 
 }

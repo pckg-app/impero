@@ -36,8 +36,19 @@ class DumpVirtualhosts extends Command
         $virtualhosts = [];
         //$virtualhostsNginx = [];
         $sites->each(
-            function(Site $site) use (&$virtualhosts/*, &$virtualhostsNginx*/) {
-                $virtualhosts[] = $site->getVirtualhost();
+            function(Site $site) use ($server, &$virtualhosts/*, &$virtualhostsNginx*/) {
+                /**
+                 * Apache: apache port
+                 * Nginx: nginx port
+                 * Haproxy: haproxy port
+                 */
+                if ($site->hasServiceOnServer($server, 'apache')) {
+                    $virtualhosts[] = $site->getVirtualhost();
+                }
+                if ($site->hasServiceOnServer($server, 'nginx')) {
+                }
+                if ($site->hasServiceOnServer($server, 'haproxy')) {
+                }
                 //$virtualhostsNginx[] = $site->getVirtualhostNginx();
             }
         );
