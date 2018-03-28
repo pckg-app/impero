@@ -533,8 +533,8 @@ block-stream@*:
     inherits "~2.0.0"
 
 blueimp-gallery@^2.28.0:
-  version "2.32.0"
-  resolved "https://registry.yarnpkg.com/blueimp-gallery/-/blueimp-gallery-2.32.0.tgz#bae026b416bafd88827c649a18a52490376f9c29"
+  version "2.33.0"
+  resolved "https://registry.yarnpkg.com/blueimp-gallery/-/blueimp-gallery-2.33.0.tgz#f897912a1bbf65be904454d5990be6155799dd45"
 
 boom@2.x.x:
   version "2.10.1"
