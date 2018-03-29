@@ -434,7 +434,7 @@ class Site extends Record
 
     public function copyConfig($pckg)
     {
-        foreach ($pckg['services']['web']['config'] ?? [] as $dest => $copy) {
+        foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
             $this->createFile($dest, $this->getConfigContent());
         }
     }
