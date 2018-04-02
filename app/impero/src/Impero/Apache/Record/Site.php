@@ -114,9 +114,22 @@ class Site extends Record
         return $this->getDomainPath() . 'ssl/';
     }
 
-    public function getVirtualhost()
+    public function getVirtualhost(Server $server)
     {
-        return $this->getInsecureVirtualhost() . "\n\n" . $this->getSecureVirtualhost();
+        return $this->getInsecureVirtualhost($server) . "\n\n" . $this->getSecureVirtualhost($server);
+    }
+
+    protected function getServiceServers($service)
+    {
+        if (in_array($service, ['web', 'db', 'lb', 'cron'])) {
+            /**
+             * Service is by default active on main server.
+             * Check if it's balanced or put on other server.
+             */
+            return [$this->server];
+        }
+
+        return [];
     }
 
     public function getVirtualhostNginx()
@@ -226,16 +239,18 @@ class Site extends Record
         return $directives;
     }
 
-    public function getInsecureVirtualhost()
+    public function getInsecureVirtualhost(Server $server)
     {
         $directives = $this->getBasicDirectives();
 
-        $return = '<VirtualHost *:80>' . "\n\t" . implode("\n\t", $directives) . "\n" . '</VirtualHost>';
+        $port = $server->getSettingValue('service.apache2.httpPort', 80);
+
+        $return = '<VirtualHost *:' . $port . '>' . "\n\t" . implode("\n\t", $directives) . "\n" . '</VirtualHost>';
 
         return $return;
     }
 
-    public function getSecureVirtualhost()
+    public function getSecureVirtualhost(Server $server)
     {
         if (!$this->ssl) {
             return;
@@ -247,7 +262,9 @@ class Site extends Record
         $directives[] = 'SSLCertificateKeyFile ' . $this->getSslPath() . $this->ssl_certificate_key_file;
         $directives[] = 'SSLCertificateChainFile ' . $this->getSslPath() . $this->ssl_certificate_chain_file;
 
-        return '<VirtualHost *:443>
+        $port = $server->getSettingValue('service.apache2.httpsPort', 443);
+
+        return '<VirtualHost *:' . $port . '>
     ' . implode("\n\t", $directives) . '
 </VirtualHost>';
     }
@@ -255,6 +272,11 @@ class Site extends Record
     public function addCronjob($command)
     {
         $this->server->addCronjob($command);
+    }
+
+    public function getUniqueDomains()
+    {
+        return collect([$this->server_name])->pushArray(explode(' ', $this->server_alias))->unique()->removeEmpty();
     }
 
     public function letsencrypt()
@@ -268,7 +290,7 @@ class Site extends Record
         $email = 'letsencrypt.zero.gonparty.eu@schtr4jh.net';
         $webroot = '/var/www/default';
         $domain = $this->server_name;
-        $domains = collect([$domain])->pushArray(explode(' ', $this->server_alias))->unique()->removeEmpty();
+        $domains = $this->getUniqueDomains();
 
         $ip = null;
         $realDomains = [];

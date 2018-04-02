@@ -6,6 +6,8 @@ use Impero\Servers\Record\Server;
 use Impero\Services\Entity\Services;
 use Pckg\Database\Entity;
 use Pckg\Generic\Entity\ListItems;
+use Pckg\Generic\Entity\Settings;
+use Pckg\Generic\Entity\SettingsMorphs;
 
 class Servers extends Entity
 {
@@ -51,6 +53,13 @@ class Servers extends Entity
     public function jobs()
     {
         return $this->hasMany(Jobs::class)
+                    ->foreignKey('server_id');
+    }
+
+    public function settings()
+    {
+        return $this->morphsMany(Settings::class)
+                    ->over(SettingsMorphs::class)
                     ->foreignKey('server_id');
     }
 

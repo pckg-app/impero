@@ -1,10 +1,13 @@
 <?php namespace Impero\Servers\Record;
 
+use Impero\Apache\Entity\SitesServers;
+use Impero\Apache\Record\SitesServer;
 use Impero\Jobs\Record\Job;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Service\ConnectionManager;
 use Impero\Services\Service\MysqlConnection;
 use Pckg\Database\Record;
+use Pckg\Generic\Entity\SettingsMorphs;
 
 class Server extends Record
 {
@@ -120,6 +123,131 @@ class Server extends Record
              */
             $connection->exec('sudo echo "' . $command . '" >> ' . $cronjobFile);
         }
+    }
+
+    public function getName()
+    {
+        return $this->id;
+    }
+
+    public function getPrivateIpAttribute()
+    {
+        /**
+         * Get IP from private network interface.
+         */
+        $eth1 = $this->getSettingValue('server.network.eth1.ip');
+
+        if ($eth1) {
+            return $eth1->value;
+        }
+
+        /**
+         * Get IP from public network interface.
+         */
+        $eth0 = $this->getSettingValue('server.network.eth0.ip');
+
+        if ($eth0) {
+            return $eth0->value;
+        }
+
+        return $this->ip;
+    }
+
+    public function getSettingValue($slug, $default = null)
+    {
+        return (new SettingsMorphs())
+                   ->joinSetting()
+                   ->where('morph_id', Servers::class)
+                   ->where('poly_id', $this->id)
+                   ->where('settings.slug', $slug)
+                   ->one()->value ?? $default;
+    }
+
+    public function getApacheConfig()
+    {
+        /**
+         * First, check that apache is active on server.
+         */
+        $active = $this->getSettingValue('service.apache2.active');
+        if (!$active) {
+            return null;
+        }
+
+        /**
+         * Get all sites for web service on this server.
+         */
+        $sites = (new SitesServers())->where('server_id', $this->id)
+                                     ->where('type', 'web')
+                                     ->all();
+
+        $server = $this;
+        $sites->each(
+            function(SitesServer $sitesServer) use (&$virtualhosts, &$virtualhostsNginx, $server) {
+                /**
+                 * Apache: apache port
+                 * Nginx: nginx port
+                 * Haproxy: haproxy port
+                 */
+                $virtualhosts[] = $sitesServer->site->getVirtualhost($server);
+            }
+        );
+
+        return implode($virtualhosts);
+    }
+
+    public function getHaproxyConfig()
+    {
+        /**
+         * First, check that apache is active on server.
+         */
+        $active = $this->getSettingValue('service.haproxy.active');
+        if (!$active) {
+            return null;
+        }
+
+        /**
+         * Get all sites that are routed to this server and proxied to workers.
+         */
+        $sites = $this->sites;
+
+        $httpPort = $this->getSettingValue('service.haproxy.httpPort', 80);
+        $httpsPort = $this->getSettingValue('service.haproxy.httpsPort', 80);
+
+        $config = 'frontend http2https
+    bind *:' . $httpPort . '
+    redirect scheme https code 301 if !{ ssl_fc }
+    
+frontend all_https
+    bind *:' . $httpsPort . '
+    mode tcp
+    option tcplog';
+
+        foreach ($sites as $site) {
+            $domains = $site->getUniqueDomains();
+            //$replaced = str_replace(['.', '-'], ['\.', '\-'], implode('|', $domains));
+            //$config .= "\n" . '    acl bcknd-' . $site->id . ' hdr_reg(host) -i ^(' . $replaced . ')$';
+            $config .= "\n" . '    acl bcknd-' . $site->id . ' hdr(host) -i ' . implode(' ', $domains);
+            $config .= "\n" . '    use_backend backend-' . $site->id . ' if bcknd-' . $site->id;
+        }
+        //$config .= "\n" . '    default_backend b';
+
+        foreach ($sites as $site) {
+            /**
+             * Receive list of all server that site is deployed to.
+             */
+            $workers = $site->getServiceServers('web');
+
+            $config .= "\n" . 'backend backend-' . $site->id;
+            $config .= "\n" . '    balance roundrobin';
+            $config .= "\n" . '    mode tcp';
+            foreach ($workers as $worker) {
+                $workerHttpsPort = $worker->getSettingValue('service.apache2.httpsPort', 443);
+                $config .= "\n" . '    server ' . $worker->name . ' ' . $worker->privateIp . ':' . $workerHttpsPort .
+                           ' check';
+            }
+        }
+
+        return $config;
     }
 
 }

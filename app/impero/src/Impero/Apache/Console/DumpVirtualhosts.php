@@ -1,7 +1,5 @@
 <?php namespace Impero\Apache\Console;
 
-use Impero\Apache\Entity\Sites;
-use Impero\Apache\Record\Site;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
 use Pckg\Framework\Console\Command;
@@ -30,38 +28,28 @@ class DumpVirtualhosts extends Command
             return;
         }
 
-        $this->output('Building virtualhosts');
+        /**
+         * Get server.
+         */
         $server = (new Servers())->where('id', $this->option('server'))->oneOrFail();
-        $sites = (new Sites())->where('server_id', $server->id)->all();
-        $virtualhosts = [];
-        //$virtualhostsNginx = [];
-        $sites->each(
-            function(Site $site) use ($server, &$virtualhosts/*, &$virtualhostsNginx*/) {
-                /**
-                 * Apache: apache port
-                 * Nginx: nginx port
-                 * Haproxy: haproxy port
-                 */
-                if ($site->hasServiceOnServer($server, 'apache')) {
-                    $virtualhosts[] = $site->getVirtualhost();
-                }
-                if ($site->hasServiceOnServer($server, 'nginx')) {
-                }
-                if ($site->hasServiceOnServer($server, 'haproxy')) {
-                }
-                //$virtualhostsNginx[] = $site->getVirtualhostNginx();
-            }
-        );
 
-        $virtualhosts = implode("\n\n", $virtualhosts);
-        //$virtualhostsNginx = implode("\n\n", $virtualhostsNginx);
+        /**
+         * Get server services: web and lb.
+         */
 
-        $this->output('Dumping virtualhosts');
+        $this->output('Building apache');
+        $virtualhosts = $server->getApacheConfig();
 
+        $this->output('Building haproxy');
+        $virtualhostsHaproxy = $server->getHaproxyConfig();
+
+        $this->output('Dumping apache');
         $this->storeVirtualhosts($server, $virtualhosts);
-        //$this->storeVirtualhostsNginx($server, $virtualhostsNginx);
 
-        $this->output('Virtualhosts were dumped, waiting for apache graceful');
+        $this->output('Dumping haproxy');
+        $this->storeVirtualhostsHaproxy($server, $virtualhostsHaproxy);
+
+        $this->output('Done');
     }
 
     protected function storeVirtualhosts(Server $server, $virtualhosts)
@@ -93,6 +81,19 @@ class DumpVirtualhosts extends Command
          * @T00D00 - check if apache is offline and apply previous configuration.
          */
         $sshConnection->exec('sudo service nginx restart');
+    }
+
+    protected function storeVirtualhostsHaproxy(Server $server, $virtualhosts)
+    {
+        return;
+        $local = '/tmp/server.' . $server->id . '.haproxy';
+        $remote = '/etc/haproxy/haproxy.cnf';
+        file_put_contents($local, $virtualhosts);
+        $sshConnection = $server->getConnection();
+        $sshConnection->sftpSend($local, $remote);
+        unlink($local);
+
+        $sshConnection->exec('sudo service haproxy restart');
     }
 
 }
