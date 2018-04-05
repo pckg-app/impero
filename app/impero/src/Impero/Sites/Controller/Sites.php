@@ -108,7 +108,7 @@ class Sites
     public function postHasSiteFileAction(Site $site)
     {
         return [
-            'hasSiteSymlink' => $site->hasSiteFile(post('file')),
+            'hasSiteFile' => $site->hasSiteFile(post('file')),
         ];
     }
 
