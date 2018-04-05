@@ -29,6 +29,10 @@ class Apache extends Provider
                                            ->resolvers([
                                                            'site' => SiteResolver::class,
                                                        ]),
+                                       '.cronjobs'   => (new Route('/[site]/cronjobs', 'cronjobs'))
+                                           ->resolvers([
+                                                           'site' => SiteResolver::class,
+                                                       ]),
                                        '.checkout'   => (new Route('/[site]/checkout', 'checkout'))
                                            ->resolvers([
                                                            'site' => SiteResolver::class,

@@ -168,4 +168,9 @@ class Sites
         return ['check' => $site->check(post('pckg', []))];
     }
 
+    public function getCronjobsAction()
+    {
+        return ['cronjobs' => ['yes!']];
+    }
+
 }
