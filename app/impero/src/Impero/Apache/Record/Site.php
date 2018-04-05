@@ -857,8 +857,8 @@ class Site extends Record
 
             foreach ($config['user'] ?? [] as $user => $privilege) {
                 $dbuser = $this->replaceVars($user);
-                if (!isset($this->vars['$dbUser'])) {
-                    $this->vars['$dbUser'] = $dbuser;
+                if (!isset($this->vars['$dbuser'])) {
+                    $this->vars['$dbuser'] = $dbuser;
                 }
                 DatabaseUser::createFromPost([
                                                  'username'  => $dbuser,
@@ -899,10 +899,10 @@ return [
     ],
     \'pckg\'       => [
         \'mailo\' => [
-            \'apiKey\' => \'$newMailoApiKey\',
+            \'apiKey\' => \'$mailoApiKey\',
         ],
         \'pendo\' => [
-            \'apiKey\' => \'$newPendoApiKey\',
+            \'apiKey\' => \'$pendoApiKey\',
         ],
     ],
     \'router\'     => [
