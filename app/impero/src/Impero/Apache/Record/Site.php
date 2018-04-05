@@ -379,6 +379,13 @@ class Site extends Record
         return $connection->symlinkExists($symlink);
     }
 
+    public function hasSiteFile($file)
+    {
+        $connection = $this->getServerConnection();
+
+        return $connection->fileExists($file);
+    }
+
     public function checkout($pckg, $vars)
     {
         $this->vars = $vars;

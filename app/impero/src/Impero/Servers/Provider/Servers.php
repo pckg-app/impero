@@ -120,6 +120,10 @@ class Servers extends Provider
                                            ->resolvers([
                                                            'site' => Site::class,
                                                        ]),
+                                       '.hasSiteFile'    => (new Route('/[site]/has-site-file', 'hasSiteFile'))
+                                           ->resolvers([
+                                                           'site' => Site::class,
+                                                       ]),
                                    ]),
         ];
     }

@@ -105,6 +105,13 @@ class Sites
         ];
     }
 
+    public function postHasSiteFileAction(Site $site)
+    {
+        return [
+            'hasSiteSymlink' => $site->hasSiteFile(post('file')),
+        ];
+    }
+
     public function postSetDomainAction(Site $site)
     {
         $domain = post('domain', null);
