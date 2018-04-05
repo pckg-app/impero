@@ -383,7 +383,7 @@ class Site extends Record
     {
         $connection = $this->getServerConnection();
 
-        return $connection->fileExists($file);
+        return $connection->fileExists($this->getHtdocsPath() . $file);
     }
 
     public function checkout($pckg, $vars)
