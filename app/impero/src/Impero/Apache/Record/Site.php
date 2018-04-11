@@ -651,7 +651,7 @@ class Site extends Record
          */
         $connection->execMultiple([
                                       'git clone ' . $pckg['repository'] . ' .',
-                                      'git checkout ' . $pckg['branch'] . ' .',
+                                      'git checkout ' . $pckg['branch'],
                                   ], $errorStream, $aliasDir);
 
         /**
