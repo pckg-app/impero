@@ -105,6 +105,13 @@ class Sites
         ];
     }
 
+    public function postHasSiteFileAction(Site $site)
+    {
+        return [
+            'hasSiteFile' => $site->hasSiteFile(post('file')),
+        ];
+    }
+
     public function postSetDomainAction(Site $site)
     {
         $domain = post('domain', null);
@@ -159,6 +166,11 @@ class Sites
     public function postCheckAction(Site $site)
     {
         return ['check' => $site->check(post('pckg', []))];
+    }
+
+    public function getCronjobsAction()
+    {
+        return ['cronjobs' => ['yes!']];
     }
 
 }

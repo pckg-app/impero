@@ -401,6 +401,13 @@ class Site extends Record
         return $connection->symlinkExists($symlink);
     }
 
+    public function hasSiteFile($file)
+    {
+        $connection = $this->getServerConnection();
+
+        return $connection->fileExists($this->getHtdocsPath() . $file);
+    }
+
     public function checkout($pckg, $vars)
     {
         $this->vars = $vars;
@@ -666,7 +673,7 @@ class Site extends Record
          */
         $connection->execMultiple([
                                       'git clone ' . $pckg['repository'] . ' .',
-                                      'git checkout ' . $pckg['branch'] . ' .',
+                                      'git checkout ' . $pckg['branch'],
                                   ], $errorStream, $aliasDir);
 
         /**
@@ -879,8 +886,8 @@ class Site extends Record
 
             foreach ($config['user'] ?? [] as $user => $privilege) {
                 $dbuser = $this->replaceVars($user);
-                if (!isset($this->vars['$dbUser'])) {
-                    $this->vars['$dbUser'] = $dbuser;
+                if (!isset($this->vars['$dbuser'])) {
+                    $this->vars['$dbuser'] = $dbuser;
                 }
                 DatabaseUser::createFromPost([
                                                  'username'  => $dbuser,
@@ -921,10 +928,10 @@ return [
     ],
     \'pckg\'       => [
         \'mailo\' => [
-            \'apiKey\' => \'$newMailoApiKey\',
+            \'apiKey\' => \'$mailoApiKey\',
         ],
         \'pendo\' => [
-            \'apiKey\' => \'$newPendoApiKey\',
+            \'apiKey\' => \'$pendoApiKey\',
         ],
     ],
     \'router\'     => [
