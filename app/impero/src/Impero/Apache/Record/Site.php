@@ -863,7 +863,7 @@ class Site extends Record
                  * Manually call backup and replication.
                  */
                 $database->backup();
-                $database->replicate();
+                $database->requireMysqlMasterReplication();
 
                 /**
                  * For configuration.

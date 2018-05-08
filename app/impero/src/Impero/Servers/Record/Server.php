@@ -3,9 +3,13 @@
 use Impero\Apache\Entity\SitesServers;
 use Impero\Apache\Record\SitesServer;
 use Impero\Jobs\Record\Job;
+use Impero\Mysql\Record\Database;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Service\ConnectionManager;
+use Impero\Services\Service\Mysql;
 use Impero\Services\Service\MysqlConnection;
+use Impero\Services\Service\OpenSSL;
+use Impero\Services\Service\SshConnection;
 use Pckg\Database\Record;
 use Pckg\Generic\Entity\SettingsMorphs;
 
@@ -20,6 +24,15 @@ class Server extends Record
 
     protected $mysqlConnection;
 
+    /**
+     * @var Mysql
+     */
+    protected $mysqlService;
+
+    /**
+     * @return mixed|SshConnection
+     * @throws \Exception
+     */
     public function getConnection()
     {
         if (!$this->connection) {
@@ -30,6 +43,10 @@ class Server extends Record
         return $this->connection;
     }
 
+    /**
+     * @return mixed|MysqlConnection
+     * @throws \Exception
+     */
     public function getMysqlConnection()
     {
         if (!$this->mysqlConnection) {
@@ -39,6 +56,38 @@ class Server extends Record
         return $this->mysqlConnection;
     }
 
+    public function readFile($file)
+    {
+        $connection = $this->server->getConnection();
+        return $connection->sftpRead($file);
+    }
+
+    /**
+     * @param null $command
+     *
+     * @return bool|null|string
+     * @throws \Exception
+     */
+    public function exec($command)
+    {
+        return $this->getConnection()->exec($command);
+    }
+
+    /**
+     * @param null $command
+     *
+     * @return bool|null|string
+     * @throws \Exception
+     */
+    public function execSql($sql)
+    {
+        return $this->getMysqlConnection()->execute($sql);
+    }
+
+    /**
+     * @return array
+     * @throws \Exception
+     */
     public function fetchJobs()
     {
         $connection = $this->getConnection();
@@ -77,14 +126,14 @@ class Server extends Record
                 $frequency = substr($line, 0, strlen($line) - strlen($command));
 
                 Job::create([
-                                'server_id' => $this->id,
-                                'name'      => '',
-                                'status'    => $inactive
-                                    ? 'inactive'
-                                    : 'active',
-                                'command'   => $command,
-                                'frequency' => $frequency,
-                            ]);
+                    'server_id' => $this->id,
+                    'name'      => '',
+                    'status'    => $inactive
+                        ? 'inactive'
+                        : 'active',
+                    'command'   => $command,
+                    'frequency' => $frequency,
+                ]);
             }
         }
 
@@ -94,14 +143,14 @@ class Server extends Record
     public function logCommand($command, $info, $error, $e)
     {
         return ServerCommand::create([
-                                         'server_id'   => $this->id,
-                                         'command'     => $command,
-                                         'info'        => $info,
-                                         'error'       => ($e ? 'EXCEPTION: ' . exception($e) . "\n" : null) .
-                                                          $error,
-                                         'executed_at' => date('Y-m-d H:i:s'),
-                                         'code'        => null,
-                                     ]);
+            'server_id'   => $this->id,
+            'command'     => $command,
+            'info'        => $info,
+            'error'       => ($e ? 'EXCEPTION: ' . exception($e) . "\n" : null) .
+                $error,
+            'executed_at' => date('Y-m-d H:i:s'),
+            'code'        => null,
+        ]);
     }
 
     public function addCronjob($command)
@@ -156,11 +205,19 @@ class Server extends Record
     public function getSettingValue($slug, $default = null)
     {
         return (new SettingsMorphs())
-                   ->joinSetting()
-                   ->where('morph_id', Servers::class)
-                   ->where('poly_id', $this->id)
-                   ->where('settings.slug', $slug)
-                   ->one()->value ?? $default;
+                ->joinSetting()
+                ->where('morph_id', Servers::class)
+                ->where('poly_id', $this->id)
+                ->where('settings.slug', $slug)
+                ->one()->value ?? $default;
+    }
+
+    public function getMysqlConfig()
+    {
+        /**
+         * Mysql config is separated into:
+         */
+        // /backup/dbarray.conf
     }
 
     public function getApacheConfig()
@@ -177,12 +234,12 @@ class Server extends Record
          * Get all sites for web service on this server.
          */
         $sites = (new SitesServers())->where('server_id', $this->id)
-                                     ->where('type', 'web')
-                                     ->all();
+            ->where('type', 'web')
+            ->all();
 
         $server = $this;
         $sites->each(
-            function(SitesServer $sitesServer) use (&$virtualhosts, &$virtualhostsNginx, $server) {
+            function (SitesServer $sitesServer) use (&$virtualhosts, &$virtualhostsNginx, $server) {
                 /**
                  * Apache: apache port
                  * Nginx: nginx port
@@ -243,11 +300,189 @@ frontend all_https
             foreach ($workers as $worker) {
                 $workerHttpsPort = $worker->getSettingValue('service.apache2.httpsPort', 443);
                 $config .= "\n" . '    server ' . $worker->name . ' ' . $worker->privateIp . ':' . $workerHttpsPort .
-                           ' check';
+                    ' check';
             }
         }
 
         return $config;
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function requireMysqlMasterReplication()
+    {
+        $this->getService(Mysql::class)->requireMysqlMasterReplication($this);
+    }
+
+    public function getReplicationConfigLocation()
+    {
+        return '/etc/mysql/conf.d/replication.cnf';
+    }
+
+    /**
+     * @param $destination
+     * @param $content
+     *
+     * @throws \Exception
+     */
+    public function writeFile($destination, $content)
+    {
+        $local = '/tmp/server.' . $this->id . '.' . sha1($destination);
+        file_put_contents($local, $content);
+        $this->getConnection()->sftpSend($local, $destination);
+        unlink($local);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function refreshMasterReplicationFilter()
+    {
+        $this->getService(Mysql::class)->refreshMasterReplicationFilter($this);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function refreshSlaveReplicationFilter()
+    {
+        $this->getService(Mysql::class)->refreshSlaveReplicationFilter($this);
+    }
+
+    /**
+     * @param $file
+     *
+     * @throws \Exception
+     */
+    public function compressFile($file, $output)
+    {
+        $command = 'zip ' . $output . ' ' . $file;
+        $this->exec($command);
+    }
+
+    /**
+     * @param $file
+     *
+     * @throws \Exception
+     */
+    public function encryptFile($file, $output, $keyFile)
+    {
+        /**
+         * Transfer key file from impero to server.
+         */
+        $this->getConnection()->sftpSend($file, $file);
+
+        /**
+         * Encrypt file with gpg2 with passphrase from key file.
+         */
+        $command = 'cat ' . $keyFile . ' | gpg2 --batch --passphrase-fd 0 --output ' . $output . ' --encrypt ' . $file;
+        $this->exec($command);
+
+        /**
+         * Delete encryption key from server, impero holds the only copy of key.
+         */
+        $this->deleteFile($keyFile);
+    }
+
+    /**
+     * @param $file
+     *
+     * @throws \Exception
+     */
+    public function decompressFile($file, $output)
+    {
+        $command = 'unzip ' . $file . ' ' . $output;
+        $this->exec($command);
+    }
+
+    /**
+     * @param $file
+     *
+     * @throws \Exception
+     */
+    public function decryptFile($file, $output, $keyFile)
+    {
+        /**
+         * Transfer key file from impero to server.
+         */
+        $this->getConnection()->sftpSend($file, $file);
+
+        /**
+         * Decrypt file.
+         */
+        $command = 'cat ' . $keyFile . ' | gpg2 --batch --passphrase-fd 0 --output ' . $output . ' --decrypt ' . $file;
+        $this->exec($command);
+
+        /**
+         * Delete encryption key from server, impero holds the only copy of key.
+         */
+        $this->deleteFile($keyFile);
+    }
+
+    /**
+     * @param $file
+     *
+     * @throws \Exception
+     */
+    public function deleteFile($file)
+    {
+        $command = 'rm ' . $file;
+        $this->exec($command);
+    }
+
+    /**
+     * @param        $file
+     * @param Server $server
+     * @param        $destination
+     *
+     * @throws \Exception
+     */
+    public function transferFile($file, $destination, Server $toServer)
+    {
+        $command = 'rsync -a ' . $file . ' impero@' . $toServer->ip . ':' . $destination;
+        $this->exec($command);
+    }
+
+    /**
+     * @return Mysql
+     * @throws \Exception
+     */
+    public function getMysqlService()
+    {
+        if (!$this->mysqlService) {
+            $this->mysqlService = new Mysql($this->getConnection());
+        }
+
+        return $this->mysqlService;
+    }
+
+    /**
+     * @param $service
+     *
+     * @return mixed|OpenSSL|Mysql
+     * @throws \Exception
+     */
+    public function getService($service)
+    {
+        return new $service($this->getConnection());
+    }
+
+    public function compressAndEncryptFile($file, $keyFile)
+    {
+        /**
+         * Compress backup.
+         */
+        $compressedFile = '/home/impero/.impero/service/backup/mysql/compressed/' . sha1(microtime());
+        $this->server->compressFile($file, $compressedFile);
+        $this->server->deleteFile($file);
+
+        /**
+         * Encrypt backup.
+         */
+        $encryptedFile = '/home/impero/.impero/service/backup/mysql/encrypted/' . sha1(microtime());
+        $this->server->encryptFile($compressedFile, $encryptedFile, $keyFile);
+        $this->server->deleteFile($compressedFile);
     }
 
 }

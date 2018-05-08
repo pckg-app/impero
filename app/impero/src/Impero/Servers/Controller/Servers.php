@@ -154,6 +154,7 @@ class Servers
             $command = 'ssh-keygen -b 4096 -t rsa -C \'www-data@impero.foobar.si\' -f ' . $privateKey . ' -N "" 2>&1';
             exec($command, $output, $return_var);
             //d("generated", $command, $output, $return_var);
+            // openssl rand -base64 32
         }
 
         /**

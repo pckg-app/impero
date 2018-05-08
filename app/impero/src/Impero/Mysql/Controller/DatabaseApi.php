@@ -39,9 +39,9 @@ class DatabaseApi extends Controller
         $databaseName = post('name');
 
         $database = Database::gets([
-                                       'server_id' => $server,
-                                       'name'      => $databaseName,
-                                   ]);
+            'server_id' => $server,
+            'name'      => $databaseName,
+        ]);
 
         return [
             'database' => $database,
@@ -82,7 +82,7 @@ class DatabaseApi extends Controller
         /**
          * Enable or disable mysql replication.
          */
-        $database->replicate();
+        $database->requireMysqlMasterReplication();
 
         return [
             'success' => true,

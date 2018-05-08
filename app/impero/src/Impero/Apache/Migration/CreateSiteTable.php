@@ -41,7 +41,7 @@ class CreateSiteTable extends Migration
         $sitesServers->integer('server_id')->references('servers');
         $sitesServers->varchar('type'); // web:dynamic, web:static, loadbalancer, mysql:master, mysql:slave, data, cron
 
-        $volumes = $this->table('volumes');
+        //$volumes = $this->table('volumes');
 
         $this->save();
     }

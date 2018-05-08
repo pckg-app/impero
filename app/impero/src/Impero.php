@@ -4,6 +4,7 @@ use Impero\Impero\Provider\Impero as ImperoProvider;
 use Pckg\Framework\Provider;
 use Pckg\Generic\Middleware\EncapsulateResponse;
 use Pckg\Manager\Middleware\RegisterCoreAssets;
+use Pckg\Queue\Service\Cron;
 
 /**
  * Class Impero
@@ -29,6 +30,17 @@ class Impero extends Provider
     {
         return [
             EncapsulateResponse::class,
+        ];
+    }
+
+    public function jobs()
+    {
+        return [
+            Cron::createJob(MakeBackups::class, 'Make backups')
+                ->everyMinute()
+                ->long()
+                ->timeout(10 * 60)
+                ->async(),
         ];
     }
 

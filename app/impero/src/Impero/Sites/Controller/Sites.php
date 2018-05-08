@@ -2,6 +2,10 @@
 
 use Exception;
 use Impero\Apache\Record\Site;
+use Impero\Mysql\Entity\Databases;
+use Impero\Mysql\Record\Database;
+use Impero\Servers\Record\Server;
+use Pckg\Collection;
 
 class Sites
 {
@@ -18,15 +22,15 @@ class Sites
         $data = only(post()->all(), ['user_id', 'server_id', 'name', 'aliases', 'ssl']);
 
         $site = Site::create([
-                                 'server_name'   => $data['name'],
-                                 'server_alias'  => $data['aliases'],
-                                 'user_id'       => $data['user_id'],
-                                 'error_log'     => 1,
-                                 'access_log'    => 1,
-                                 'created_at'    => date('Y-m-d H:i:s'),
-                                 'document_root' => $data['name'],
-                                 'server_id'     => $data['server_id'],
-                             ]);
+            'server_name'   => $data['name'],
+            'server_alias'  => $data['aliases'],
+            'user_id'       => $data['user_id'],
+            'error_log'     => 1,
+            'access_log'    => 1,
+            'created_at'    => date('Y-m-d H:i:s'),
+            'document_root' => $data['name'],
+            'server_id'     => $data['server_id'],
+        ]);
 
         $site->createOnFilesystem();
         $site->restartApache();
@@ -171,6 +175,48 @@ class Sites
     public function getCronjobsAction()
     {
         return ['cronjobs' => ['yes!']];
+    }
+
+    /**
+     * Add site's databases to another slave.
+     *
+     * @param Site $site
+     *
+     * @return array
+     */
+    public function postMysqlSlaveAction(Site $site)
+    {
+        /**
+         * First, get databases associated with site.
+         * They are defined in pckg.yaml.
+         * They should also be associated with different sites, which are currently not.
+         * We will associate them in databases_morphs table (can be associated with servers, users, sites, ...).
+         */
+        $server = post('server', null);
+        $variables = post('vars', []);
+        $pckg = post('pckg', []);
+        $server = new Server();
+
+        /**
+         * Now we have list of all databases (id_shop and pckg_derive for example) and we need to check that replication is in place.
+         */
+        $databases = [];
+        foreach ($pckg['service']['db']['mysql']['database'] ?? [] as $database => $config) {
+            $databases[] = str_replace(array_keys($variables), array_values($variables), $database['name']);
+        }
+
+        if (!$databases) {
+            return ['success' => false];
+        }
+
+        $databases = (new Databases())->where('name', $databases)->all();
+        $databases->each(function (Database $database) use ($server) {
+            $database->replicateTo($server);
+        });
+
+        return [
+            'success' => true,
+        ];
     }
 
 }
