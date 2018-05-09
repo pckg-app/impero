@@ -173,7 +173,7 @@ class Database extends Record
         /**
          * Resume slave until backup.
          */
-        $this->syncSlaveUntilBackup($backupFile);
+        $this->syncSlaveUntilBackup($backupFile, $slaveServer);
 
         /**
          * Let backaup service take care of full transfer.
@@ -185,7 +185,6 @@ class Database extends Record
          * Import backup.
          */
         $this->importBackup($backupFile, $slaveServer);
-        $this->server->deleteFile($backupFile);
 
         /**
          * Start slave.
@@ -204,7 +203,7 @@ class Database extends Record
      *
      * @throws Exception
      */
-    public function syncSlaveUntilBackup($backupPath)
+    public function syncSlaveUntilBackup($backupPath, Server $slaveServer)
     {
         /**
          * Read binlog position and resume slave sync.
@@ -221,7 +220,7 @@ class Database extends Record
             throw new Exception('Error preparing resume slave statement');
         }
 
-        $this->server->execSql($command);
+        $slaveServer->execSql($command);
     }
 
     /**
@@ -234,6 +233,8 @@ class Database extends Record
     {
         $command = 'mysql -u impero ' . $this->name . ' < ' . $file;
         $server->exec($command);
+
+        $server->deleteFile($file);
     }
 
     /**
