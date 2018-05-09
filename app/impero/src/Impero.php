@@ -1,6 +1,8 @@
 <?php
 
 use Impero\Impero\Provider\Impero as ImperoProvider;
+use Impero\Services\Service\Backup\Console\MakeMysqlBackup;
+use Impero\Services\Service\Storage\Console\MakeStorageBackup;
 use Pckg\Framework\Provider;
 use Pckg\Generic\Middleware\EncapsulateResponse;
 use Pckg\Manager\Middleware\RegisterCoreAssets;
@@ -36,11 +38,12 @@ class Impero extends Provider
     public function jobs()
     {
         return [
-            Cron::createJob(MakeBackups::class, 'Make backups')
-                ->everyMinute()
-                ->long()
-                ->timeout(10 * 60)
-                ->async(),
+            Cron::createJob(MakeMysqlBackup::class, 'Make database backups')
+                ->at(['6:00', '18:00'])
+                ->background(),
+            Cron::createJob(MakeStorageBackup::class, 'Make storage backups')
+                ->at(['3:00', '15:00'])
+                ->background(),
         ];
     }
 

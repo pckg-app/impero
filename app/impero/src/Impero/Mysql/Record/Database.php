@@ -3,6 +3,7 @@
 use Exception;
 use Impero\Mysql\Entity\Databases;
 use Impero\Servers\Record\Server;
+use Impero\Services\Service\Backup;
 use Impero\Services\Service\Mysql;
 use Impero\Services\Service\OpenSSL;
 use Pckg\Database\Record;
@@ -41,6 +42,10 @@ class Database extends Record
         return $this;
     }
 
+    /**
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
     public function backup()
     {
         /**
@@ -76,7 +81,11 @@ class Database extends Record
          */
         $backupFile = $this->createBackup();
 
-        $encryptedBackup = $this->server->compressAndEncryptFile($backupFile, $keyFile);
+        /**
+         * Compress backup.
+         */
+        $backupService = new Backup($connection);
+        $encryptedBackup = $backupService->compressAndEncrypt($this->server, $backupFile, $keyFile, 'mysql');
 
         /**
          * Transfer encrypted backup to safe location.
@@ -189,13 +198,8 @@ class Database extends Record
          * This key will be transfered from impero to master and from impero to slave.
          * It will be deleted immediately after we don't need it anymore.
          */
-        $opensslService = $server->getService(OpenSSL::class);
         $mysqlService = $server->getService(Mysql::class);
-
-        /**
-         * This will create random 1024-4096 long key used for encryption saved as random file.
-         */
-        $keyFile = $opensslService->createRandomHashFile();
+        $backupService = $server->getService(Backup::class);
 
         /**
          * Put slave out of cluster and wait few seconds for all connections to be closed and configuration to take in effect.
@@ -220,28 +224,10 @@ class Database extends Record
          */
         $this->syncSlaveUntilBackup($backupFile);
 
-        $encryptedFile = $this->server->compressAndEncryptFile($backupFile, $keyFile);
-
         /**
-         * Transfer backup.
+         * Let backaup service take care of full transfer.
          */
-        $encryptedCopy = '/home/impero/.impero/service/backup/mysql/temp/' . sha1(microtime());
-        $this->server->transferFile($encryptedFile, $encryptedCopy, $server);
-        $this->server->deleteFile($encryptedFile);
-
-        /**
-         * Decrypt backup.
-         */
-        $compressedCopy = '/home/impero/.impero/service/backup/mysql/compressed/' . sha1(microtime());
-        $server->decryptFile($encryptedCopy, $compressedCopy, $keyFile);
-        $this->server->deleteFile($encryptedCopy);
-
-        /**
-         * Decompress file.
-         */
-        $backupCopy = '/home/impero/.impero/service/backup/mysql/temp/backups' . sha1(microtime());
-        $server->decompressFile($compressedCopy, $backupCopy);
-        $this->server->deleteFile($compressedCopy);
+        $backupService->processFullTransfer($this->server, $server, $backupFile);
 
         /**
          * Import backup.
@@ -291,21 +277,9 @@ class Database extends Record
      */
     public function createBackup()
     {
-        /**
-         * This commands will always executed by impero user, which is always available on filesystem.
-         *
-         * @T00D00 - read password from .cnf in impero home dir?
-         *         - make sure that backup path exists and is writable
-         */
-        $user = 'impero';
-        $backupPath = '/home/impero/.impero/service/backup/mysql/backups/';
-        $file = $this->name . '_' . date('Ymdhis') . '_' . $this->server_id . '.sql';
-        $flags = '--routines --triggers --skip-opt --order-by-primary --create-options --compact --master-data=2 --single-transaction --extended-insert --add-locks --disable-keys';
+        $backupService = new Backup($this->server->getConnection());
 
-        $dumpCommand = 'mysqldump ' . $flags . ' -u ' . $user . ' ' . $this->name . ' > ' . $backupPath . $file;
-        $this->server->exec($dumpCommand);
-
-        return $file;
+        return $backupService->createMysqlBackup($this);
     }
 
     /**

@@ -3,9 +3,9 @@
 use Impero\Apache\Entity\SitesServers;
 use Impero\Apache\Record\SitesServer;
 use Impero\Jobs\Record\Job;
-use Impero\Mysql\Record\Database;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Service\ConnectionManager;
+use Impero\Services\Service\Backup;
 use Impero\Services\Service\Mysql;
 use Impero\Services\Service\MysqlConnection;
 use Impero\Services\Service\OpenSSL;
@@ -460,29 +460,12 @@ frontend all_https
     /**
      * @param $service
      *
-     * @return mixed|OpenSSL|Mysql
+     * @return mixed|OpenSSL|Mysql|Backup
      * @throws \Exception
      */
     public function getService($service)
     {
         return new $service($this->getConnection());
-    }
-
-    public function compressAndEncryptFile($file, $keyFile)
-    {
-        /**
-         * Compress backup.
-         */
-        $compressedFile = '/home/impero/.impero/service/backup/mysql/compressed/' . sha1(microtime());
-        $this->server->compressFile($file, $compressedFile);
-        $this->server->deleteFile($file);
-
-        /**
-         * Encrypt backup.
-         */
-        $encryptedFile = '/home/impero/.impero/service/backup/mysql/encrypted/' . sha1(microtime());
-        $this->server->encryptFile($compressedFile, $encryptedFile, $keyFile);
-        $this->server->deleteFile($compressedFile);
     }
 
 }

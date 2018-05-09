@@ -60,11 +60,26 @@ class DatabaseApi extends Controller
         ];
     }
 
+    /**
+     * @param Database $database
+     *
+     * @return array
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
     public function getBackupAction(Database $database)
     {
+        return null;
         return $this->postBackupAction($database);
     }
 
+    /**
+     * @param Database $database
+     *
+     * @return array
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
     public function postBackupAction(Database $database)
     {
         /**
