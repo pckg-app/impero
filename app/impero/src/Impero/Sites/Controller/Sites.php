@@ -16,6 +16,37 @@ class Sites
         ];
     }
 
+    public function deleteSiteAction(Site $site)
+    {
+        $deleteUrl = 'http://impero.foobar.si/site/' . $site->id . '/confirm-delete?hash=' . sha1(microtime());
+        email(
+            [
+                'subject' => 'Confirm /impero site #' . $site->id . ' (' . $site->title . ') removal',
+                'body'    => '<p>Hey Bojan,</p>'
+                    . '<p>someone requested removal of site ' . $site->id . ' (' . $site->title . '.</p>'
+                    . '<p>If you really want to delete site and all it\'s contents, please login to /impero and click '
+                    . '<a href="' . $deleteUrl . '">here</a>.'
+                    . '</p>'
+                    . '<p>Best regards, /impero team</p>',
+            ],
+            'schtr4jh@schtr4jh.net'
+        );
+
+        /**
+         * Delete:
+         *  - cronjobs (cron)
+         *  - site (apache, nginx, haproxy)
+         *  - databases associated only with site (mysql master, mysql slave, haproxy)
+         *  - database users associated only with site (mysql master, mysql slave)
+         *  - storage (htdocs, logs, ssl)
+         *  - backups associated only with site (storage, mysql, config)
+         *  - inactivate pendo, mailo, condo, ... api keys
+         */
+        return [
+            'success' => true,
+        ];
+    }
+
     public function postCreateAction()
     {
         $data = only(post()->all(), ['user_id', 'server_id', 'name', 'aliases', 'ssl']);

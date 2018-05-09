@@ -2,6 +2,7 @@
 
 use Exception;
 use Impero\Mysql\Entity\Databases;
+use Impero\Secret\Record\Secret;
 use Impero\Servers\Record\Server;
 use Impero\Services\Service\Backup;
 use Impero\Services\Service\Mysql;
@@ -73,6 +74,9 @@ class Database extends Record
             return;
         }
 
+        /**
+         * This key will be associated with encrypted backup.
+         */
         $keyFile = $this->server->getService(OpenSSL::class)->createRandomHashFile();
 
         /**
@@ -90,7 +94,21 @@ class Database extends Record
         /**
          * Transfer encrypted backup to safe / cold location.
          */
-        $backupService->toCold($encryptedBackup);
+        $backupService->encrypt($keyFile);
+        $coldKey = $backupService->toCold($keyFile);
+        $coldFile = $backupService->toCold($encryptedBackup);
+
+        /**
+         * Associate key with cold path so we can decrypt it later.
+         * If someone gets coldpath encrypted files he cannot decrypt them without keys.
+         * If someone gets encryption keys he won't have access to cold storage.
+         * If someone gets encrypted files and keys he need mapper between them.
+         * If someone gets mapper between coldpath and keys he would need keys and storage.
+         */
+        Secret::create([
+            'key'  => $coldKey,
+            'file' => $coldFile,
+        ]);
     }
 
     public function importFile($file)

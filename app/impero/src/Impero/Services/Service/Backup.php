@@ -30,14 +30,28 @@ class Backup extends AbstractService implements ServiceInterface
         $server->compressFile($file, $compressedFile);
         $server->deleteFile($file);
 
+        $encryptedFile = $this->encrypt($server, $file, $keyFile, $service);
+
+        return $encryptedFile;
+    }
+
+    /**
+     * @param Server $server
+     * @param        $file
+     * @param        $keyFile
+     * @param        $service
+     *
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
+    public function encrypt(Server $server, $file, $keyFile, $service)
+    {
         /**
          * Encrypt backup.
          */
         $encryptedFile = $this->prepareDirectory($service . '/encrypted') . $this->prepareFile();
-        $server->encryptFile($compressedFile, $encryptedFile, $keyFile);
-        $server->deleteFile($compressedFile);
-
-        return $encryptedFile;
+        $server->encryptFile($file, $encryptedFile, $keyFile);
+        $server->deleteFile($file);
     }
 
     /**
