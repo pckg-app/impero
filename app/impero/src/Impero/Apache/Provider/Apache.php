@@ -7,6 +7,7 @@ use Impero\Apache\Console\RestartApache;
 use Impero\Apache\Controller\Apache as ApacheController;
 use Impero\Apache\Record\Site\Resolver as SiteResolver;
 use Impero\Controller\Impero;
+use Impero\Servers\Resolver\Server;
 use Impero\Sites\Controller\Sites;
 use Pckg\Framework\Provider;
 use Pckg\Framework\Router\Route\Group;
@@ -36,6 +37,7 @@ class Apache extends Provider
                                        '.mysqlSlave'   => (new Route('/[site]/mysql-slave', 'mysqlSlave'))
                                            ->resolvers([
                                                'site' => SiteResolver::class,
+                                               'server' => (new Server())->fromPost('server'),
                                            ]),
                                        '.checkout'   => (new Route('/[site]/checkout', 'checkout'))
                                            ->resolvers([

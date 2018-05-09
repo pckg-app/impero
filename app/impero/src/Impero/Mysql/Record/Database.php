@@ -79,19 +79,18 @@ class Database extends Record
          * @T00D00 - key file needs to be associated with backup
          *         - how will we automate that?
          */
-        $backupFile = $this->createBackup();
+        $backupService = new Backup($this->server->getConnection());
+        $backupFile = $backupService->createMysqlBackup($this);
 
         /**
          * Compress backup.
          */
-        $backupService = new Backup($connection);
         $encryptedBackup = $backupService->compressAndEncrypt($this->server, $backupFile, $keyFile, 'mysql');
 
         /**
-         * Transfer encrypted backup to safe location.
-         *         - will we transfer backups to digital ocean spaces?
+         * Transfer encrypted backup to safe / cold location.
          */
-        $this->server->deleteFile($encryptedBackup);
+        $backupService->toCold($encryptedBackup);
     }
 
     public function importFile($file)
@@ -113,93 +112,45 @@ class Database extends Record
 
     /**
      * Enable mysql binlog and replication on master server.
+     *
+     * @throws Exception
      */
-    public function requireMysqlMasterReplication()
+    public function replicateOnMaster()
     {
-        $this->server->requireMysqlMasterReplication();
-
         /**
          * Check on $server that replication is active.
          * Check that entry is found in /etc/mysql/conf.d/replication.cnf
          */
-        $replicationFile = $this->getReplicationConfigLocation();
-        $currentReplication = $this->server->readFile($replicationFile);
-        $replications = explode("\n", $currentReplication);
-
-        /**
-         * Check for existence.
-         */
-        $line = 'binlog_do_db = ' . $this->name;
-        if (in_array($line, $replications)) {
+        $mysqlService = new Mysql($this->server->getConnection());
+        if ($mysqlService->isReplicatedOnMaster($this)) {
             return;
         }
 
-        /**
-         * Add to file if nonexistent.
-         */
-        $this->server->exec('sudo echo "' . $line . '" >> ' . $replicationFile);
-
-        /**
-         * Mysql does not have to be restarted, we can execute mysql.
-         * We just need to collect all databases that are replicated to this server.
-         */
-        $this->server->refreshMasterReplicationFilter();
+        $mysqlService->replicateOnMaster($this);
     }
 
     /**
-     * @param Server $server
+     * @param Server $slaveServer
      *
-     * @throws Exception
-     * Enable replication on slave server.
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
      */
-    public function replicateTo(Server $server)
-    {
-        $this->requireMysqlMasterReplication();
-        $this->server->getService(Mysql::class)->requireMysqlSlaveReplication($this);
-        $this->transferTo($server);
-
-        /**
-         * Check on $server that replication is active.
-         * Check that entry is found in /etc/mysql/conf.d/replication.cnf
-         */
-        $replicationFile = $this->getReplicationConfigLocation();
-        $currentReplication = $server->readFile($replicationFile);
-        $replications = explode("\n", $currentReplication);
-
-        /**
-         * Check for existance.
-         */
-        $line = 'replicate-wild-do-table=' . $this->name . '.%';
-        if (in_array($line, $replications)) {
-            return;
-        }
-
-        /**
-         * Add to file if nonexistent.
-         */
-        $server->exec('sudo echo "' . $line . '" >> ' . $replicationFile);
-
-        /**
-         * Mysql does not have to be restarted, we can execute mysql.
-         * We just need to collect all databases that are replicated to this server.
-         */
-        $this->server->refreshSlaveReplicationFilter();
-    }
-
-    /**
-     * @param Server $server
-     *
-     * @throws Exception
-     */
-    public function transferTo(Server $server)
+    public function replicateTo(Server $slaveServer)
     {
         /**
          * Generate new passphrase for backup service: private/mysql/backup/keys/$hash.
          * This key will be transfered from impero to master and from impero to slave.
          * It will be deleted immediately after we don't need it anymore.
          */
-        $mysqlService = $server->getService(Mysql::class);
-        $backupService = $server->getService(Backup::class);
+        $mysqlSlaveService = (new Mysql($slaveServer->getConnection()));
+        $backupMasterService = new Backup($this->server->getConnection());
+
+        /**
+         * Check if database is alredy replicated.
+         */
+        if ($mysqlSlaveService->isReplicatedOnSlave($this)) {
+            throw new Exception('Database is already replicated on slave.');
+        }
 
         /**
          * Put slave out of cluster and wait few seconds for all connections to be closed and configuration to take in effect.
@@ -212,12 +163,12 @@ class Database extends Record
          *
          * @T00D00 - take down only $database, then sync only $database from binlog.
          */
-        $mysqlService->stopSlave();
+        $mysqlSlaveService->stopSlave();
 
         /**
          * Create backup.
          */
-        $backupFile = $this->createBackup();
+        $backupFile = $backupMasterService->createMysqlBackup($this);
 
         /**
          * Resume slave until backup.
@@ -227,18 +178,19 @@ class Database extends Record
         /**
          * Let backaup service take care of full transfer.
          */
-        $backupService->processFullTransfer($this->server, $server, $backupFile);
+        $backupMasterService->processFullTransfer($this->server, $slaveServer, $backupFile, 'mysql');
 
         /**
+         * Create database?
          * Import backup.
          */
-        $this->importBackup($backupFile, $server);
+        $this->importBackup($backupFile, $slaveServer);
         $this->server->deleteFile($backupFile);
 
         /**
          * Start slave.
          */
-        $server->getMysqlService()->startSlave();
+        $mysqlSlaveService->startSlave();
 
         /**
          * Wait few seconds for slave to get in sync.
@@ -270,16 +222,6 @@ class Database extends Record
         }
 
         $this->server->execSql($command);
-    }
-
-    /**
-     * @return string
-     */
-    public function createBackup()
-    {
-        $backupService = new Backup($this->server->getConnection());
-
-        return $backupService->createMysqlBackup($this);
     }
 
     /**
@@ -321,6 +263,14 @@ class Database extends Record
         $mysqlConnection->execute($sql);
 
         return $database;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function requireMysqlMasterReplication()
+    {
+        (new Mysql($this->server->getConnection()))->requireMysqlMasterReplication();
     }
 
 }

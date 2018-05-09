@@ -5,7 +5,6 @@ use Impero\Apache\Record\Site;
 use Impero\Mysql\Entity\Databases;
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
-use Pckg\Collection;
 
 class Sites
 {
@@ -184,7 +183,7 @@ class Sites
      *
      * @return array
      */
-    public function postMysqlSlaveAction(Site $site)
+    public function postMysqlSlaveAction(Site $site, Server $server)
     {
         /**
          * First, get databases associated with site.
@@ -192,10 +191,8 @@ class Sites
          * They should also be associated with different sites, which are currently not.
          * We will associate them in databases_morphs table (can be associated with servers, users, sites, ...).
          */
-        $server = post('server', null);
         $variables = post('vars', []);
         $pckg = post('pckg', []);
-        $server = new Server();
 
         /**
          * Now we have list of all databases (id_shop and pckg_derive for example) and we need to check that replication is in place.
@@ -209,13 +206,16 @@ class Sites
             return ['success' => false];
         }
 
-        $databases = (new Databases())->where('name', $databases)->all();
+        $databases = (new Databases())->where('server_id', $server->id)->where('name', $databases)->all();
         $databases->each(function (Database $database) use ($server) {
+            $database->requireMysqlMasterReplication();
+            $database->replicateOnMaster();
             $database->replicateTo($server);
         });
 
         return [
-            'success' => true,
+            'success'   => true,
+            'databases' => $databases->map('name'),
         ];
     }
 

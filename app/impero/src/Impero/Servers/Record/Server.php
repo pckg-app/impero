@@ -307,14 +307,6 @@ frontend all_https
         return $config;
     }
 
-    /**
-     * @throws \Exception
-     */
-    public function requireMysqlMasterReplication()
-    {
-        $this->getService(Mysql::class)->requireMysqlMasterReplication($this);
-    }
-
     public function getReplicationConfigLocation()
     {
         return '/etc/mysql/conf.d/replication.cnf';
@@ -332,22 +324,6 @@ frontend all_https
         file_put_contents($local, $content);
         $this->getConnection()->sftpSend($local, $destination);
         unlink($local);
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function refreshMasterReplicationFilter()
-    {
-        $this->getService(Mysql::class)->refreshMasterReplicationFilter($this);
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function refreshSlaveReplicationFilter()
-    {
-        $this->getService(Mysql::class)->refreshSlaveReplicationFilter($this);
     }
 
     /**

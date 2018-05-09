@@ -35,7 +35,7 @@ class MakeMysqlBackup
          * We can process each server simultaniosly.
          */
         $servers->each(function (Server $server) {
-            
+
         });
     }
 
@@ -48,6 +48,27 @@ class MakeMysqlBackup
         // mysqlbinlog binlog.000001 | mysql -u root -p
         // --binary-mode
         // mysqlbinlog binlog.000001 > tmpfile
+    }
+
+    public function restoreMysqlMasterDatabase()
+    {
+        /**
+         * Get and decrypt latest mysql dump.
+         * Get binlogs between dump and till the end.
+         * Import mysql dump.
+         */
+    }
+
+    public function restoreMysqlSlaveDatabase()
+    {
+        /**
+         * Get and decrypt latest mysql dump.
+         * Get binlogs between backup and slave.
+         * Stop slave.
+         * Import mysql dump.
+         * Sync dump with slave from binlogs.
+         * Resume slave.
+         */
     }
 
 }

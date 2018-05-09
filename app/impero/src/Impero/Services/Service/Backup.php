@@ -139,7 +139,7 @@ class Backup extends AbstractService implements ServiceInterface
         /**
          * Decrypt, decompress, and delete all unused copies.
          */
-        $backupCopy = $this->decryptAndDecompress($to, $file, $keyFile, $service);
+        $backupCopy = $this->decryptAndDecompress($to, $encryptedCopy, $keyFile, $service);
 
         return $backupCopy;
     }
@@ -161,6 +161,14 @@ class Backup extends AbstractService implements ServiceInterface
         $this->getConnection()->exec($dumpCommand);
 
         return $file;
+    }
+
+    public function toCold($file)
+    {
+        /**
+         * @T00D00 - Transfer image to digital ocean spaces?
+         */
+        $this->getConnection()->exec('rm ' . $file);
     }
 
 }

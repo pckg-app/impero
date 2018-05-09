@@ -92,12 +92,19 @@ class DatabaseApi extends Controller
         ];
     }
 
+    /**
+     * @param Database $database
+     *
+     * @return array
+     * @throws \Exception
+     */
     public function postReplicateAction(Database $database)
     {
         /**
          * Enable or disable mysql replication.
          */
         $database->requireMysqlMasterReplication();
+        $database->replicateOnMaster();
 
         return [
             'success' => true,

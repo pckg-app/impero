@@ -2,6 +2,7 @@
 
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
+use Pckg\Collection;
 
 class Mysql extends AbstractService implements ServiceInterface
 {
@@ -47,27 +48,45 @@ class Mysql extends AbstractService implements ServiceInterface
      *
      * @throws \Exception
      */
-    public function requireMysqlSlaveReplication(Server $server)
+    public function requireMysqlSlaveReplication()
+    {
+        if ($this->isMysqlSlaveReplicated()) {
+            return;
+        }
+
+        $this->replicateMysqlSlave();
+    }
+
+    public function replicateMysqlSlave()
+    {
+        dd('Slave replication is not yet enabled?');
+        $file = $this->getReplicationConfigLocation();
+        $lines[] = '[mysqld]';
+        $lines[] = 'server-id = 2';
+        $lines[] = 'relay-log = /var/log/mysql/mysql-relay-bin.log';
+        $lines[] = 'log_bin = /var/log/mysql/mysql-bin.log';
+
+        /**
+         * Save changes and restart mysql server.
+         */
+        $this->getConnection()->sftpSend($file, implode("\n", $lines));
+        $this->getConnection()->exec('sudo service mysql restart');
+    }
+
+    /**
+     * @return bool
+     * @throws \Exception
+     */
+    public function isMysqlSlaveReplicated()
     {
         /**
          * Check that mysql is properly configured.
          */
         $file = $this->getReplicationConfigLocation();
-        $replicationConfig = $server->readFile($file);
+        $replicationConfig = $this->getConnection()->sftpRead($file);
         $lines = explode("\n", $replicationConfig);
 
-        if (!in_array('[mysqld]', $lines)) {
-            $lines[] = '[mysqld]';
-            $lines[] = 'server-id = 2';
-            $lines[] = 'relay-log = /var/log/mysql/mysql-relay-bin.log';
-            $lines[] = 'log_bin = /var/log/mysql/mysql-bin.log';
-
-            /**
-             * Save changes and restart mysql server.
-             */
-            $server->writeFile($file, implode("\n", $lines));
-            $this->getConnection()->exec('sudo service mysql restart');
-        }
+        return in_array('[mysqld]', $lines);
     }
 
     /**
@@ -75,46 +94,141 @@ class Mysql extends AbstractService implements ServiceInterface
      *
      * @throws \Exception
      */
-    public function requireMysqlMasterReplication(Server $server)
+    public function requireMysqlMasterReplication()
+    {
+        if ($this->isMysqlMasterReplicated()) {
+            return;
+        }
+
+        $this->replicateMysqlMaster();
+    }
+
+    /**
+     * @return bool
+     * @throws \Exception
+     */
+    public function isMysqlMasterReplicated()
     {
         /**
          * Get current backup configuration.
          */
         $replicationFile = $this->getReplicationConfigLocation();
-        $currentReplication = $server->readFile($replicationFile);
+        $currentReplication = $this->getConnection()->sftpRead($replicationFile);
         $replications = explode("\n", $currentReplication);
 
-        if (!in_array('[mysqld]', $replications)) {
-            $replications[] = '[mysqld]';
-            $replications[] = 'server-id = 1';
-            $replications[] = 'log_bin = /var/log/mysql/mysql-bin.log';
-            $replications[] = 'expire_logs_days = 5';
-            $replications[] = 'max_binlog_size = 100M';
-
-            /**
-             * Save changes and restart mysql server.
-             */
-            $server->writeFile($replicationFile, implode("\n", $replications));
-            $server->exec('sudo service mysql restart');
-        }
+        return in_array('[mysqld]', $replications);
     }
 
-    public function refreshMasterReplicationFilter(Server $server)
+    public function replicateMysqlMaster()
     {
-        $dbString = $server->masterDatabases->map(function (Database $database) {
+        dd('Master replication is not yet enabled?');
+        $replicationFile = $this->getReplicationConfigLocation();
+        $replications[] = '[mysqld]';
+        $replications[] = 'server-id = 1';
+        $replications[] = 'log_bin = /var/log/mysql/mysql-bin.log';
+        $replications[] = 'expire_logs_days = 5';
+        $replications[] = 'max_binlog_size = 100M';
+
+        /**
+         * Save changes and restart mysql server.
+         */
+        $this->getConnection()->sftpSend($replicationFile, implode("\n", $replications));
+        $this->getConnection()->exec('sudo service mysql restart');
+    }
+
+    public function refreshMasterReplicationFilter(Collection $databases)
+    {
+        $dbString = $databases->map(function (Database $database) {
             return '`' . $database->name . '`';
         })->implode(',');
         $sql = 'CHANGE REPLICATION FILTER REPLICATE_DO_DB = (' . $dbString . ');';
         $this->getMysqlConnection()->execute($sql);
     }
 
-    public function refreshSlaveReplicationFilter(Server $server)
+    public function refreshSlaveReplicationFilter(Collection $databases)
     {
-        $dbString = $server->slaveDatabases->map(function (Database $database) {
+        $dbString = $databases->map(function (Database $database) {
             return '`' . $database->name . '.%`';
         })->implode(',');
         $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
         $this->getMysqlConnection()->execute($sql);
+    }
+
+    /**
+     * @param Database $database
+     *
+     * @throws \Exception
+     */
+    public function isReplicatedOnMaster(Database $database)
+    {
+        $replicationFile = $this->getReplicationConfigLocation();
+        $currentReplication = $this->getConnection()->sftpRead($replicationFile);
+        $replications = explode("\n", $currentReplication);
+
+        /**
+         * Check for existence.
+         */
+        $line = 'binlog_do_db = ' . $database->name;
+        return in_array($line, $replications);
+    }
+
+    public function replicateOnMaster(Database $database)
+    {
+        $replicationFile = $this->getReplicationConfigLocation();
+        $line = 'binlog_do_db = ' . $database->name;
+
+        /**
+         * Add to file if nonexistent.
+         */
+        $this->getConnection()->exec('sudo echo "' . $line . '" >> ' . $replicationFile);
+
+        /**
+         * Mysql does not have to be restarted, we can execute mysql.
+         * We just need to collect all databases that are replicated to this server.
+         */
+        $this->refreshMasterReplicationFilter($database->server->masterDatabases);
+    }
+
+    /**
+     * @param Database $database
+     *
+     * @throws \Exception
+     */
+    public function isReplicatedOnSlave(Database $database)
+    {
+        /**
+         * Check on $server that replication is active.
+         * Check that entry is found in /etc/mysql/conf.d/replication.cnf
+         */
+        $replicationFile = $this->getReplicationConfigLocation();
+        $currentReplication = $this->getConnection()->sftpRead($replicationFile);
+        $replications = explode("\n", $currentReplication);
+
+        /**
+         * Check for existance.
+         */
+        $line = 'replicate-wild-do-table=' . $database->name . '.%';
+        if (in_array($line, $replications)) {
+            return;
+        }
+    }
+
+    public function replicateOnSlave(Database $database)
+    {
+        /**
+         * Add to file if nonexistent.
+         */
+        $line = 'replicate-wild-do-table=' . $database->name . '.%';
+        $replicationFile = $this->getReplicationConfigLocation();
+        $this->getConnection()->exec('sudo echo "' . $line . '" >> ' . $replicationFile);
+
+        /**
+         * Mysql does not have to be restarted, we can execute mysql.
+         * We just need to collect all databases that are replicated to this server.
+         *
+         * @T00D00 - how to get all slave databases on this server?
+         */
+        $this->refreshSlaveReplicationFilter(new Collection());
     }
 
 }
