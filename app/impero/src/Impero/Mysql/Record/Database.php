@@ -94,7 +94,6 @@ class Database extends Record
         /**
          * Transfer encrypted backup to safe / cold location.
          */
-        $backupService->encrypt($keyFile);
         $coldKey = $backupService->toCold($keyFile);
         $coldFile = $backupService->toCold($encryptedBackup);
 

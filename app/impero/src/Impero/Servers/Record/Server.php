@@ -351,7 +351,12 @@ frontend all_https
 
         /**
          * Encrypt file with gpg2 with passphrase from key file.
+         *
+         * @T00D00 - when encrypting, we should encrypt
+         *         - use connection's public key for encryption (remote:/home/impero/.ssh/id_rsa.pub)
+         *         - use connection's private key for encryption (remote:/home/impero/.ssh/id_rsa)
          */
+        $command = 'openssl rsautl -encrypt -inkey public.pem -pubin -in file.txt -out file.ssl';
         $command = 'cat ' . $keyFile . ' | gpg2 --batch --passphrase-fd 0 --output ' . $output . ' --encrypt ' . $file;
         $this->exec($command);
 
@@ -387,6 +392,7 @@ frontend all_https
         /**
          * Decrypt file.
          */
+        $command = 'openssl rsautl -decrypt -inkey private.pem -in file.ssl -out decrypted.txt';
         $command = 'cat ' . $keyFile . ' | gpg2 --batch --passphrase-fd 0 --output ' . $output . ' --decrypt ' . $file;
         $this->exec($command);
 

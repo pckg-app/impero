@@ -48,6 +48,11 @@ class Backup extends AbstractService implements ServiceInterface
     {
         /**
          * Encrypt backup.
+         *
+         * @T00D00 - when encrypting we need to know for which purpose:
+         *         - replication transfer is encrypted by remote public key and decrypted by remote private key
+         *         - backups are encrypted with each-time-new key set
+         *         - mapper is saved in impero database, public keys in storage, private keys in cold storage
          */
         $encryptedFile = $this->prepareDirectory($service . '/encrypted') . $this->prepareFile();
         $server->encryptFile($file, $encryptedFile, $keyFile);

@@ -18,7 +18,8 @@ class Sites
 
     public function deleteSiteAction(Site $site)
     {
-        $deleteUrl = 'http://impero.foobar.si/site/' . $site->id . '/confirm-delete?hash=' . sha1(microtime());
+        $deleteUrl = url('impero.site.confirmDelete', ['site' => $site], true) . '?hash=' . $site->hash;
+
         email(
             [
                 'subject' => 'Confirm /impero site #' . $site->id . ' (' . $site->title . ') removal',
@@ -32,16 +33,28 @@ class Sites
             'schtr4jh@schtr4jh.net'
         );
 
-        /**
-         * Delete:
-         *  - cronjobs (cron)
-         *  - site (apache, nginx, haproxy)
-         *  - databases associated only with site (mysql master, mysql slave, haproxy)
-         *  - database users associated only with site (mysql master, mysql slave)
-         *  - storage (htdocs, logs, ssl)
-         *  - backups associated only with site (storage, mysql, config)
-         *  - inactivate pendo, mailo, condo, ... api keys
-         */
+        return [
+            'success' => true,
+            'message' => 'System administrator notified about request',
+        ];
+    }
+
+    /**
+     * @param Site $site
+     *
+     * @return array
+     * @throws
+     */
+    public function getConfirmDeleteAction(Site $site)
+    {
+        if ($site->hash != get('hash', null)) {
+            throw new Exception('Not matching hashes!');
+        }
+
+        if (false) {
+            $site->undeploy([], []);
+        }
+
         return [
             'success' => true,
         ];
@@ -51,16 +64,18 @@ class Sites
     {
         $data = only(post()->all(), ['user_id', 'server_id', 'name', 'aliases', 'ssl']);
 
-        $site = Site::create([
-            'server_name'   => $data['name'],
-            'server_alias'  => $data['aliases'],
-            'user_id'       => $data['user_id'],
-            'error_log'     => 1,
-            'access_log'    => 1,
-            'created_at'    => date('Y-m-d H:i:s'),
-            'document_root' => $data['name'],
-            'server_id'     => $data['server_id'],
-        ]);
+        $site = Site::create(
+            [
+                'server_name'   => $data['name'],
+                'server_alias'  => $data['aliases'],
+                'user_id'       => $data['user_id'],
+                'error_log'     => 1,
+                'access_log'    => 1,
+                'created_at'    => date('Y-m-d H:i:s'),
+                'document_root' => $data['name'],
+                'server_id'     => $data['server_id'],
+            ]
+        );
 
         $site->createOnFilesystem();
         $site->restartApache();
@@ -238,11 +253,13 @@ class Sites
         }
 
         $databases = (new Databases())->where('server_id', $server->id)->where('name', $databases)->all();
-        $databases->each(function (Database $database) use ($server) {
-            $database->requireMysqlMasterReplication();
-            $database->replicateOnMaster();
-            $database->replicateTo($server);
-        });
+        $databases->each(
+            function(Database $database) use ($server) {
+                $database->requireMysqlMasterReplication();
+                $database->replicateOnMaster();
+                $database->replicateTo($server);
+            }
+        );
 
         return [
             'success'   => true,

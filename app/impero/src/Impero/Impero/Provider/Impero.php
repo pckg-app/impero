@@ -8,6 +8,7 @@ use Impero\Impero\Middleware\LogApiRequests;
 use Impero\Impero\Middleware\LogApiResponses;
 use Impero\Mysql\Provider\Mysql as MysqlProvider;
 use Impero\Servers\Provider\Servers;
+use Impero\Sites\Provider\Sites;
 use Impero\User\Provider\Users;
 use Pckg\Auth\Provider\Auth as AuthProvider;
 use Pckg\Framework\Provider;
@@ -23,6 +24,7 @@ class Impero extends Provider
         return [
             ManagerProvider::class,
             ApacheProvider::class,
+            Sites::class,
             FtpProvider::class,
             MysqlProvider::class,
             GitProvider::class,
