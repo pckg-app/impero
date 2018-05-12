@@ -43,11 +43,7 @@ class Database extends Record
         return $this;
     }
 
-    /**
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
-     * @throws \Throwable
-     */
-    public function backup()
+    public function requireScriptBackup()
     {
         /**
          * Get current backup configuration.
@@ -69,6 +65,14 @@ class Database extends Record
              */
             $connection->exec('sudo echo "' . $this->name . '" >> ' . $backupFile);
         }
+    }
+
+    /**
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
+    public function backup()
+    {
 
         if (true) {
             return;
@@ -104,10 +108,12 @@ class Database extends Record
          * If someone gets encrypted files and keys he need mapper between them.
          * If someone gets mapper between coldpath and keys he would need keys and storage.
          */
-        Secret::create([
-            'key'  => $coldKey,
-            'file' => $coldFile,
-        ]);
+        Secret::create(
+            [
+                'key'  => $coldKey,
+                'file' => $coldFile,
+            ]
+        );
     }
 
     public function importFile($file)
