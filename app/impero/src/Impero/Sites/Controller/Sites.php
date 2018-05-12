@@ -5,6 +5,7 @@ use Impero\Apache\Record\Site;
 use Impero\Mysql\Entity\Databases;
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
+use Pckg\Mail\Service\Mail\Adapter\SimpleUser;
 
 class Sites
 {
@@ -23,14 +24,14 @@ class Sites
         email(
             [
                 'subject' => 'Confirm /impero site #' . $site->id . ' (' . $site->title . ') removal',
-                'body'    => '<p>Hey Bojan,</p>'
+                'content' => '<p>Hey Bojan,</p>'
                     . '<p>someone requested removal of site ' . $site->id . ' (' . $site->title . '.</p>'
                     . '<p>If you really want to delete site and all it\'s contents, please login to /impero and click '
                     . '<a href="' . $deleteUrl . '">here</a>.'
                     . '</p>'
                     . '<p>Best regards, /impero team</p>',
             ],
-            'schtr4jh@schtr4jh.net'
+            new SimpleUser('schtr4jh@schtr4jh.net')
         );
 
         return [
@@ -57,6 +58,7 @@ class Sites
 
         return [
             'success' => true,
+            'message' => 'Platform undeployed',
         ];
     }
 
