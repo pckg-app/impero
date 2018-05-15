@@ -6,10 +6,11 @@ use Impero\Jobs\Record\Job;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Service\ConnectionManager;
 use Impero\Services\Service\Backup;
+use Impero\Services\Service\Connection\SshConnection;
+use Impero\Services\Service\GPG;
 use Impero\Services\Service\Mysql;
 use Impero\Services\Service\MysqlConnection;
 use Impero\Services\Service\OpenSSL;
-use Impero\Services\Service\SshConnection;
 use Pckg\Database\Record;
 use Pckg\Generic\Entity\SettingsMorphs;
 
@@ -125,15 +126,17 @@ class Server extends Record
                 $command = implode(' ', array_slice(explode(' ', $line), 5));
                 $frequency = substr($line, 0, strlen($line) - strlen($command));
 
-                Job::create([
-                    'server_id' => $this->id,
-                    'name'      => '',
-                    'status'    => $inactive
-                        ? 'inactive'
-                        : 'active',
-                    'command'   => $command,
-                    'frequency' => $frequency,
-                ]);
+                Job::create(
+                    [
+                        'server_id' => $this->id,
+                        'name'      => '',
+                        'status'    => $inactive
+                            ? 'inactive'
+                            : 'active',
+                        'command'   => $command,
+                        'frequency' => $frequency,
+                    ]
+                );
             }
         }
 
@@ -142,15 +145,17 @@ class Server extends Record
 
     public function logCommand($command, $info, $error, $e)
     {
-        return ServerCommand::create([
-            'server_id'   => $this->id,
-            'command'     => $command,
-            'info'        => $info,
-            'error'       => ($e ? 'EXCEPTION: ' . exception($e) . "\n" : null) .
-                $error,
-            'executed_at' => date('Y-m-d H:i:s'),
-            'code'        => null,
-        ]);
+        return ServerCommand::create(
+            [
+                'server_id'   => $this->id,
+                'command'     => $command,
+                'info'        => $info,
+                'error'       => ($e ? 'EXCEPTION: ' . exception($e) . "\n" : null) .
+                    $error,
+                'executed_at' => date('Y-m-d H:i:s'),
+                'code'        => null,
+            ]
+        );
     }
 
     public function addCronjob($command)
@@ -234,12 +239,12 @@ class Server extends Record
          * Get all sites for web service on this server.
          */
         $sites = (new SitesServers())->where('server_id', $this->id)
-            ->where('type', 'web')
-            ->all();
+                                     ->where('type', 'web')
+                                     ->all();
 
         $server = $this;
         $sites->each(
-            function (SitesServer $sitesServer) use (&$virtualhosts, &$virtualhostsNginx, $server) {
+            function(SitesServer $sitesServer) use (&$virtualhosts, &$virtualhostsNginx, $server) {
                 /**
                  * Apache: apache port
                  * Nginx: nginx port
@@ -342,28 +347,39 @@ frontend all_https
      *
      * @throws \Exception
      */
-    public function encryptFile($file, $output, $keyFile)
+    public function encryptFile($file, $output, Server $to = null)
     {
         /**
-         * Transfer key file from impero to server.
+         * When we encrypt for known server (replication) we generate public key and private key on target server.
+         * When we encrypt things for unknown server (regular backups) we generate public and private key on /impero.
          */
-        $this->getConnection()->sftpSend($file, $file);
+        $toConnection = $to
+            ? $to->getConnection()
+            : context()->getOrCreate(ConnectionManager::class)->createConnection();
+        $toGpgService = new GPG($toConnection);
+        $toBackupService = new Backup($toConnection);
+        $keyFiles = $toGpgService->generateThreesome();
 
         /**
-         * Encrypt file with gpg2 with passphrase from key file.
-         *
-         * @T00D00 - when encrypting, we should encrypt
-         *         - use connection's public key for encryption (remote:/home/impero/.ssh/id_rsa.pub)
-         *         - use connection's private key for encryption (remote:/home/impero/.ssh/id_rsa)
+         * Public key is then transfered to $from / source server so we can encrypt file with public key
+         *  - known: $to / target -> source
+         *  - unknown: impero -> source
          */
-        $command = 'openssl rsautl -encrypt -inkey public.pem -pubin -in file.txt -out file.ssl';
-        $command = 'cat ' . $keyFile . ' | gpg2 --batch --passphrase-fd 0 --output ' . $output . ' --encrypt ' . $file;
+        $keyDir = $toGpgService->getKeysDir();
+        $toGpgService->copyFileTo($keyFiles['public'], $this);
+        //$toBackupService->getConnection()->rsyncCopyTo($keyFiles['public'], $this);
+        $this->getConnection()->sftpSend($keyFiles['public'], $keyFiles['public']);
+
+        /**
+         * Encrypt file with openssl public key.
+         */
+        $command = 'openssl rsautl -encrypt -inkey ' . $keyFiles['public'] . ' -pubin -in ' . $file . ' -out ' . $output;
         $this->exec($command);
 
         /**
          * Delete encryption key from server, impero holds the only copy of key.
          */
-        $this->deleteFile($keyFile);
+        //$this->deleteFile($keyFiles['public']);
     }
 
     /**
@@ -382,24 +398,27 @@ frontend all_https
      *
      * @throws \Exception
      */
-    public function decryptFile($file, $output, $keyFile)
+    public function decryptFile($file, $output, $keyFiles)
     {
         /**
          * Transfer key file from impero to server.
          */
-        $this->getConnection()->sftpSend($file, $file);
+        $keyDir = implode('/', array_slice(explode('/', $keyFiles['private']), 0, -1));
+        if (!$this->getConnection()->dirExists($keyDir)) {
+            $this->getConnection()->exec('mkdir -p ' . $keyDir);
+        }
+        $this->getConnection()->sftpSend($keyFiles['private'], $keyFiles['private']);
 
         /**
-         * Decrypt file.
+         * Decrypt file with openssl private key.
          */
-        $command = 'openssl rsautl -decrypt -inkey private.pem -in file.ssl -out decrypted.txt';
-        $command = 'cat ' . $keyFile . ' | gpg2 --batch --passphrase-fd 0 --output ' . $output . ' --decrypt ' . $file;
+        $command = 'openssl rsautl -decrypt -inkey ' . $keyFiles['private'] . ' -in ' . $file . ' -out ' . $output;
         $this->exec($command);
 
         /**
          * Delete encryption key from server, impero holds the only copy of key.
          */
-        $this->deleteFile($keyFile);
+        //$this->deleteFile($keyFile);
     }
 
     /**

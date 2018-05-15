@@ -73,19 +73,8 @@ class Database extends Record
      */
     public function backup()
     {
-
-        if (true) {
-            return;
-        }
-
         /**
-         * This key will be associated with encrypted backup.
-         */
-        $keyFile = $this->server->getService(OpenSSL::class)->createRandomHashFile();
-
-        /**
-         * @T00D00 - key file needs to be associated with backup
-         *         - how will we automate that?
+         * Establish connection to server and create mysql dump.
          */
         $backupService = new Backup($this->server->getConnection());
         $backupFile = $backupService->createMysqlBackup($this);
@@ -93,12 +82,13 @@ class Database extends Record
         /**
          * Compress backup.
          */
-        $encryptedBackup = $backupService->compressAndEncrypt($this->server, $backupFile, $keyFile, 'mysql');
+        $encryptedBackup = $backupFile;
+        $encryptedBackup = $backupService->compressAndEncrypt($this->server, null, $backupFile, 'mysql');
 
         /**
          * Transfer encrypted backup to safe / cold location.
          */
-        $coldKey = $backupService->toCold($keyFile);
+        //$coldKey = $backupService->toCold($keyFile);
         $coldFile = $backupService->toCold($encryptedBackup);
 
         /**
@@ -110,7 +100,7 @@ class Database extends Record
          */
         Secret::create(
             [
-                'key'  => $coldKey,
+                //'key'  => $coldKey,
                 'file' => $coldFile,
             ]
         );
@@ -199,7 +189,7 @@ class Database extends Record
         $this->syncSlaveUntilBackup($backupFile, $slaveServer);
 
         /**
-         * Let backaup service take care of full transfer.
+         * Let backup service take care of full transfer.
          */
         $backupMasterService->processFullTransfer($this->server, $slaveServer, $backupFile, 'mysql');
 

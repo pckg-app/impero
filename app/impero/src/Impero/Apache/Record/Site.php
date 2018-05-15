@@ -6,7 +6,7 @@ use Impero\Apache\Entity\Sites;
 use Impero\Mysql\Record\Database;
 use Impero\Mysql\Record\User as DatabaseUser;
 use Impero\Servers\Record\Server;
-use Impero\Services\Service\SshConnection;
+use Impero\Services\Service\Connection\SshConnection;
 use Pckg\Database\Record;
 
 class Site extends Record

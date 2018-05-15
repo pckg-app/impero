@@ -24,13 +24,12 @@ class Backup extends AbstractService implements ServiceInterface
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      * @throws \Throwable
      */
-    public function compressAndEncrypt(Server $server, $file, $keyFile, $service)
+    public function compressAndEncrypt(Server $from, Server $to = null, $file, $service)
     {
-        $compressedFile = $this->prepareDirectory($service . '/compressed') . $this->prepareFile();
-        $server->compressFile($file, $compressedFile);
-        $server->deleteFile($file);
-
-        $encryptedFile = $this->encrypt($server, $file, $keyFile, $service);
+        $compressedFile = $this->prepareDirectory($service . '/compressed') . $this->prepareRandomFile();
+        $from->compressFile($file, $compressedFile);
+        $from->deleteFile($file);
+        $encryptedFile = $this->encrypt($from, $to, $file, $service);
 
         return $encryptedFile;
     }
@@ -44,7 +43,7 @@ class Backup extends AbstractService implements ServiceInterface
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      * @throws \Throwable
      */
-    public function encrypt(Server $server, $file, $keyFile, $service)
+    public function encrypt(Server $from, Server $to = null, $file, $service)
     {
         /**
          * Encrypt backup.
@@ -53,10 +52,24 @@ class Backup extends AbstractService implements ServiceInterface
          *         - replication transfer is encrypted by remote public key and decrypted by remote private key
          *         - backups are encrypted with each-time-new key set
          *         - mapper is saved in impero database, public keys in storage, private keys in cold storage
+         *         ....
+         * On source server we generate random key and encrypt it with target public key.
+         * We also encrypt transfered file with target public key.
+         * Encrypted file and key are then transfered to target server.
+         * They can be encrypted with private pair of generated keys on target server in this session.
+         * ......
+         * On source server we generate random key and encrypt it with on /impero generated public key.
+         * We also encrypt transfered file with /impero generated public key.
+         * Encrypted file is transfered to safe location.
+         * Encrypted key is transfered to /impero.
+         * When file is needed for decryption, we transfer it and encryption key to target server.
+         * New pair of keys is generated on target server. Private key and new encryption key on /impero are encrypted
+         * with new public key, transfered to target server, and decrypted with new private key. Then original file
+         * is encrypted with decrypted encryption key and decrypted private key.
          */
-        $encryptedFile = $this->prepareDirectory($service . '/encrypted') . $this->prepareFile();
-        $server->encryptFile($file, $encryptedFile, $keyFile);
-        $server->deleteFile($file);
+        $encryptedFile = $this->prepareDirectory($service . '/encrypted') . $this->prepareRandomFile();
+        $from->encryptFile($file, $encryptedFile, $to);
+        $from->deleteFile($file);
     }
 
     /**
@@ -67,19 +80,19 @@ class Backup extends AbstractService implements ServiceInterface
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      * @throws \Throwable
      */
-    public function decryptAndDecompress(Server $server, $file, $keyFile, $service)
+    public function decryptAndDecompress(Server $server, $file, $keyFiles, $service)
     {
         /**
          * Decrypt backup.
          */
-        $compressedCopy = $this->prepareDirectory($service . '/compressed') . $this->prepareFile();
-        $server->decryptFile($file, $compressedCopy, $keyFile);
+        $compressedCopy = $this->prepareDirectory($service . '/compressed') . $this->prepareRandomFile();
+        $server->decryptFile($file, $compressedCopy, $keyFiles);
         $server->deleteFile($file);
 
         /**
          * Decompress file.
          */
-        $backupCopy = $this->prepareDirectory($service . '/backups') . $this->prepareFile();
+        $backupCopy = $this->prepareDirectory($service . '/backups') . $this->prepareRandomFile();
         $server->decompressFile($compressedCopy, $backupCopy);
         $server->deleteFile($compressedCopy);
 
@@ -98,7 +111,7 @@ class Backup extends AbstractService implements ServiceInterface
      */
     public function transfer(Server $from, Server $to, $file, $service)
     {
-        $encryptedCopy = $this->prepareDirectory($service . '/temp') . $this->prepareFile();
+        $encryptedCopy = $this->prepareDirectory($service . '/temp') . $this->prepareRandomFile();
         $from->transferFile($file, $encryptedCopy, $to);
         $from->deleteFile($file);
 
@@ -109,7 +122,7 @@ class Backup extends AbstractService implements ServiceInterface
      * @return string
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
-    protected function prepareFile()
+    protected function prepareRandomFile()
     {
         return sha1(Key::createNewRandomKey()->saveToAsciiSafeString());
     }
@@ -140,15 +153,10 @@ class Backup extends AbstractService implements ServiceInterface
     public function processFullTransfer(Server $from, Server $to, $file, $service)
     {
         /**
-         * This will create random 1024-4096 long key used for encryption saved as random file.
-         */
-        $opensslService = new OpenSSL($this->connection);
-        $keyFile = $opensslService->createRandomHashFile();
-
-        /**
          * Compress, encrypt, and delete all unused copies.
+         * We know that we'll transfer file from $from to $to server.
          */
-        $encryptedFile = $this->compressAndEncrypt($from, $file, $keyFile, $service);
+        $encryptedFile = $this->compressAndEncrypt($from, $to, $file, $service);
 
         /**
          * Transfer backup.
@@ -158,7 +166,7 @@ class Backup extends AbstractService implements ServiceInterface
         /**
          * Decrypt, decompress, and delete all unused copies.
          */
-        $backupCopy = $this->decryptAndDecompress($to, $encryptedCopy, $keyFile, $service);
+        $backupCopy = $this->decryptAndDecompress($to, $encryptedCopy, $keyFiles, $service);
 
         return $backupCopy;
     }

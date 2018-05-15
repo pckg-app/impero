@@ -1,9 +1,10 @@
-<?php namespace Impero\Services\Service;
+<?php namespace Impero\Services\Service\Connection;
 
 use Exception;
+use Impero\Servers\Record\Server;
 use Throwable;
 
-class SshConnection
+class SshConnection implements ConnectionInterface
 {
 
     /**
@@ -23,11 +24,14 @@ class SshConnection
 
     protected $key;
 
+    /**
+     * @var Server
+     */
     protected $server;
 
     protected $ssh2Sftp = null;
 
-    public function __construct($server, $host, $user, $port, $key, $type = 'key')
+    public function __construct(Server $server, $host, $user, $port, $key, $type = 'key')
     {
         $this->server = $server;
 
@@ -92,6 +96,14 @@ class SshConnection
         }
     }
 
+    /**
+     * @return Server
+     */
+    public function getServer()
+    {
+        return $this->server;
+    }
+
     public function execMultiple($commands, &$errorStreamContent = null, $dir = null)
     {
         if (!$commands) {
@@ -133,23 +145,32 @@ class SshConnection
             $errorStreamContent = stream_get_contents($errorStream);
             $infoStreamContent = stream_get_contents($stream);
         } catch (Throwable $e) {
-            $serverCommand->setAndSave([
-                                           'command' => 'Error executing command ' . $command,
-                                           'info'    => $infoStreamContent,
-                                           'error'   => $errorStreamContent,
-                                       ]);
+            $serverCommand->setAndSave(
+                [
+                    'command' => 'Error executing command ' . $command,
+                    'info'    => $infoStreamContent,
+                    'error'   => $errorStreamContent,
+                ]
+            );
 
             return null;
         } finally {
-            $serverCommand->setAndSave([
-                                           'command' => 'Command executed ' . $command,
-                                           'info'    => $infoStreamContent,
-                                           'error'   => $errorStreamContent,
-                                           'code'    => 1,
-                                       ]);
+            $serverCommand->setAndSave(
+                [
+                    'command' => 'Command executed ' . $command,
+                    'info'    => $infoStreamContent,
+                    'error'   => $errorStreamContent,
+                    'code'    => 1,
+                ]
+            );
         }
 
         return $infoStreamContent;
+    }
+
+    public function open()
+    {
+
     }
 
     public function close()
@@ -222,8 +243,8 @@ password = s0m3p4ssw0rd';*/
              */
             $this->tunnelPort = 3307; // @T00D00
             $command = 'ssh -p ' . $this->port . ' -i ' . $this->key . ' -f -L ' . $this->tunnelPort .
-                       ':127.0.0.1:3306 ' . $this->user . '@' . $this->host . ' sleep 10 >> /tmp/tunnel.' .
-                       $this->host . '.' . $this->port . '.log';
+                ':127.0.0.1:3306 ' . $this->user . '@' . $this->host . ' sleep 10 >> /tmp/tunnel.' .
+                $this->host . '.' . $this->port . '.log';
             shell_exec($command);
         }
 
@@ -235,6 +256,13 @@ password = s0m3p4ssw0rd';*/
         $sftp = $this->openSftp();
 
         return is_dir("ssh2.sftp://" . intval($sftp) . $dir);
+    }
+
+    public function createDir($dir, $mode, $recursive)
+    {
+        $sftp = $this->openSftp();
+
+        return ssh2_sftp_mkdir($sftp, $dir, $mode, $recursive);
     }
 
     public function fileExists($file)
@@ -249,6 +277,57 @@ password = s0m3p4ssw0rd';*/
         $sftp = $this->openSftp();
 
         return is_link("ssh2.sftp://" . intval($sftp) . $symlink);
+    }
+
+    public function rsyncCopyTo($file, Server $to)
+    {
+        $dir = implode('/', array_slice(explode('/', $file), 0, -1));
+        if (!$to->getConnection()->dirExists($dir)) {
+            $to->getConnection()->exec('mkdir -p ' . $dir);
+        }
+        $this->exec('rsync -a ' . $file . ' impero@' . $to->privateIp . ':' . $file);
+    }
+
+    public function rsyncCopyFrom($file, Server $from = null)
+    {
+        if (!$from) {
+            /**
+             * We are copying for example some file from impero to $this connection.
+             */
+            $command = 'rsync -a ' . $file . ' impero@' . $this->host . ':' . $file;
+
+            /**
+             * @T00D00 ... how to do this transparent?
+             *         ... how to use different port?
+             */
+            exec($command);
+
+            return;
+        }
+        /**
+         * We are copying for example some file from $this connection to remote $from
+         */
+        $command = 'rsync -a impero@' . $from->privateIp . ':' . $file . ' ' . $file;
+        $this->exec($command);
+    }
+
+    public function saveContents($file, $content)
+    {
+        /**
+         * Save content to temporary file.
+         */
+        $tmp = tempnam('/tmp', 'tmp');
+        file_put_contents($tmp, $content);
+
+        /**
+         * Send file to remote server.
+         */
+        $this->sftpSend($tmp, $file);
+
+        /**
+         * Remove temporary file.
+         */
+        unlink($tmp);
     }
 
 }

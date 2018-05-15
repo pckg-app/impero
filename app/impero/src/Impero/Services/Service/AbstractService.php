@@ -1,10 +1,12 @@
 <?php namespace Impero\Services\Service;
 
+use Impero\Services\Service\Connection\ConnectionInterface;
+
 class AbstractService
 {
 
     /**
-     * @var SshConnection
+     * @var ConnectionInterface
      */
     protected $connection;
 
@@ -18,14 +20,19 @@ class AbstractService
 
     protected $dependencies = [];
 
+    public function __construct(ConnectionInterface $connection)
+    {
+        $this->connection = $connection;
+    }
+
     public function getName()
     {
         return $this->name;
     }
 
-    public function __construct(SshConnection $connection)
+    public function exec($command, &$output = null, &$error = null)
     {
-        $this->connection = $connection;
+        return $this->getConnection()->exec($command, $output, $error);
     }
 
     public function getConnection()
@@ -69,7 +76,7 @@ class AbstractService
     {
         if ($this->via == 'apt') {
             $this->getConnection()->exec('sudo apt-get install -y ' . ($this->install ?? $this->service));
-        } else if ($this->via == 'npm') {
+        } elseif ($this->via == 'npm') {
             $this->getConnection()->exec('sudo npm install -g ' . ($this->install ?? $this->service));
         }
     }

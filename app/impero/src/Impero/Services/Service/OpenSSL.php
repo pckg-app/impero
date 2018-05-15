@@ -14,20 +14,70 @@ class OpenSSL extends AbstractService implements ServiceInterface
         return 'version todo';
     }
 
+    public function generateThreesome()
+    {
+        return $this->createRandomHashFiles();
+    }
+
+    public function getKeysDir()
+    {
+        return '/home/impero/.impero/service/backup/mysql/keys/';
+    }
+
     /**
      * @param $destination
      *
-     * @return string
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
-    public function createRandomHashFile()
+    public function createRandomHashFiles()
     {
-        $destination = '/home/impero/.impero/service/backup/mysql/keys/';
-        $hash = sha1(Key::createNewRandomKey()->saveToAsciiSafeString());
+        $destination = $this->getKeysDir();
+        if (is_dir($destination)) {
+            mkdir($destination, 0400, true);
+        }
+        /**
+         * Generate paths.
+         */
+        $private = sha1(Key::createNewRandomKey()->saveToAsciiSafeString());
+        $public = sha1(Key::createNewRandomKey()->saveToAsciiSafeString());
+        $key = sha1(Key::createNewRandomKey()->saveToAsciiSafeString());
 
-        $this->getConnection()->exec('openssl rand -base64 ' . rand(1024, 4096) . ' > ' . $destination . $hash);
+        /**
+         * Generate files.
+         */
+        $this->generatePrivateKey($destination . $private);
+        $this->generatePublicKey($destination . $public, $destination . $private);
+        $this->generatePassFile($destination . $key);
 
-        return $destination . $hash;
+        return ['public' => $public, 'private' => $private, 'key' => $key];
+    }
+
+    public function generatePassFile($out)
+    {
+        /**
+         * Generate encryption key.
+         */
+        $command = 'openssl rand -base64 128 > ' . $out . '.key.pem';
+        $this->getConnection()->exec($command);
+    }
+
+    public function generatePrivateKey($out)
+    {
+        /**
+         * Generate private key.
+         */
+        $command = 'openssl genrsa -out ' . $out . '.private.pem 4096'
+            . ' -subj "/C=SI/ST=Pckg/L=Impero/O=Dis/CN=impero.foobar.si"';
+        $this->getConnection()->exec($command);
+    }
+
+    public function generatePublicKey($out, $in)
+    {
+        /**
+         * Generate public key.
+         */
+        $command = 'openssl rsa -in ' . $in . ' -outform PEM -pubout -out ' . $out;
+        $this->getConnection()->exec($command);
     }
 
 }

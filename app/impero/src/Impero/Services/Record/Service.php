@@ -11,7 +11,7 @@ use Impero\Services\Service\Php;
 use Impero\Services\Service\Pureftpd;
 use Impero\Services\Service\Sendmail;
 use Impero\Services\Service\Ssh;
-use Impero\Services\Service\SshConnection;
+use Impero\Services\Service\Connection\SshConnection;
 use Impero\Services\Service\Ufw;
 use Pckg\Concept\Reflect;
 use Pckg\Database\Record;

@@ -9,7 +9,7 @@ use Impero\Servers\Entity\ServersServices;
 use Impero\Servers\Entity\Systems;
 use Impero\Servers\Form\Server as ServerForm;
 use Impero\Servers\Record\Server;
-use Impero\Services\Service\SshConnection;
+use Impero\Services\Service\Connection\SshConnection;
 use Pckg\Generic\Service\Generic;
 use Pckg\Generic\Service\Generic\CallableAction;
 use Throwable;
