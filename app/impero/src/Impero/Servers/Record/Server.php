@@ -6,15 +6,17 @@ use Impero\Jobs\Record\Job;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Service\ConnectionManager;
 use Impero\Services\Service\Backup;
+use Impero\Services\Service\Connection\Connectable;
+use Impero\Services\Service\Connection\ConnectionInterface;
 use Impero\Services\Service\Connection\SshConnection;
-use Impero\Services\Service\GPG;
 use Impero\Services\Service\Mysql;
 use Impero\Services\Service\MysqlConnection;
 use Impero\Services\Service\OpenSSL;
+use Impero\Services\Service\Zip;
 use Pckg\Database\Record;
 use Pckg\Generic\Entity\SettingsMorphs;
 
-class Server extends Record
+class Server extends Record implements Connectable
 {
 
     protected $entity = Servers::class;
@@ -34,7 +36,7 @@ class Server extends Record
      * @return mixed|SshConnection
      * @throws \Exception
      */
-    public function getConnection()
+    public function getConnection() : ConnectionInterface
     {
         if (!$this->connection) {
             $connectionManager = context()->getOrCreate(ConnectionManager::class);
@@ -334,63 +336,14 @@ frontend all_https
     /**
      * @param $file
      *
-     * @throws \Exception
-     */
-    public function compressFile($file, $output)
-    {
-        $command = 'zip ' . $output . ' ' . $file;
-        $this->exec($command);
-    }
-
-    /**
-     * @param $file
-     *
-     * @throws \Exception
-     */
-    public function encryptFile($file, $output, Server $to = null)
-    {
-        /**
-         * When we encrypt for known server (replication) we generate public key and private key on target server.
-         * When we encrypt things for unknown server (regular backups) we generate public and private key on /impero.
-         */
-        $toConnection = $to
-            ? $to->getConnection()
-            : context()->getOrCreate(ConnectionManager::class)->createConnection();
-        $toGpgService = new GPG($toConnection);
-        $toBackupService = new Backup($toConnection);
-        $keyFiles = $toGpgService->generateThreesome();
-
-        /**
-         * Public key is then transfered to $from / source server so we can encrypt file with public key
-         *  - known: $to / target -> source
-         *  - unknown: impero -> source
-         */
-        $keyDir = $toGpgService->getKeysDir();
-        $toGpgService->copyFileTo($keyFiles['public'], $this);
-        //$toBackupService->getConnection()->rsyncCopyTo($keyFiles['public'], $this);
-        $this->getConnection()->sftpSend($keyFiles['public'], $keyFiles['public']);
-
-        /**
-         * Encrypt file with openssl public key.
-         */
-        $command = 'openssl rsautl -encrypt -inkey ' . $keyFiles['public'] . ' -pubin -in ' . $file . ' -out ' . $output;
-        $this->exec($command);
-
-        /**
-         * Delete encryption key from server, impero holds the only copy of key.
-         */
-        //$this->deleteFile($keyFiles['public']);
-    }
-
-    /**
-     * @param $file
-     *
+     * @return null|string
      * @throws \Exception
      */
     public function decompressFile($file, $output)
     {
-        $command = 'unzip ' . $file . ' ' . $output;
-        $this->exec($command);
+        $zipService = new Zip($this->getConnection());
+
+        return $zipService->decompressFile($file, $output);
     }
 
     /**

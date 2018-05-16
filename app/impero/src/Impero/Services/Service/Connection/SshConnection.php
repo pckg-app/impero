@@ -4,7 +4,7 @@ use Exception;
 use Impero\Servers\Record\Server;
 use Throwable;
 
-class SshConnection implements ConnectionInterface
+class SshConnection implements ConnectionInterface, Connectable
 {
 
     /**
@@ -311,7 +311,7 @@ password = s0m3p4ssw0rd';*/
         $this->exec($command);
     }
 
-    public function saveContents($file, $content)
+    public function saveContent($file, $content)
     {
         /**
          * Save content to temporary file.
@@ -328,6 +328,11 @@ password = s0m3p4ssw0rd';*/
          * Remove temporary file.
          */
         unlink($tmp);
+    }
+
+    public function getConnection() : ConnectionInterface
+    {
+        return $this;
     }
 
 }

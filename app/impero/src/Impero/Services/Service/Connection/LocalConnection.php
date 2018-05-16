@@ -1,6 +1,6 @@
 <?php namespace Impero\Services\Service\Connection;
 
-class LocalConnection implements ConnectionInterface
+class LocalConnection implements ConnectionInterface, Connectable
 {
 
     /**
@@ -42,6 +42,11 @@ class LocalConnection implements ConnectionInterface
         /**
          * No need to close local connection.
          */
+    }
+
+    public function getConnection() : ConnectionInterface
+    {
+        return $this;
     }
 
 }

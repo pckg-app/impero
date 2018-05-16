@@ -1,5 +1,7 @@
 <?php namespace Impero\Services\Service;
 
+use Defuse\Crypto\Key;
+use Impero\Services\Service\Connection\Connectable;
 use Impero\Services\Service\Connection\ConnectionInterface;
 
 class AbstractService
@@ -20,9 +22,31 @@ class AbstractService
 
     protected $dependencies = [];
 
-    public function __construct(ConnectionInterface $connection)
+    public function __construct(Connectable $connection)
     {
-        $this->connection = $connection;
+        $this->connection = $connection->getConnection();
+    }
+
+    /**
+     * @return string
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     */
+    protected function prepareRandomFile()
+    {
+        return sha1(Key::createNewRandomKey()->saveToAsciiSafeString());
+    }
+
+    protected function prepareDirectory($dir)
+    {
+        $dir = '/home/impero/.impero/service/' . $dir;
+
+        if ($this->getConnection()->dirExists($dir)) {
+            return $dir;
+        }
+
+        $this->getConnection()->exec('mkdir -p ' . $dir);
+
+        return $dir;
     }
 
     public function getName()

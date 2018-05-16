@@ -5,14 +5,21 @@ use Impero\Mysql\Entity\Databases;
 use Impero\Secret\Record\Secret;
 use Impero\Servers\Record\Server;
 use Impero\Services\Service\Backup;
+use Impero\Services\Service\Connection\Connectable;
+use Impero\Services\Service\Connection\ConnectionInterface;
+use Impero\Services\Service\Crypto\Crypto;
 use Impero\Services\Service\Mysql;
-use Impero\Services\Service\OpenSSL;
 use Pckg\Database\Record;
 
-class Database extends Record
+class Database extends Record implements Connectable
 {
 
     protected $entity = Databases::class;
+
+    public function getConnection() : ConnectionInterface
+    {
+        return $this->server->getConnection();
+    }
 
     /**
      * Build edit url.
@@ -52,7 +59,7 @@ class Database extends Record
          *         - impero will trigger backups at least twice per day, once per week, and once per month
          */
         $backupFile = '/backup/dbarray.conf';
-        $connection = $this->server->getConnection();
+        $connection = $this->getConnection();
         $currentBackup = $connection->sftpRead($backupFile);
         $databases = explode("\n", $currentBackup);
 
@@ -76,19 +83,18 @@ class Database extends Record
         /**
          * Establish connection to server and create mysql dump.
          */
-        $backupService = new Backup($this->server->getConnection());
+        $backupService = new Backup($this->getConnection());
         $backupFile = $backupService->createMysqlBackup($this);
 
         /**
          * Compress backup.
          */
-        $encryptedBackup = $backupFile;
-        $encryptedBackup = $backupService->compressAndEncrypt($this->server, null, $backupFile, 'mysql');
+        $crypto = new Crypto($this->server, null, $backupFile);
+        $encryptedBackup = $crypto->compressAndEncrypt();
 
         /**
          * Transfer encrypted backup to safe / cold location.
          */
-        //$coldKey = $backupService->toCold($keyFile);
         $coldFile = $backupService->toCold($encryptedBackup);
 
         /**
@@ -100,7 +106,6 @@ class Database extends Record
          */
         Secret::create(
             [
-                //'key'  => $coldKey,
                 'file' => $coldFile,
             ]
         );
@@ -134,7 +139,7 @@ class Database extends Record
          * Check on $server that replication is active.
          * Check that entry is found in /etc/mysql/conf.d/replication.cnf
          */
-        $mysqlService = new Mysql($this->server->getConnection());
+        $mysqlService = new Mysql($this->getConnection());
         if ($mysqlService->isReplicatedOnMaster($this)) {
             return;
         }
@@ -156,7 +161,7 @@ class Database extends Record
          * It will be deleted immediately after we don't need it anymore.
          */
         $mysqlSlaveService = (new Mysql($slaveServer->getConnection()));
-        $backupMasterService = new Backup($this->server->getConnection());
+        $backupMasterService = new Backup($this->getConnection());
 
         /**
          * Check if database is alredy replicated.
@@ -191,7 +196,8 @@ class Database extends Record
         /**
          * Let backup service take care of full transfer.
          */
-        $backupMasterService->processFullTransfer($this->server, $slaveServer, $backupFile, 'mysql');
+        $crypto = new Crypto($this->server, $slaveServer, $backupFile);
+        $crypto->processFullTransfer();
 
         /**
          * Create database?
@@ -284,7 +290,7 @@ class Database extends Record
      */
     public function requireMysqlMasterReplication()
     {
-        (new Mysql($this->server->getConnection()))->requireMysqlMasterReplication();
+        (new Mysql($this->getConnection()))->requireMysqlMasterReplication();
     }
 
 }
