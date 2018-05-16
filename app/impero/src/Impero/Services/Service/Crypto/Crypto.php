@@ -160,6 +160,7 @@ class Crypto
     {
         /**
          * File is then encrypted with gpg service.
+         * Delete original after usage.
          */
         $fromGpgService = new GPG($this->from);
         $encryptedFile = $fromGpgService->encrypt($this);
@@ -180,24 +181,18 @@ class Crypto
     {
         /**
          * Decrypt encrypted file.
+         * Delete original after usage.
          */
         $compressedFile = $this->decrypt();
-
-        /**
-         * Delete original file.
-         */
-        $this->to->deleteFile($this->file);
+        $this->replaceFile($this->to, $compressedFile);
 
         /**
          * Decompress file with Zip service.
+         * Delete original after usage.
          */
         $zipService = new Zip($this->to);
         $decompressedFile = $zipService->decompressFile($compressedFile);
-
-        /**
-         * Delete compressed file.
-         */
-        $this->to->deleteFile($compressedFile);
+        $this->replaceFile($this->to, $decompressedFile);
 
         return $decompressedFile;
     }
