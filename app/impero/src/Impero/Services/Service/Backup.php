@@ -3,18 +3,37 @@
 use Impero\Mysql\Record\Database;
 use Impero\Services\Services\DigitalOcean;
 
+/**
+ * Class Backup
+ *
+ * @package Impero\Services\Service
+ */
 class Backup extends AbstractService implements ServiceInterface
 {
 
+    /**
+     * @var string
+     */
     protected $service = 'backup';
 
+    /**
+     * @var string
+     */
     protected $name = 'Backup';
 
+    /**
+     * @return string
+     */
     public function getVersion()
     {
         return 'version todo';
     }
 
+    /**
+     * @param Database $database
+     *
+     * @return string
+     */
     public function createMysqlBackup(Database $database)
     {
         /**
@@ -33,6 +52,10 @@ class Backup extends AbstractService implements ServiceInterface
         return $backupFile;
     }
 
+    /**
+     * @param Database $database
+     * @param          $file
+     */
     public function importMysqlBackup(Database $database, $file)
     {
         $command = 'mysql -u impero ' . $database->name . ' < ' . $file;
@@ -42,6 +65,7 @@ class Backup extends AbstractService implements ServiceInterface
     /**
      * @param $file
      *
+     * @return string
      * @throws \InvalidArgumentException
      * @throws \League\Flysystem\FileExistsException
      */
@@ -51,6 +75,11 @@ class Backup extends AbstractService implements ServiceInterface
         return $do->uploadToSpaces($file);
     }
 
+    /**
+     * @param $file
+     *
+     * @return string
+     */
     public function fromCold($file)
     {
         $do = (new DigitalOcean($this->getConnection()));

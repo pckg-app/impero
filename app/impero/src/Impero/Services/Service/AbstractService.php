@@ -4,6 +4,11 @@ use Defuse\Crypto\Key;
 use Impero\Services\Service\Connection\Connectable;
 use Impero\Services\Service\Connection\ConnectionInterface;
 
+/**
+ * Class AbstractService
+ *
+ * @package Impero\Services\Service
+ */
 class AbstractService
 {
 
@@ -12,16 +17,36 @@ class AbstractService
      */
     protected $connection;
 
+    /**
+     * @var
+     */
     protected $service;
 
+    /**
+     * @var
+     */
     protected $name;
 
+    /**
+     * @var string
+     */
     protected $via = 'apt';
 
+    /**
+     * @var
+     */
     protected $install;
 
+    /**
+     * @var array
+     */
     protected $dependencies = [];
 
+    /**
+     * AbstractService constructor.
+     *
+     * @param Connectable $connection
+     */
     public function __construct(Connectable $connection)
     {
         $this->connection = $connection->getConnection();
@@ -36,6 +61,11 @@ class AbstractService
         return sha1(Key::createNewRandomKey()->saveToAsciiSafeString());
     }
 
+    /**
+     * @param $dir
+     *
+     * @return string
+     */
     protected function prepareDirectory($dir)
     {
         $dir = '/home/impero/.impero/service/' . $dir;
@@ -49,21 +79,37 @@ class AbstractService
         return $dir;
     }
 
+    /**
+     * @return mixed
+     */
     public function getName()
     {
         return $this->name;
     }
 
+    /**
+     * @param      $command
+     * @param null $output
+     * @param null $error
+     *
+     * @return mixed
+     */
     public function exec($command, &$output = null, &$error = null)
     {
         return $this->getConnection()->exec($command, $output, $error);
     }
 
+    /**
+     * @return ConnectionInterface
+     */
     public function getConnection()
     {
         return $this->connection;
     }
 
+    /**
+     * @return bool
+     */
     public function isInstalled()
     {
         $response = $this->getConnection()
@@ -75,6 +121,9 @@ class AbstractService
         return $loaded && !$notFound;
     }
 
+    /**
+     * @return string
+     */
     public function getStatus()
     {
         $response = $this->getConnection()
@@ -96,6 +145,9 @@ class AbstractService
                 : 'error');
     }
 
+    /**
+     *
+     */
     public function install()
     {
         if ($this->via == 'apt') {

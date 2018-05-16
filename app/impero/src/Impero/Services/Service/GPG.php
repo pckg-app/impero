@@ -5,18 +5,35 @@ use Impero\Servers\Record\Server;
 use Impero\Servers\Service\ConnectionManager;
 use Impero\Services\Service\Crypto\Crypto;
 
+/**
+ * Class GPG
+ *
+ * @package Impero\Services\Service
+ */
 class GPG extends AbstractService implements ServiceInterface
 {
 
+    /**
+     * @var string
+     */
     protected $service = 'gpg';
 
+    /**
+     * @var string
+     */
     protected $name = 'GPG';
 
+    /**
+     * @return mixed|string
+     */
     public function getVersion()
     {
         return 'version todo';
     }
 
+    /**
+     * @return string
+     */
     public function getKeysDir()
     {
         return '/home/impero/.impero/service/backup/mysql/keys/';
@@ -64,6 +81,10 @@ class GPG extends AbstractService implements ServiceInterface
         $this->exec($command);
     }
 
+    /**
+     * @param $key
+     * @param $output
+     */
     public function generateRevokeCertificate($key, $output)
     {
         /**
@@ -258,18 +279,27 @@ class GPG extends AbstractService implements ServiceInterface
         $fromGpgService->deletePrivateKey($keyFiles);
     }
 
+    /**
+     * @param $hash
+     */
     public function deleteKeys($hash)
     {
         $this->deletePrivateKey($hash);
         $this->deletePublicKey($hash);
     }
 
+    /**
+     * @param $hash
+     */
     public function deletePrivateKey($hash)
     {
         $command = 'gpg2 --batch --yes --delete-secret-keys ' . $hash;
         $this->exec($command);
     }
 
+    /**
+     * @param $hash
+     */
     public function deletePublicKey($hash)
     {
         $keys = $this->listKeys();
@@ -277,36 +307,56 @@ class GPG extends AbstractService implements ServiceInterface
         $this->exec($command);
     }
 
+    /**
+     * @param $name
+     */
     public function exportKeys($name)
     {
         $this->exportPublicKey($name);
         $this->exportPrivateKey($name);
     }
 
+    /**
+     * @param $name
+     * @param $output
+     */
     public function exportPublicKey($name, $output)
     {
         $command = 'gpg --export ' . $name . ' > ' . $output;
         $this->exec($command);
     }
 
+    /**
+     * @param $name
+     * @param $output
+     */
     public function exportPrivateKey($name, $output)
     {
         $command = 'gpg --export-secret-keys ' . $name . ' > ' . $output;
         $this->exec($command);
     }
 
+    /**
+     * @param $file
+     */
     public function importPublicKey($file)
     {
         $command = 'gpg --import ' . $file;
         $this->exec($command);
     }
 
+    /**
+     * @param $file
+     */
     public function importPrivateKey($file)
     {
         $command = 'gpg --import ' . $file;
         $this->exec($command);
     }
 
+    /**
+     * @return array
+     */
     public function listKeys()
     {
         $command = 'gpg --list-keys --fingerprint';
@@ -372,6 +422,10 @@ class GPG extends AbstractService implements ServiceInterface
         ];
     }
 
+    /**
+     * @param        $file
+     * @param Server $to
+     */
     public function copyFileTo($file, Server $to)
     {
         /**

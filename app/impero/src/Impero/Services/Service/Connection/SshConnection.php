@@ -4,6 +4,11 @@ use Exception;
 use Impero\Servers\Record\Server;
 use Throwable;
 
+/**
+ * Class SshConnection
+ *
+ * @package Impero\Services\Service\Connection
+ */
 class SshConnection implements ConnectionInterface, Connectable
 {
 
@@ -12,16 +17,34 @@ class SshConnection implements ConnectionInterface, Connectable
      */
     protected $connection;
 
+    /**
+     * @var
+     */
     protected $tunnel;
 
+    /**
+     * @var
+     */
     protected $tunnelPort;
 
+    /**
+     * @var
+     */
     protected $port;
 
+    /**
+     * @var
+     */
     protected $user;
 
+    /**
+     * @var
+     */
     protected $host;
 
+    /**
+     * @var
+     */
     protected $key;
 
     /**
@@ -29,8 +52,23 @@ class SshConnection implements ConnectionInterface, Connectable
      */
     protected $server;
 
+    /**
+     * @var null
+     */
     protected $ssh2Sftp = null;
 
+    /**
+     * SshConnection constructor.
+     *
+     * @param Server $server
+     * @param        $host
+     * @param        $user
+     * @param        $port
+     * @param        $key
+     * @param string $type
+     *
+     * @throws Exception
+     */
     public function __construct(Server $server, $host, $user, $port, $key, $type = 'key')
     {
         $this->server = $server;
@@ -104,6 +142,13 @@ class SshConnection implements ConnectionInterface, Connectable
         return $this->server;
     }
 
+    /**
+     * @param      $commands
+     * @param null $errorStreamContent
+     * @param null $dir
+     *
+     * @return $this
+     */
     public function execMultiple($commands, &$errorStreamContent = null, $dir = null)
     {
         if (!$commands) {
@@ -117,6 +162,11 @@ class SshConnection implements ConnectionInterface, Connectable
         return $this;
     }
 
+    /**
+     * @param        $dir
+     * @param string $group
+     * @param string $permissions
+     */
     public function makeAndAllow($dir, $group = 'www-data', $permissions = 'g+rwx')
     {
         $this->exec('mkdir -p ' . $dir);
@@ -125,6 +175,13 @@ class SshConnection implements ConnectionInterface, Connectable
         $this->exec('chmod ' . $permissions . ' ' . $dir);
     }
 
+    /**
+     * @param      $command
+     * @param null $errorStreamContent
+     * @param null $dir
+     *
+     * @return bool|null|string
+     */
     public function exec($command, &$errorStreamContent = null, $dir = null)
     {
         $e = null;
@@ -168,11 +225,17 @@ class SshConnection implements ConnectionInterface, Connectable
         return $infoStreamContent;
     }
 
+    /**
+     *
+     */
     public function open()
     {
 
     }
 
+    /**
+     * @return $this
+     */
     public function close()
     {
         if ($this->connection) {
@@ -185,6 +248,14 @@ class SshConnection implements ConnectionInterface, Connectable
         return $this;
     }
 
+    /**
+     * @param      $local
+     * @param      $remote
+     * @param null $mode
+     * @param bool $isFile
+     *
+     * @return bool
+     */
     public function sftpSend($local, $remote, $mode = null, $isFile = true)
     {
         $this->server->logCommand('Copying local ' . $local . ' to remote ' . $remote, null, null, null);
@@ -200,6 +271,12 @@ class SshConnection implements ConnectionInterface, Connectable
         return !!$ok;
     }
 
+    /**
+     * @param $file
+     *
+     * @return bool|string
+     * @throws Exception
+     */
     public function sftpRead($file)
     {
         /*return '[client]
@@ -222,6 +299,9 @@ password = s0m3p4ssw0rd';*/
         return $content;
     }
 
+    /**
+     * @return null|resource
+     */
     protected function openSftp()
     {
         if (!$this->ssh2Sftp) {
@@ -231,6 +311,9 @@ password = s0m3p4ssw0rd';*/
         return $this->ssh2Sftp;
     }
 
+    /**
+     * @return int
+     */
     public function tunnel()
     {
         if (!$this->tunnel) {
@@ -251,6 +334,11 @@ password = s0m3p4ssw0rd';*/
         return $this->tunnelPort;
     }
 
+    /**
+     * @param $dir
+     *
+     * @return bool
+     */
     public function dirExists($dir)
     {
         $sftp = $this->openSftp();
@@ -258,6 +346,13 @@ password = s0m3p4ssw0rd';*/
         return is_dir("ssh2.sftp://" . intval($sftp) . $dir);
     }
 
+    /**
+     * @param $dir
+     * @param $mode
+     * @param $recursive
+     *
+     * @return bool
+     */
     public function createDir($dir, $mode, $recursive)
     {
         $sftp = $this->openSftp();
@@ -265,6 +360,11 @@ password = s0m3p4ssw0rd';*/
         return ssh2_sftp_mkdir($sftp, $dir, $mode, $recursive);
     }
 
+    /**
+     * @param $file
+     *
+     * @return bool
+     */
     public function fileExists($file)
     {
         $sftp = $this->openSftp();
@@ -272,6 +372,11 @@ password = s0m3p4ssw0rd';*/
         return file_exists("ssh2.sftp://" . intval($sftp) . $file) && !is_dir("ssh2.sftp://" . intval($sftp) . $file);
     }
 
+    /**
+     * @param $symlink
+     *
+     * @return bool
+     */
     public function symlinkExists($symlink)
     {
         $sftp = $this->openSftp();
@@ -279,6 +384,12 @@ password = s0m3p4ssw0rd';*/
         return is_link("ssh2.sftp://" . intval($sftp) . $symlink);
     }
 
+    /**
+     * @param        $file
+     * @param Server $to
+     *
+     * @throws Exception
+     */
     public function rsyncCopyTo($file, Server $to)
     {
         $dir = implode('/', array_slice(explode('/', $file), 0, -1));
@@ -288,6 +399,10 @@ password = s0m3p4ssw0rd';*/
         $this->exec('rsync -a ' . $file . ' impero@' . $to->privateIp . ':' . $file);
     }
 
+    /**
+     * @param             $file
+     * @param Server|null $from
+     */
     public function rsyncCopyFrom($file, Server $from = null)
     {
         if (!$from) {
@@ -311,6 +426,10 @@ password = s0m3p4ssw0rd';*/
         $this->exec($command);
     }
 
+    /**
+     * @param $file
+     * @param $content
+     */
     public function saveContent($file, $content)
     {
         /**
@@ -330,6 +449,9 @@ password = s0m3p4ssw0rd';*/
         unlink($tmp);
     }
 
+    /**
+     * @return ConnectionInterface
+     */
     public function getConnection() : ConnectionInterface
     {
         return $this;

@@ -5,6 +5,11 @@ use Impero\Servers\Service\ConnectionManager;
 use Impero\Services\Service\GPG;
 use Impero\Services\Service\Zip;
 
+/**
+ * Class Crypto
+ *
+ * @package Impero\Services\Service\Crypto
+ */
 class Crypto
 {
 
@@ -23,10 +28,19 @@ class Crypto
      */
     protected $file;
 
+    /**
+     * @var
+     */
     protected $compressed;
 
+    /**
+     * @var
+     */
     protected $encrypted;
 
+    /**
+     * @var array
+     */
     protected $keys = [];
 
     /**
@@ -43,6 +57,9 @@ class Crypto
         $this->file = $file;
     }
 
+    /**
+     * @return array
+     */
     public function getKeys()
     {
         return $this->keys;

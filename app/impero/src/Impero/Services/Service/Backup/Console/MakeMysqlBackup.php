@@ -5,9 +5,17 @@ use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
 use Pckg\Database\Relation\HasMany;
 
+/**
+ * Class MakeMysqlBackup
+ *
+ * @package Impero\Services\Service\Backup\Console
+ */
 class MakeMysqlBackup
 {
 
+    /**
+     *
+     */
     public function handle()
     {
         /**
@@ -39,6 +47,9 @@ class MakeMysqlBackup
         });
     }
 
+    /**
+     *
+     */
     public function backupBinlogs()
     {
         $command = 'mysqlbinlog -u fullremote -p --read-from-remote-server --host=hardisland.com --raw mysql-bin.002157';
@@ -50,6 +61,9 @@ class MakeMysqlBackup
         // mysqlbinlog binlog.000001 > tmpfile
     }
 
+    /**
+     *
+     */
     public function restoreMysqlMasterDatabase()
     {
         /**
@@ -59,6 +73,9 @@ class MakeMysqlBackup
          */
     }
 
+    /**
+     *
+     */
     public function restoreMysqlSlaveDatabase()
     {
         /**

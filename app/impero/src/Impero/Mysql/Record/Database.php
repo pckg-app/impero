@@ -295,10 +295,8 @@ class Database extends Record implements Connectable
      */
     public function importBackup($file, Server $server)
     {
-        $command = 'mysql -u impero ' . $this->name . ' < ' . $file;
-        $server->exec($command);
-
-        $server->deleteFile($file);
+        $backupService = new Backup($server);
+        $backupService->importMysqlBackup($this, $file);
     }
 
     /**

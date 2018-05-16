@@ -1,12 +1,26 @@
 <?php namespace Impero\Services\Service;
 
+/**
+ * Class Pureftpd
+ *
+ * @package Impero\Services\Service
+ */
 class Pureftpd extends AbstractService implements ServiceInterface
 {
 
+    /**
+     * @var string
+     */
     protected $service = 'pure-ftpd-mysql';
 
+    /**
+     * @var string
+     */
     protected $name = 'PureFTPd';
 
+    /**
+     * @return bool
+     */
     public function isInstalled()
     {
         $response = $this->getConnection()
@@ -15,6 +29,9 @@ class Pureftpd extends AbstractService implements ServiceInterface
         return strpos($response, 'No command') === false;
     }
 
+    /**
+     * @return bool|mixed|string
+     */
     public function getVersion()
     {
         $response = $this->getConnection()

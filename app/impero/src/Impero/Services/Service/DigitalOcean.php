@@ -6,9 +6,17 @@ use Impero\Services\Service\ServiceInterface;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
 use League\Flysystem\Filesystem;
 
+/**
+ * Class DigitalOcean
+ *
+ * @package Impero\Services\Services
+ */
 class DigitalOcean extends AbstractService implements ServiceInterface
 {
 
+    /**
+     * @return mixed|void
+     */
     public function getVersion()
     {
         // TODO: Implement getVersion() method.
@@ -37,6 +45,13 @@ class DigitalOcean extends AbstractService implements ServiceInterface
         return $coldName;
     }
 
+    /**
+     * @param $file
+     *
+     * @return string
+     * @throws \InvalidArgumentException
+     * @throws \League\Flysystem\FileNotFoundException
+     */
     public function downloadFromSpaces($file)
     {
         $filesystem = $this->getFilesystem();

@@ -1,5 +1,10 @@
 <?php namespace Impero\Services\Service\Connection;
 
+/**
+ * Class LocalConnection
+ *
+ * @package Impero\Services\Service\Connection
+ */
 class LocalConnection implements ConnectionInterface, Connectable
 {
 
@@ -15,21 +20,42 @@ class LocalConnection implements ConnectionInterface, Connectable
         return exec($command, $output, $error);
     }
 
+    /**
+     * @param $dir
+     *
+     * @return bool
+     */
     public function dirExists($dir)
     {
         return is_dir($dir);
     }
 
+    /**
+     * @param $dir
+     * @param $mode
+     * @param $recursive
+     *
+     * @return bool
+     */
     public function createDir($dir, $mode, $recursive)
     {
         return mkdir($dir, $mode, $recursive);
     }
 
+    /**
+     * @param $file
+     * @param $content
+     *
+     * @return bool|int
+     */
     public function saveContent($file, $content)
     {
         return file_put_contents($file, $content);
     }
 
+    /**
+     *
+     */
     public function open()
     {
         /**
@@ -37,6 +63,9 @@ class LocalConnection implements ConnectionInterface, Connectable
          */
     }
 
+    /**
+     *
+     */
     public function close()
     {
         /**
@@ -44,6 +73,9 @@ class LocalConnection implements ConnectionInterface, Connectable
          */
     }
 
+    /**
+     * @return ConnectionInterface
+     */
     public function getConnection() : ConnectionInterface
     {
         return $this;

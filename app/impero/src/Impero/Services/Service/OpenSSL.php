@@ -2,23 +2,44 @@
 
 use Defuse\Crypto\Key;
 
+/**
+ * Class OpenSSL
+ *
+ * @package Impero\Services\Service
+ */
 class OpenSSL extends AbstractService implements ServiceInterface
 {
 
+    /**
+     * @var string
+     */
     protected $service = 'openssl';
 
+    /**
+     * @var string
+     */
     protected $name = 'OpenSSL';
 
+    /**
+     * @return mixed|string
+     */
     public function getVersion()
     {
         return 'version todo';
     }
 
+    /**
+     * @return array
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     */
     public function generateThreesome()
     {
         return $this->createRandomHashFiles();
     }
 
+    /**
+     * @return string
+     */
     public function getKeysDir()
     {
         return '/home/impero/.impero/service/backup/mysql/keys/';
@@ -52,6 +73,9 @@ class OpenSSL extends AbstractService implements ServiceInterface
         return ['public' => $public, 'private' => $private, 'key' => $key];
     }
 
+    /**
+     * @param $out
+     */
     public function generatePassFile($out)
     {
         /**
@@ -61,6 +85,9 @@ class OpenSSL extends AbstractService implements ServiceInterface
         $this->getConnection()->exec($command);
     }
 
+    /**
+     * @param $out
+     */
     public function generatePrivateKey($out)
     {
         /**
@@ -71,6 +98,10 @@ class OpenSSL extends AbstractService implements ServiceInterface
         $this->getConnection()->exec($command);
     }
 
+    /**
+     * @param $out
+     * @param $in
+     */
     public function generatePublicKey($out, $in)
     {
         /**

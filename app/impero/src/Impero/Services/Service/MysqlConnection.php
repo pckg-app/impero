@@ -3,6 +3,11 @@
 use Exception;
 use PDO;
 
+/**
+ * Class MysqlConnection
+ *
+ * @package Impero\Services\Service
+ */
 class MysqlConnection
 {
 
@@ -11,15 +16,32 @@ class MysqlConnection
      */
     protected $sshConnection;
 
+    /**
+     * @var
+     */
     protected $tunnelPort;
 
+    /**
+     * @var
+     */
     protected $pdo;
 
+    /**
+     * MysqlConnection constructor.
+     *
+     * @param SshConnection $sshConnection
+     */
     public function __construct(SshConnection $sshConnection)
     {
         $this->sshConnection = $sshConnection;
     }
 
+    /**
+     * @param      $sql
+     * @param null $error
+     *
+     * @return mixed
+     */
     public function execute($sql, &$error = null)
     {
         $command = 'mysql -u impero -e' . escapeshellarg($sql . ';');
@@ -29,6 +51,9 @@ class MysqlConnection
         return $result;
     }
 
+    /**
+     * @return mixed
+     */
     protected function getMysqlPassword()
     {
         $content = $this->sshConnection->sftpRead('/etc/mysql/conf.d/impero.cnf');
@@ -36,6 +61,14 @@ class MysqlConnection
         return parse_ini_string($content)['password'];
     }
 
+    /**
+     * @param       $database
+     * @param       $sql
+     * @param array $binds
+     *
+     * @return array
+     * @throws Exception
+     */
     public function query($database, $sql, $binds = [])
     {
         if (!$this->pdo) {
@@ -70,6 +103,13 @@ class MysqlConnection
         return $prepared->fetchAll();
     }
 
+    /**
+     * @param      $pipe
+     * @param null $database
+     * @param null $error
+     *
+     * @return mixed
+     */
     public function pipeIn($pipe, $database = null, &$error = null)
     {
         return $this->sshConnection->exec('mysql -u impero ' . ($database ? $database . ' ' : '') . '< ' . $pipe,

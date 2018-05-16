@@ -1,12 +1,26 @@
 <?php namespace Impero\Services\Service;
 
+/**
+ * Class Zip
+ *
+ * @package Impero\Services\Service
+ */
 class Zip extends AbstractService implements ServiceInterface
 {
 
+    /**
+     * @var string
+     */
     protected $service = 'zip';
 
+    /**
+     * @var string
+     */
     protected $name = 'ZIP';
 
+    /**
+     * @return string
+     */
     public function getVersion()
     {
         return '@t00d00 version';

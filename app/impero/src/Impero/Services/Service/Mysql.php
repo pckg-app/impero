@@ -4,13 +4,27 @@ use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
 use Pckg\Collection;
 
+/**
+ * Class Mysql
+ *
+ * @package Impero\Services\Service
+ */
 class Mysql extends AbstractService implements ServiceInterface
 {
 
+    /**
+     * @var string
+     */
     protected $service = 'mysql';
 
+    /**
+     * @var string
+     */
     protected $name = 'MySQL';
 
+    /**
+     * @return bool|mixed|string
+     */
     public function getVersion()
     {
         $response = $this->getConnection()
@@ -23,21 +37,33 @@ class Mysql extends AbstractService implements ServiceInterface
         return substr($response, $start, $length);
     }
 
+    /**
+     * @return MysqlConnection
+     */
     public function getMysqlConnection()
     {
         return new MysqlConnection($this->connection);
     }
 
+    /**
+     *
+     */
     public function startSlave()
     {
         $this->getMysqlConnection()->execute('START SLAVE;');
     }
 
+    /**
+     *
+     */
     public function stopSlave()
     {
         $this->getMysqlConnection()->execute('STOP SLAVE;');
     }
 
+    /**
+     * @return string
+     */
     public function getReplicationConfigLocation()
     {
         return '/etc/mysql/conf.d/replication.cnf';
@@ -57,6 +83,9 @@ class Mysql extends AbstractService implements ServiceInterface
         $this->replicateMysqlSlave();
     }
 
+    /**
+     *
+     */
     public function replicateMysqlSlave()
     {
         dd('Slave replication is not yet enabled?');
@@ -119,6 +148,9 @@ class Mysql extends AbstractService implements ServiceInterface
         return in_array('[mysqld]', $replications);
     }
 
+    /**
+     *
+     */
     public function replicateMysqlMaster()
     {
         dd('Master replication is not yet enabled?');
@@ -136,6 +168,9 @@ class Mysql extends AbstractService implements ServiceInterface
         $this->getConnection()->exec('sudo service mysql restart');
     }
 
+    /**
+     * @param Collection $databases
+     */
     public function refreshMasterReplicationFilter(Collection $databases)
     {
         $dbString = $databases->map(function (Database $database) {
@@ -145,6 +180,9 @@ class Mysql extends AbstractService implements ServiceInterface
         $this->getMysqlConnection()->execute($sql);
     }
 
+    /**
+     * @param Collection $databases
+     */
     public function refreshSlaveReplicationFilter(Collection $databases)
     {
         $dbString = $databases->map(function (Database $database) {
@@ -172,6 +210,9 @@ class Mysql extends AbstractService implements ServiceInterface
         return in_array($line, $replications);
     }
 
+    /**
+     * @param Database $database
+     */
     public function replicateOnMaster(Database $database)
     {
         $replicationFile = $this->getReplicationConfigLocation();
@@ -213,6 +254,9 @@ class Mysql extends AbstractService implements ServiceInterface
         }
     }
 
+    /**
+     * @param Database $database
+     */
     public function replicateOnSlave(Database $database)
     {
         /**
