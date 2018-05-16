@@ -351,34 +351,6 @@ frontend all_https
      *
      * @throws \Exception
      */
-    public function decryptFile($file, $output, $keyFiles)
-    {
-        /**
-         * Transfer key file from impero to server.
-         */
-        $keyDir = implode('/', array_slice(explode('/', $keyFiles['private']), 0, -1));
-        if (!$this->getConnection()->dirExists($keyDir)) {
-            $this->getConnection()->exec('mkdir -p ' . $keyDir);
-        }
-        $this->getConnection()->sftpSend($keyFiles['private'], $keyFiles['private']);
-
-        /**
-         * Decrypt file with openssl private key.
-         */
-        $command = 'openssl rsautl -decrypt -inkey ' . $keyFiles['private'] . ' -in ' . $file . ' -out ' . $output;
-        $this->exec($command);
-
-        /**
-         * Delete encryption key from server, impero holds the only copy of key.
-         */
-        //$this->deleteFile($keyFile);
-    }
-
-    /**
-     * @param $file
-     *
-     * @throws \Exception
-     */
     public function deleteFile($file)
     {
         $command = 'rm ' . $file;

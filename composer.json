@@ -34,7 +34,9 @@
     "dimsemenov/magnific-popup": "dev-master",
     "robrichards/xmlseclibs": "^2.0",
     "aferrandini/phpqrcode": "^1.0",
-    "defuse/php-encryption": "dev-master"
+    "defuse/php-encryption": "dev-master",
+    "league/flysystem": "1.*",
+    "league/flysystem-aws-s3-v3": "^1.0@dev"
   },
   "minimum-stability": "dev",
   "autoload": {

@@ -3,6 +3,7 @@
 use Defuse\Crypto\Key;
 use Impero\Servers\Record\Server;
 use Impero\Servers\Service\ConnectionManager;
+use Impero\Services\Service\Crypto\Crypto;
 
 class GPG extends AbstractService implements ServiceInterface
 {
@@ -79,11 +80,15 @@ class GPG extends AbstractService implements ServiceInterface
      * @return string
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
-    public function decrypt($input, $output)
+    public function decrypt(Crypto $crypto, $output = null)
     {
         if (!$output) {
             $output = $this->prepareDirectory('gpg/compressed') . $this->prepareRandomFile();
         }
+        $input = $crypto->getFile();
+        $from = $crypto->getFrom();
+        $to = $crypto->getTo();
+        $keyFiles = $crypto->getKeys();
 
         /**
          * When we decrypt
@@ -93,8 +98,22 @@ class GPG extends AbstractService implements ServiceInterface
          * When decrypting replication backup we already hold private key.
          * When decrypting regular backup (backup restore) we decrypt on target server with private key from impero.
          */
-        $command = 'gpg2 --output ' . $output . ' --decrypt ' . $input;
-        $this->exec($command);
+        $toGpgService = new GPG($to);
+        $toGpgService->tempUseFile(
+            $crypto->getKeys()['public'], $from, function() use ($toGpgService, $from, $input, $output, $keyFiles) {
+            $toGpgService->tempUsePrivateKey(
+                $keyFiles, $from, function() use ($keyFiles, $input, $output) {
+
+                /**
+                 * Decrypt file.
+                 */
+                $command = 'gpg2 --output ' . $output . ' --decrypt ' . $input;
+                $this->exec($command);
+            }
+            );
+        }
+        );
+
         return $output;
     }
 
@@ -108,8 +127,11 @@ class GPG extends AbstractService implements ServiceInterface
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      * @throws \Exception
      */
-    public function encrypt(Server $from, Server $to = null, $input, $output = null)
+    public function encrypt(Crypto $crypto, $output = null)
     {
+        $from = $crypto->getFrom();
+        $to = $crypto->getTo();
+        $input = $crypto->getFile();
         if (!$output) {
             $output = $this->prepareDirectory('gpg/compressed') . $this->prepareRandomFile();
         }
@@ -175,7 +197,7 @@ class GPG extends AbstractService implements ServiceInterface
         /**
          * Remove file from target server.
          */
-        $this->getConnection()->deleteFile($file);
+        $this->getConnection()->exec('rm ' . $file);
     }
 
     /**
@@ -205,6 +227,35 @@ class GPG extends AbstractService implements ServiceInterface
          * Remove public key from gpg service.
          */
         $fromGpgService->deletePublicKey($keyFiles);
+    }
+
+    /**
+     * @param          $keyFiles
+     * @param Server   $from
+     * @param callable $call
+     *
+     * @throws \Exception
+     */
+    public function tempUsePrivateKey($keyFiles, Server $from, callable $call)
+    {
+        /**
+         * Import public key to gpg service.
+         *
+         * @T00D00 - see option --recipient-file
+         *         - see option --hidden-recipient
+         */
+        $fromGpgService = (new GPG($from->getConnection()));
+        $fromGpgService->importPrivateKey($keyFiles['private']);
+
+        /**
+         * Call inner things.
+         */
+        $call();
+
+        /**
+         * Remove public key from gpg service.
+         */
+        $fromGpgService->deletePrivateKey($keyFiles);
     }
 
     public function deleteKeys($hash)

@@ -107,6 +107,7 @@ class Database extends Record implements Connectable
         Secret::create(
             [
                 'file' => $coldFile,
+                'keys' => only($crypto->getKeys(), ['private', 'cert', 'recipient']),
             ]
         );
     }

@@ -1,6 +1,7 @@
 <?php namespace Impero\Services\Service;
 
 use Impero\Mysql\Record\Database;
+use Impero\Services\Services\DigitalOcean;
 
 class Backup extends AbstractService implements ServiceInterface
 {
@@ -23,22 +24,25 @@ class Backup extends AbstractService implements ServiceInterface
          *         - make sure that backup path exists and is writable
          */
         $user = 'impero';
-        $backupPath = $this->prepareDirectory('mysql/backup');
-        $file = $this->name . '_' . date('Ymdhis') . '_' . $database->server_id . '.sql';
+        $backupFile = $this->prepareDirectory('mysql/backup') . sha1random();
         $flags = '--routines --triggers --skip-opt --order-by-primary --create-options --compact --master-data=2 --single-transaction --extended-insert --add-locks --disable-keys';
 
-        $dumpCommand = 'mysqldump ' . $flags . ' -u ' . $user . ' ' . $this->name . ' > ' . $backupPath . $file;
+        $dumpCommand = 'mysqldump ' . $flags . ' -u ' . $user . ' ' . $this->name . ' > ' . $backupFile;
         $this->getConnection()->exec($dumpCommand);
 
-        return $file;
+        return $backupFile;
     }
 
+    /**
+     * @param $file
+     *
+     * @throws \InvalidArgumentException
+     * @throws \League\Flysystem\FileExistsException
+     */
     public function toCold($file)
     {
-        /**
-         * @T00D00 - Transfer image to digital ocean spaces?
-         */
-        $this->getConnection()->exec('rm ' . $file);
+        $do = (new DigitalOcean($this->getConnection()));
+        return $do->uploadToSpaces($file);
     }
 
 }
