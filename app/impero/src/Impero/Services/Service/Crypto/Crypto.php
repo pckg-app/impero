@@ -92,7 +92,7 @@ class Crypto
         /**
          * Delete original file.
          */
-        $this->from->deleteFile($this->file);
+        $this->to->deleteFile($this->file);
 
         /**
          * Decompress file with Zip service.
@@ -103,7 +103,7 @@ class Crypto
         /**
          * Delete compressed file.
          */
-        $this->from->deleteFile($compressedFile);
+        $this->to->deleteFile($compressedFile);
 
         return $decompressedFile;
     }
@@ -147,23 +147,25 @@ class Crypto
          */
         $zipService = new Zip($this->from);
         $compressedFile = $zipService->compressFile($this->file);
-
-        /**
-         * Delete original file.
-         */
-        $this->from->deleteFile($this->file);
+        $this->replaceFile($this->from, $compressedFile);
 
         /**
          * Encrypt compressed file.
          */
         $encryptedFile = $this->encrypt();
+        $this->replaceFile($this->from, $encryptedFile);
+    }
 
-        /**
-         * Delete compressed file.
-         */
-        $this->from->deleteFile($compressedFile);
-
-        return $encryptedFile;
+    /**
+     * @param Server $server
+     * @param        $file
+     *
+     * @throws \Exception
+     */
+    public function replaceFile(Server $server, $file)
+    {
+        $server->getConnection()->exec('rm ' + $this->file);
+        $this->file = $file;
     }
 
     /**
@@ -181,11 +183,6 @@ class Crypto
          * File is then encrypted with gpg service.
          */
         $fromGpgService = new GPG($this->from);
-        $toConnection = $this->to
-            ? $this->to->getConnection()
-            : context()->getOrCreate(ConnectionManager::class)->createConnection();
-        $toGpgService = (new GPG($toConnection));
-        $this->generateKeys($toGpgService);
         $encryptedFile = $fromGpgService->encrypt($this);
 
         /**

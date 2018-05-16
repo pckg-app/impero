@@ -27,10 +27,16 @@ class Backup extends AbstractService implements ServiceInterface
         $backupFile = $this->prepareDirectory('mysql/backup') . sha1random();
         $flags = '--routines --triggers --skip-opt --order-by-primary --create-options --compact --master-data=2 --single-transaction --extended-insert --add-locks --disable-keys';
 
-        $dumpCommand = 'mysqldump ' . $flags . ' -u ' . $user . ' ' . $this->name . ' > ' . $backupFile;
+        $dumpCommand = 'mysqldump ' . $flags . ' -u ' . $user . ' ' . $database->name . ' > ' . $backupFile;
         $this->getConnection()->exec($dumpCommand);
 
         return $backupFile;
+    }
+
+    public function importMysqlBackup(Database $database, $file)
+    {
+        $command = 'mysql -u impero ' . $database->name . ' < ' . $file;
+        $this->getConnection()->exec($command);
     }
 
     /**
@@ -43,6 +49,12 @@ class Backup extends AbstractService implements ServiceInterface
     {
         $do = (new DigitalOcean($this->getConnection()));
         return $do->uploadToSpaces($file);
+    }
+
+    public function fromCold($file)
+    {
+        $do = (new DigitalOcean($this->getConnection()));
+        return $do->downloadFromSpaces($file);
     }
 
 }

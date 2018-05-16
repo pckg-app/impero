@@ -23,6 +23,39 @@ class DigitalOcean extends AbstractService implements ServiceInterface
     public function uploadToSpaces($file)
     {
         /**
+         * Create spaces filesystem.
+         */
+        $filesystem = $this->getFilesystem();
+
+        /**
+         * Transfer image to digital ocean spaces?
+         */
+        $stream = fopen($filesystem, 'r+');
+        $coldName = 'backup/impero/' . filename($file);
+        $filesystem->writeStream($coldName, $stream);
+
+        return $coldName;
+    }
+
+    public function downloadFromSpaces($file)
+    {
+        $filesystem = $this->getFilesystem();
+
+        $output = $this->prepareDirectory('test/test') . sha1random();
+        $stream = $filesystem->readStream($file);
+        $contents = stream_get_contents($stream);
+        fclose($stream);
+        file_put_contents($output, $contents);
+        return $output;
+    }
+
+    /**
+     * @return Filesystem
+     * @throws \InvalidArgumentException
+     */
+    public function getFilesystem()
+    {
+        /**
          * Create bucket config.
          */
         $config = only(
@@ -42,14 +75,7 @@ class DigitalOcean extends AbstractService implements ServiceInterface
         $adapter = new AwsS3Adapter($client, $config['bucket']);
         $filesystem = new Filesystem($adapter);
 
-        /**
-         * Transfer image to digital ocean spaces?
-         */
-        $stream = fopen($filesystem, 'r+');
-        $coldName = 'backup/impero/' . filename($file);
-        $filesystem->writeStream($coldName, $stream);
-
-        return $coldName;
+        return $filesystem;
     }
 
 }

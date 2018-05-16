@@ -87,29 +87,73 @@ class Database extends Record implements Connectable
         $backupFile = $backupService->createMysqlBackup($this);
 
         /**
-         * Compress backup.
+         * Compress and encrypt backup.
          */
         $crypto = new Crypto($this->server, null, $backupFile);
-        $encryptedBackup = $crypto->compressAndEncrypt();
+        $crypto->compressAndEncrypt();
 
         /**
          * Transfer encrypted backup to safe / cold location.
          */
-        $coldFile = $backupService->toCold($encryptedBackup);
+        $coldFile = $backupService->toCold($crypto->getFile());
 
         /**
+         * @T00D00 - decrypt keys?
          * Associate key with cold path so we can decrypt it later.
          * If someone gets coldpath encrypted files he cannot decrypt them without keys.
          * If someone gets encryption keys he won't have access to cold storage.
          * If someone gets encrypted files and keys he need mapper between them.
          * If someone gets mapper between coldpath and keys he would need keys and storage.
+         * .......
+         * We also want to associate backup with database and server maybe? So we can actually know right context. :)
+         * So, when we want to restore db backup or storage backup, we go to database or mount point and see list of
+         * available backups. User selects backup to restore, and target server, system checks for secret links,
+         * transfers, encrypts and imports file; or download encrypted file + private key package, both repackaged and
+         * encrypted with per-download-set password.
+         * .......
+         * Maybe we should store secret keys in different database for better security?
          */
         Secret::create(
             [
                 'file' => $coldFile,
-                'keys' => only($crypto->getKeys(), ['private', 'cert', 'recipient']),
+                'keys' => json_encode(only($crypto->getKeys(), ['private', 'cert', 'recipient'])),
             ]
         );
+    }
+
+    /**
+     * @param Server                         $to
+     * @param null|\Pckg\Database\Repository $coldFile
+     *
+     * @return mixed|void
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
+    public function restore(Server $to, $coldFile)
+    {
+        /**
+         * Get matching secret data.
+         */
+        $secret = Secret::getOrFail(['file' => $coldFile]);
+
+        /**
+         * Transfer from cold to restore server.
+         */
+        $backupService = new Backup($to);
+        $encryptedFile = $backupService->fromCold($coldFile);
+
+        /**
+         * Decrypt and decompress file.
+         */
+        $crypto = new Crypto($this->server, null, $encryptedFile);
+        $crypto->setKeys($secret->arrayKeys);
+        $file = $crypto->decryptAndDecompress();
+
+        /**
+         * Now, what to do with file?
+         */
+        $backupService = new Backup($to);
+        $backupService->importMysqlBackup($this, $file);
     }
 
     public function importFile($file)

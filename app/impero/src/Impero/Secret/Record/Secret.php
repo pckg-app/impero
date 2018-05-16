@@ -8,4 +8,9 @@ class Secret extends Record
 
     protected $entity = Secrets::class;
 
+    public function getArrayKeysAttribute()
+    {
+        return json_decode($this->keys, true);
+    }
+
 }
