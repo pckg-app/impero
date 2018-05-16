@@ -43,6 +43,57 @@ class Crypto
         $this->file = $file;
     }
 
+    public function getKeys()
+    {
+        return $this->keys;
+    }
+
+    /**
+     * @return Server|null
+     */
+    public function getFrom()
+    {
+        return $this->from;
+    }
+
+    /**
+     * @return Server|null
+     */
+    public function getTo()
+    {
+        return $this->to;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFile()
+    {
+        return $this->file;
+    }
+
+    /**
+     * @param GPG $GPG
+     *
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     */
+    public function generateKeys(GPG $GPG)
+    {
+        $this->keys = $GPG->generateThreesome();
+    }
+
+    /**
+     * @param Server $server
+     * @param        $file
+     *
+     * @throws \Exception
+     */
+    public function replaceFile(Server $server, $file)
+    {
+        $server->getConnection()->exec('rm ' . $this->file);
+        $this->file = $file;
+    }
+
     /**
      * @param Server $from
      * @param Server $to
@@ -59,19 +110,62 @@ class Crypto
          * Compress, encrypt, and delete all unused copies.
          * We know that we'll transfer file from $from to $to server.
          */
-        $encryptedFile = $this->compressAndEncrypt();
+        $this->compressAndEncrypt();
 
         /**
          * Transfer backup.
          */
-        $encryptedCopy = $this->transfer();
+        $this->transfer();
 
         /**
          * Decrypt, decompress, and delete all unused copies.
          */
-        $backupCopy = $this->decryptAndDecompress();
+        $this->decryptAndDecompress();
+    }
 
-        return $backupCopy;
+    /**
+     * @param Server $server
+     * @param        $file
+     * @param        $keyFile
+     *
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
+    public function compressAndEncrypt()
+    {
+        /**
+         * Compress file with Zip service.
+         */
+        $zipService = new Zip($this->from);
+        $compressedFile = $zipService->compressFile($this->file);
+        $this->replaceFile($this->from, $compressedFile);
+
+        /**
+         * Encrypt compressed file.
+         */
+        $encryptedFile = $this->encrypt();
+        $this->replaceFile($this->from, $encryptedFile);
+    }
+
+    /**
+     * @param Server $server
+     * @param        $file
+     * @param        $keyFile
+     *
+     * @return null|string
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
+    public function encrypt()
+    {
+        /**
+         * File is then encrypted with gpg service.
+         */
+        $fromGpgService = new GPG($this->from);
+        $encryptedFile = $fromGpgService->encrypt($this);
+        $this->replaceFile($this->from, $encryptedFile);
+
+        return $encryptedFile;
     }
 
     /**
@@ -122,90 +216,10 @@ class Crypto
             ? $this->to->getConnection()
             : context()->getOrCreate(ConnectionManager::class)->createConnection();
         $toGpgService = (new GPG($toConnection));
-        $decryptedFile = $toGpgService->decrypt($this->file);
-
-        /**
-         * Delete original file.
-         */
-        $this->from->deleteFile($this->file);
+        $decryptedFile = $toGpgService->decrypt($this);
+        $this->replaceFile($this->to, $decryptedFile);
 
         return $decryptedFile;
-    }
-
-    /**
-     * @param Server $server
-     * @param        $file
-     * @param        $keyFile
-     *
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
-     * @throws \Throwable
-     */
-    public function compressAndEncrypt()
-    {
-        /**
-         * Compress file with Zip service.
-         */
-        $zipService = new Zip($this->from);
-        $compressedFile = $zipService->compressFile($this->file);
-        $this->replaceFile($this->from, $compressedFile);
-
-        /**
-         * Encrypt compressed file.
-         */
-        $encryptedFile = $this->encrypt();
-        $this->replaceFile($this->from, $encryptedFile);
-    }
-
-    /**
-     * @param Server $server
-     * @param        $file
-     *
-     * @throws \Exception
-     */
-    public function replaceFile(Server $server, $file)
-    {
-        $server->getConnection()->exec('rm ' + $this->file);
-        $this->file = $file;
-    }
-
-    /**
-     * @param Server $server
-     * @param        $file
-     * @param        $keyFile
-     *
-     * @return null|string
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
-     * @throws \Throwable
-     */
-    public function encrypt()
-    {
-        /**
-         * File is then encrypted with gpg service.
-         */
-        $fromGpgService = new GPG($this->from);
-        $encryptedFile = $fromGpgService->encrypt($this);
-
-        /**
-         * Delete original file.
-         */
-        $this->from->deleteFile($this->file);
-
-        return $encryptedFile;
-    }
-
-    /**
-     * @param GPG $GPG
-     *
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
-     */
-    public function generateKeys(GPG $GPG)
-    {
-        $this->keys = $GPG->generateThreesome();
-    }
-
-    public function getKeys()
-    {
-        return $this->keys;
     }
 
     /**
@@ -222,7 +236,7 @@ class Crypto
     {
         $encryptedCopy = $this->prepareDirectory('crypto/temp') . sha1random();
         $this->from->transferFile($this->file, $encryptedCopy, $this->to);
-        $this->from->deleteFile($this->file);
+        $this->replaceFile($this->from, $this->file);
 
         return $encryptedCopy;
     }
@@ -244,30 +258,6 @@ class Crypto
         $this->from->getConnection()->exec('mkdir -p ' . $dir);
 
         return $dir;
-    }
-
-    /**
-     * @return Server|null
-     */
-    public function getFrom()
-    {
-        return $this->from;
-    }
-
-    /**
-     * @return Server|null
-     */
-    public function getTo()
-    {
-        return $this->to;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFile()
-    {
-        return $this->file;
     }
 
 }
