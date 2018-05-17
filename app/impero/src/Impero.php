@@ -2,6 +2,8 @@
 
 use Impero\Impero\Provider\Impero as ImperoProvider;
 use Impero\Services\Service\Backup\Console\MakeMysqlBackup;
+use Impero\Services\Service\Backup\Console\MakeSystemBackup;
+use Impero\Services\Service\Storage\Console\MakeConfigBackup;
 use Impero\Services\Service\Storage\Console\MakeStorageBackup;
 use Pckg\Framework\Provider;
 use Pckg\Generic\Middleware\EncapsulateResponse;
@@ -44,11 +46,27 @@ class Impero extends Provider
             Cron::createJob(MakeStorageBackup::class, 'Make storage backups')
                 ->at(['3:00', '15:00'])
                 ->background(),
+            Cron::createJob(MakeSystemBackup::class, 'Make system services backups')
+                ->at(['9:00', '21:00'])
+                ->background(),
+            Cron::createJob(MakeConfigBackup::class, 'Make config backups')
+                ->at(['10:00', '22:00'])
+                ->background(),
         ];
     }
 
 }
 
+/**
+ * @param      $class
+ * @param      $slug
+ * @param      $record
+ * @param      $resolver
+ * @param null $alterslug
+ *
+ * @return mixed
+ * @T00D00 - promote this to frontend_urls and rest_urls.
+ */
 function maestro_urls($class, $slug, $record, $resolver, $alterslug = null)
 {
     if (!$alterslug) {

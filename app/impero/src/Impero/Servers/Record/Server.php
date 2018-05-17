@@ -394,4 +394,12 @@ frontend all_https
         return new $service($this->getConnection());
     }
 
+    public function binlogBackup()
+    {
+        /**
+         * Check that sync script is running.
+         */
+        (new Mysql($this))->syncBinlog();
+    }
+
 }

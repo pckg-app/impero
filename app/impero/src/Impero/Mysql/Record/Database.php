@@ -139,8 +139,8 @@ class Database extends Record implements Connectable
         /**
          * Transfer from cold to restore server.
          */
-        $backupService = new Backup($to);
-        $encryptedFile = $backupService->fromCold($coldFile);
+        $toBackupService = new Backup($to);
+        $encryptedFile = $toBackupService->fromCold($coldFile);
 
         /**
          * Decrypt and decompress file.
@@ -150,10 +150,25 @@ class Database extends Record implements Connectable
         $file = $crypto->decryptAndDecompress();
 
         /**
-         * Now, what to do with file?
+         * Now, let's import that file.
          */
-        $backupService = new Backup($to);
-        $backupService->importMysqlBackup($this, $file);
+        $toBackupService->importMysqlBackup($this, $file);
+
+        /**
+         * Find out import binlog location.
+         */
+        $toMysqlService = new Mysql($to);
+        $binlogLocation = $toMysqlService->getBinlogLocation($file);
+
+        /**
+         * And delete backup file.
+         */
+        $to->deleteFile($file);
+
+        /**
+         * Sync database from import binlog location to the end.
+         */
+        $toMysqlService->syncDatabaseToBinlogLocation($this, $binlogLocation);
     }
 
     public function importFile($file)

@@ -1,9 +1,12 @@
 <?php namespace Impero\Services\Service\Backup\Console;
 
+use Exception;
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
 use Pckg\Database\Relation\HasMany;
+use Pckg\Queue\Service\Cron\Fork;
+use Throwable;
 
 /**
  * Class MakeMysqlBackup
@@ -24,27 +27,66 @@ class MakeMysqlBackup
          * @T00D00 ... make backup from slaves whenever possible
          *         ... also make a backup of binlogs
          */
-        $servers = (new Servers())->withSites(function (HasMany $sites) {
+        $servers = (new Servers())->withSites(
+            function(HasMany $sites) {
 
-        })->all();
+            }
+        )->all();
 
         /**
          * Make "cold" backup - transactional mysql dump.
          * We can process each server simultaniosly.
+         * For starters, this should be enough.
+         * As soon as possible we have to implement fully automated restore strategy.
+         * Also, filter only master servers.
          */
-        $servers->each(function (Server $server) {
-            $server->databases->each(function (Database $database) {
-                $database->backup();
-            });
-        });
+        $servers->each(
+            function(Server $server) {
+                try {
+                    $pid = Fork::fork(
+                        function() use ($server) {
+                            $server->databases->each(
+                                function(Database $database) {
+                                    $database->backup();
+
+                                    /**
+                                     * Should we wait for process?
+                                     */
+                                }
+                            );
+                        },
+                        function() use ($server) {
+                            return 'impero:backup:mysql';
+                        },
+                        function() {
+                            throw new Exception('Cannot run mysql backup in parallel');
+                        }
+                    );
+                } catch (Throwable $e) {
+                    /**
+                     * @T00D00
+                     */
+                }
+            }
+        );
 
         /**
          * Make "binlog" live backups.
          * We can process each server simultaniosly.
          */
-        $servers->each(function (Server $server) {
-
-        });
+        $servers->each(
+            function(Server $server) {
+                /**
+                 * @T00D00 - find which server should we sync binlogs to ...
+                 *         each service on server should probably have it's 'backup:passive' server
+                 *         mysql on zero.gonparty.eu will have it's backup:passive server set as one.gonparty.eu
+                 * @T00D00 - in case of mysql outage on zero.gonparty.eu we:
+                 *           - reconfigure haproxy mysql balancer
+                 *           - reconfigure slave as master (allow write connections)
+                 */
+                //$server->binlogBackup();
+            }
+        );
     }
 
     /**

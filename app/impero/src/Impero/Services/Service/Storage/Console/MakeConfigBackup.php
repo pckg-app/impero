@@ -7,17 +7,17 @@ use Pckg\Database\Relation\HasMany;
 use Pckg\Queue\Service\Cron\Fork;
 
 /**
- * Class MakeStorageBackup
+ * Class MakeConfigBackup
  *
  * @package Impero\Services\Service\Storage\Console
  */
-class MakeStorageBackup
+class MakeConfigBackup
 {
 
     public function handle()
     {
         /**
-         * Receive list of all storage volumes?
+         * Receive list of all web servers?
          */
         $servers = (new Servers())->withSites(
             function(HasMany $sites) {
@@ -34,14 +34,14 @@ class MakeStorageBackup
                     $pid = Fork::fork(
                         function() use ($server) {
                             /**
-                             * Backup primarly attached volumes.
+                             * Backup env/config.php for each platform.
                              */
                         },
                         function() use ($server) {
-                            return 'impero:backup:storage';
+                            return 'impero:backup:config';
                         },
                         function() {
-                            throw new Exception('Cannot run storage backup in parallel');
+                            throw new Exception('Cannot run config backup in parallel');
                         }
                     );
                 } catch (\Throwable $e) {

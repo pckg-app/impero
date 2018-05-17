@@ -28,7 +28,7 @@ class Mysql extends AbstractService implements ServiceInterface
     public function getVersion()
     {
         $response = $this->getConnection()
-            ->exec('mysql -V');
+                         ->exec('mysql -V');
 
         $start = strpos($response, 'Ver ') + strlen('Ver ');
         $end = strpos($response, ",");
@@ -173,9 +173,11 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function refreshMasterReplicationFilter(Collection $databases)
     {
-        $dbString = $databases->map(function (Database $database) {
-            return '`' . $database->name . '`';
-        })->implode(',');
+        $dbString = $databases->map(
+            function(Database $database) {
+                return '`' . $database->name . '`';
+            }
+        )->implode(',');
         $sql = 'CHANGE REPLICATION FILTER REPLICATE_DO_DB = (' . $dbString . ');';
         $this->getMysqlConnection()->execute($sql);
     }
@@ -185,9 +187,11 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function refreshSlaveReplicationFilter(Collection $databases)
     {
-        $dbString = $databases->map(function (Database $database) {
-            return '`' . $database->name . '.%`';
-        })->implode(',');
+        $dbString = $databases->map(
+            function(Database $database) {
+                return '`' . $database->name . '.%`';
+            }
+        )->implode(',');
         $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
         $this->getMysqlConnection()->execute($sql);
     }
@@ -273,6 +277,24 @@ class Mysql extends AbstractService implements ServiceInterface
          * @T00D00 - how to get all slave databases on this server?
          */
         $this->refreshSlaveReplicationFilter(new Collection());
+    }
+
+    public function syncBinlog(Server $to)
+    {
+        /**
+         * Get last synced binlog location.
+         */
+        $lastBinLog = 'binlog.000999';
+        $command = 'mysqlbinlog --read-from-remote-server --host=host_name --raw --stop-never ' . $lastBinLog;
+    }
+
+    public function syncDatabaseToBinlogLocation(Database $database, $binlogLocation)
+    {
+        $binlogs = 'binlog.001002 binlog.001003 binlog.001004';
+        $startBinlogPosition = '27284';
+        $stopBinlogPosition = '27284'; // or --stop-never ? what about --one-database ?
+        $command = 'mysqlbinlog --start-position=' . $startBinlogPosition . '  --stop-position=' . $stopBinlogPosition . ' ' . $binlogs . ' '
+            . '| mysql --host=host_name -u root -p';
     }
 
 }
