@@ -79,6 +79,19 @@ class Sites
             ]
         );
 
+        /**
+         * Web service, log service and https service.
+         * Impero is web management service, so we create those by default.
+         * However, server_id is only primary server, services may be expanded to other servers.
+         * @T00D00 - collect all service servers and initial configuration:
+         *         - is loadbalanced? (default: no)
+         *         - web workers? (default: 1; additional: x)
+         *         - mysql master and slave configuration (default: master only; additional: master-slave)
+         *         - storages (default: root; additional: volume)
+         *
+         *         Impero should now which services live on which server and how is network connected.
+         *         We need to know about entrypoint (floating ip, server) 
+         */
         $site->createOnFilesystem();
         $site->restartApache();
 
