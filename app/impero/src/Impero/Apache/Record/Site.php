@@ -815,7 +815,7 @@ class Site extends Record
 
         $escaped = [];
         foreach ($replaces as $key => $value) {
-            $escaped[] = $key != 'password'
+            $escaped[] = $key != '$password'
                 ? $value
                 : ('\'' . escapeshellarg($value) . '\'');
         }
