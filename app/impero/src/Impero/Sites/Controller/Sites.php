@@ -90,7 +90,7 @@ class Sites
          *         - storages (default: root; additional: volume)
          *
          *         Impero should now which services live on which server and how is network connected.
-         *         We need to know about entrypoint (floating ip, server) 
+         *         We need to know about entrypoint (floating ip, server)
          */
         $site->createOnFilesystem();
         $site->restartApache();

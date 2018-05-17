@@ -3,16 +3,19 @@
 use Exception;
 use Impero\Services\Entity\Services;
 use Impero\Services\Service\Apache;
+use Impero\Services\Service\Connection\SshConnection;
 use Impero\Services\Service\Cron;
+use Impero\Services\Service\GPG;
 use Impero\Services\Service\Mysql;
 use Impero\Services\Service\Nginx;
+use Impero\Services\Service\OpenSSL;
 use Impero\Services\Service\Openvpn;
 use Impero\Services\Service\Php;
 use Impero\Services\Service\Pureftpd;
 use Impero\Services\Service\Sendmail;
 use Impero\Services\Service\Ssh;
-use Impero\Services\Service\Connection\SshConnection;
 use Impero\Services\Service\Ufw;
+use Impero\Services\Service\Zip;
 use Pckg\Concept\Reflect;
 use Pckg\Database\Record;
 
@@ -34,6 +37,9 @@ class Service extends Record
         'openvpn'  => Openvpn::class,
         'sendmail' => Sendmail::class,
         'pureftpd' => Pureftpd::class,
+        'zip'      => Zip::class,
+        'gpg'      => GPG::class,
+        'openssl'  => OpenSSL::class,
     ];
 
     public function getHandler(SshConnection $connection)

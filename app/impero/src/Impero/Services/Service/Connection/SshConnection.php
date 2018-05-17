@@ -149,14 +149,17 @@ class SshConnection implements ConnectionInterface, Connectable
      *
      * @return $this
      */
-    public function execMultiple($commands, &$errorStreamContent = null, $dir = null)
+    public function execMultiple($commands, &$output = null, &$error = null, $dir = null)
     {
         if (!$commands) {
             return $this;
         }
 
         foreach ($commands as $command) {
-            $this->exec($command, $errorStreamContent, $dir);
+            if ($dir) {
+                $command = 'cd ' . $dir . ' && ' . $command;
+            }
+            $this->exec($command, $output, $error);
         }
 
         return $this;
@@ -177,19 +180,16 @@ class SshConnection implements ConnectionInterface, Connectable
 
     /**
      * @param      $command
-     * @param null $errorStreamContent
-     * @param null $dir
+     * @param null $output
+     * @param null $error
      *
-     * @return bool|null|string
+     * @return bool|mixed|null|string
      */
-    public function exec($command, &$errorStreamContent = null, $dir = null)
+    public function exec($command, &$output = null, &$error = null)
     {
         $e = null;
         $infoStreamContent = null;
         $errorStreamContent = null;
-        if ($dir) {
-            $command = 'cd ' . $dir . ' && ' . $command;
-        }
         $serverCommand = $this->server->logCommand('Executing command ' . $command, null, null, null);
         try {
             $stream = ssh2_exec($this->connection, $command);

@@ -681,7 +681,9 @@ class Site extends Record
 
         if ($deployDir) {
             foreach ($pckg['deploy'] ?? [] as $command) {
-                $connection->exec($this->replaceVars($command), $errorStream, $deployDir);
+                $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
+                $finalCommand .= $this->replaceVars($command);
+                $connection->exec($finalCommand);
             }
         }
 
@@ -689,7 +691,9 @@ class Site extends Record
          * Standalone and aliased platforms are migrated in their htdocs directory.
          */
         foreach ($pckg['migrate'] ?? [] as $command) {
-            $connection->exec($this->replaceVars($command), $errorStream, $htdocsDir);
+            $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
+            $finalCommand .= $this->replaceVars($command);
+            $connection->exec($finalCommand);
         }
     }
 
@@ -734,13 +738,13 @@ class Site extends Record
             [
                 'git clone ' . $pckg['repository'] . ' .',
                 'git checkout ' . $pckg['branch'],
-            ], $errorStream, $aliasDir
+            ], $output, $error, $aliasDir
         );
 
         /**
          * Init platform.
          */
-        $connection->execMultiple($pckg['init'], $errorStream, $aliasDir);
+        $connection->execMultiple($pckg['init'], $output, $error, $aliasDir);
     }
 
     public function getLinkedDir($pckg)
@@ -806,7 +810,8 @@ class Site extends Record
             }
 
             $errorStream = null;
-            $connection->execMultiple($commands, $errorStream, $this->getHtdocsPath());
+            $outputStream = null;
+            $connection->execMultiple($commands, $outputStream, $errorStream, $this->getHtdocsPath());
         }
     }
 
