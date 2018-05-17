@@ -672,13 +672,11 @@ class Site extends Record
              * Aliased platforms are checkout in _linked directory.
              */
             $deployDir = $this->getLinkedDir($pckg);
-        } else {
-            if (!$isAlias) {
-                /**
-                 * Standalone platforms are checkout in site's htdocs dir.
-                 */
-                $deployDir = $htdocsDir;
-            }
+        } elseif (!$isAlias) {
+            /**
+             * Standalone platforms are checkout in site's htdocs dir.
+             */
+            $deployDir = $htdocsDir;
         }
 
         if ($deployDir) {
@@ -892,7 +890,14 @@ class Site extends Record
         $replaces = array_merge($defaults, $vars);
         $replaces = array_merge($replaces, $this->vars);
 
-        return str_replace(array_keys($replaces), $replaces, $command);
+        $escaped = [];
+        foreach ($replaces as $key => $value) {
+            $escaped[] = $key != '$password'
+                ? $value
+                : escapeshellarg($value);
+        }
+
+        return str_replace(array_keys($replaces), $escaped, $command);
     }
 
     public function createFile($file, $content)
@@ -939,15 +944,13 @@ class Site extends Record
                     $this->vars,
                     ['$dbname' => $dbname, '$dbpass' => $dbpass]
                 );
-            } else {
-                if ($config['type'] == 'search') {
-                    $database = Database::gets(
-                        [
-                            'server_id' => 2,
-                            'name'      => $config['name'],
-                        ]
-                    );
-                }
+            } elseif ($config['type'] == 'search') {
+                $database = Database::gets(
+                    [
+                        'server_id' => 2,
+                        'name'      => $config['name'],
+                    ]
+                );
             }
 
             /**
