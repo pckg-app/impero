@@ -805,7 +805,12 @@ class Site extends Record
         $replaces = array_merge($defaults, $vars);
         $replaces = array_merge($replaces, $this->vars);
 
-        return str_replace(array_keys($replaces), $replaces, $command);
+        $escaped = [];
+        foreach ($replaces as $value) {
+            $escaped[] = escapeshellarg($value);
+        }
+
+        return str_replace(array_keys($replaces), $escaped, $command);
     }
 
     public function createFile($file, $content)
