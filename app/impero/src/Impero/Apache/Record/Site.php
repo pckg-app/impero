@@ -67,14 +67,11 @@ class Site extends Record
         /**
          * volume1 - /www/ /backups/ /logs/
          * volume2 - /www/ /backups/ /logs/
-         *
          * zero - /www/ -> /volume1/www/
-         *
          * We should change this so on every server storage path is the same. We won't use www folder anymore.
          * Sites will point to /mnt/$volume/www/.
          * Volumes are mounted on one server and shared over nfs on other servers, locations are the same.
          * When there's no volume attached we create /www/ folder and mount /mnt/www/ to it.
-         *
          */
         return '/www/';
     }
@@ -292,19 +289,23 @@ class Site extends Record
         }
 
         if ($skipped) {
-            $this->server->logCommand('Skipping obtaining certificate(s) for domains ' .
-                                      collect($skipped)->implode(', ') . ' on ip ' . $ip, null, null, null);
+            $this->server->logCommand(
+                'Skipping obtaining certificate(s) for domains ' .
+                collect($skipped)->implode(', ') . ' on ip ' . $ip, null, null, null
+            );
         }
 
         if ($realDomains) {
-            $this->server->logCommand('Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') .
-                                      ' on ip ' . $ip, null, null, null);
+            $this->server->logCommand(
+                'Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') .
+                ' on ip ' . $ip, null, null, null
+            );
         }
 
         $realDomains = implode(',', $realDomains);
         $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email
-                  . ' --webroot-path ' . $webroot . ' --cert-name ' . $domain . ' --domains "'
-                  . $realDomains . '" --webroot --expand';
+            . ' --webroot-path ' . $webroot . ' --cert-name ' . $domain . ' --domains "'
+            . $realDomains . '" --webroot --expand';
 
         /**
          * Execute command.
@@ -339,13 +340,15 @@ class Site extends Record
         /**
          * Update site in impero.
          */
-        $this->setAndSave([
-                              'ssl'                        => 'letsencrypt',
-                              'ssl_certificate_file'       => 'cert.pem',
-                              'ssl_certificate_key_file'   => 'privkey.pem',
-                              'ssl_certificate_chain_file' => 'fullchain.pem',
-                              'ssl_letsencrypt_autorenew'  => true,
-                          ]);
+        $this->setAndSave(
+            [
+                'ssl'                        => 'letsencrypt',
+                'ssl_certificate_file'       => 'cert.pem',
+                'ssl_certificate_key_file'   => 'privkey.pem',
+                'ssl_certificate_chain_file' => 'fullchain.pem',
+                'ssl_letsencrypt_autorenew'  => true,
+            ]
+        );
 
         /**
          * Dump virtualhosts and restart apache.
@@ -584,7 +587,6 @@ class Site extends Record
              * This would mean that we checkout code in new directory (/www/_ab/[repository]/[branch]/[a|b|gitCommit].
              * And then change symlink of /www/_abc/[repository]/[branch] to /www/_ab/[repository]/[branch]/[a|b|gitCommit].
              * ln -sfn /www/_ab/[repository]/[branch]/[a|b|gitCommit] /www/_abc/[repository]/[branch]
-             *
              * Sites are still linked to /www/_abc/[repository]/[branch] and gets updated immediately after symlink change.
              */
             $deployDir = $this->getBlueGreenDir($pckg);
@@ -593,7 +595,7 @@ class Site extends Record
              * Aliased platforms are checkout in _linked directory.
              */
             $deployDir = $this->getLinkedDir($pckg);
-        } else if (!$isAlias) {
+        } elseif (!$isAlias) {
             /**
              * Standalone platforms are checkout in site's htdocs dir.
              */
@@ -616,8 +618,10 @@ class Site extends Record
 
     public function copyOldConfig()
     {
-        $this->getServerConnection()->exec('cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
-                                           $this->getHtdocsPath() . 'config/env.php');
+        $this->getServerConnection()->exec(
+            'cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
+            $this->getHtdocsPath() . 'config/env.php'
+        );
     }
 
     public function enableCronjobs($pckg)
@@ -649,10 +653,12 @@ class Site extends Record
         /**
          * Checkout platform.
          */
-        $connection->execMultiple([
-                                      'git clone ' . $pckg['repository'] . ' .',
-                                      'git checkout ' . $pckg['branch'],
-                                  ], $errorStream, $aliasDir);
+        $connection->execMultiple(
+            [
+                'git clone ' . $pckg['repository'] . ' .',
+                'git checkout ' . $pckg['branch'],
+            ], $errorStream, $aliasDir
+        );
 
         /**
          * Init platform.
@@ -663,13 +669,13 @@ class Site extends Record
     public function getLinkedDir($pckg)
     {
         return '/www/_linked/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' .
-               $pckg['branch'] . '/';
+            $pckg['branch'] . '/';
     }
 
     public function getBlueGreenDir($pckg)
     {
         return '/www/_ab/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' .
-               $pckg['branch'] . '/a|b|giTcommit' . '/';
+            $pckg['branch'] . '/a|b|giTcommit' . '/';
     }
 
     public function checkoutPlatform($pckg)
@@ -770,8 +776,10 @@ class Site extends Record
                 /**
                  * Transfer contents.
                  */
-                $connection->exec('rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath .
-                                  $storageDir . '/ --stats');
+                $connection->exec(
+                    'rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath .
+                    $storageDir . '/ --stats'
+                );
                 continue;
             }
 
@@ -806,8 +814,10 @@ class Site extends Record
         $replaces = array_merge($replaces, $this->vars);
 
         $escaped = [];
-        foreach ($replaces as $value) {
-            $escaped[] = escapeshellarg($value);
+        foreach ($replaces as $key => $value) {
+            $escaped[] = $key != 'password'
+                ? $key
+                : escapeshellarg($value);
         }
 
         return str_replace(array_keys($replaces), $escaped, $command);
@@ -837,10 +847,12 @@ class Site extends Record
                 /**
                  * Create mysql database, user and set privileges.
                  */
-                $database = Database::createFromPost([
-                                                         'name'      => $dbname,
-                                                         'server_id' => 2,
-                                                     ]);
+                $database = Database::createFromPost(
+                    [
+                        'name'      => $dbname,
+                        'server_id' => 2,
+                    ]
+                );
 
                 /**
                  * Manually call backup and replication.
@@ -851,13 +863,17 @@ class Site extends Record
                 /**
                  * For configuration.
                  */
-                $this->vars = array_merge($this->vars,
-                                          ['$dbname' => $dbname, '$dbpass' => $dbpass]);
-            } else if ($config['type'] == 'search') {
-                $database = Database::gets([
-                                               'server_id' => 2,
-                                               'name'      => $config['name'],
-                                           ]);
+                $this->vars = array_merge(
+                    $this->vars,
+                    ['$dbname' => $dbname, '$dbpass' => $dbpass]
+                );
+            } elseif ($config['type'] == 'search') {
+                $database = Database::gets(
+                    [
+                        'server_id' => 2,
+                        'name'      => $config['name'],
+                    ]
+                );
             }
 
             /**
@@ -872,13 +888,15 @@ class Site extends Record
                 if (!isset($this->vars['$dbuser'])) {
                     $this->vars['$dbuser'] = $dbuser;
                 }
-                DatabaseUser::createFromPost([
-                                                 'username'  => $dbuser,
-                                                 'password'  => $dbpass,
-                                                 'server_id' => 2,
-                                                 'database'  => $database->id,
-                                                 'privilege' => $privilege,
-                                             ]);
+                DatabaseUser::createFromPost(
+                    [
+                        'username'  => $dbuser,
+                        'password'  => $dbpass,
+                        'server_id' => 2,
+                        'database'  => $database->id,
+                        'privilege' => $privilege,
+                    ]
+                );
             }
         }
     }
@@ -890,7 +908,8 @@ class Site extends Record
          */
         $this->vars['$securityKey'] = Key::createNewRandomKey()->saveToAsciiSafeString();
 
-        return $this->replaceVars('<?php
+        return $this->replaceVars(
+            '<?php
 
 return [
     \'identifier\' => \'$identifier\',
@@ -927,7 +946,8 @@ return [
         ],
     ],
 ];
-');
+'
+        );
     }
 
     public function hasServiceOnServer(Server $server, $service)
