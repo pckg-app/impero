@@ -48,6 +48,8 @@ class DigitalOcean extends AbstractService implements ServiceInterface
         } elseif ($connection instanceof SshConnection) {
             /**
              * @T00D00 - solve remote transfer (remote -> s3), it should be direct
+             *         the problem is, how to configure s3ctl script remotely?
+             *         or how to
              */
             $connectionConfig = $connection->getConnectionConfig();
             $adapter = new SftpAdapter(
