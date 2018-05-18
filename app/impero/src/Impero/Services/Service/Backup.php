@@ -1,7 +1,6 @@
 <?php namespace Impero\Services\Service;
 
 use Impero\Mysql\Record\Database;
-use Impero\Services\Services\DigitalOcean;
 
 /**
  * Class Backup
@@ -43,7 +42,7 @@ class Backup extends AbstractService implements ServiceInterface
          *         - make sure that backup path exists and is writable
          */
         $user = 'impero';
-        $backupFile = $this->prepareDirectory('mysql/backup') . sha1random();
+        $backupFile = $this->prepareDirectory('random') . sha1random();
         $flags = '--routines --triggers --skip-opt --order-by-primary --create-options --compact --master-data=2 --single-transaction --extended-insert --add-locks --disable-keys';
 
         $dumpCommand = 'mysqldump ' . $flags . ' -u ' . $user . ' ' . $database->name . ' > ' . $backupFile;
@@ -71,8 +70,9 @@ class Backup extends AbstractService implements ServiceInterface
      */
     public function toCold($file)
     {
+        d('to cold', $file);
         $do = (new DigitalOcean($this->getConnection()));
-        return $do->uploadToSpaces($file);
+        $uploaded = $do->uploadToSpaces($file);
     }
 
     /**
@@ -82,6 +82,7 @@ class Backup extends AbstractService implements ServiceInterface
      */
     public function fromCold($file)
     {
+        d('from cold', $file);
         $do = (new DigitalOcean($this->getConnection()));
         return $do->downloadFromSpaces($file);
     }

@@ -4,6 +4,7 @@ use Exception;
 use Impero\Mysql\Entity\Databases;
 use Impero\Secret\Record\Secret;
 use Impero\Servers\Record\Server;
+use Impero\Servers\Service\ConnectionManager;
 use Impero\Services\Service\Backup;
 use Impero\Services\Service\Connection\Connectable;
 use Impero\Services\Service\Connection\ConnectionInterface;
@@ -84,6 +85,7 @@ class Database extends Record implements Connectable
          * Establish connection to server and create mysql dump.
          */
         $backupService = new Backup($this->getConnection());
+        $localBackupService = new Backup(context()->getOrCreate(ConnectionManager::class)->createConnection());
         $backupFile = $backupService->createMysqlBackup($this);
 
         /**
@@ -93,9 +95,15 @@ class Database extends Record implements Connectable
         $crypto->compressAndEncrypt();
 
         /**
-         * Transfer encrypted backup to safe / cold location.
+         * Transfer encrypted backup, private key and certificate to safe / cold location.
          */
+        d('file to cold');
         $coldFile = $backupService->toCold($crypto->getFile());
+        $keys = $crypto->getKeys();
+        d('private to cold');
+        $coldPrivate = $localBackupService->toCold($keys['private']);
+        d('cert to cold');
+        $coldCert = $localBackupService->toCold($keys['cert']);
 
         /**
          * @T00D00 - decrypt keys?
@@ -112,11 +120,19 @@ class Database extends Record implements Connectable
          * encrypted with per-download-set password.
          * .......
          * Maybe we should store secret keys in different database for better security?
+         *         When decrypting we need to know which private key unlocks with file and which cert cancels private key.
+         *         Additionally we'll encrypt private key with password file.
          */
+
         Secret::create(
             [
                 'file' => $coldFile,
-                'keys' => json_encode(only($crypto->getKeys(), ['private', 'cert', 'recipient'])),
+                'keys' => json_encode(
+                    [
+                        'private' => $coldPrivate,
+                        'cert'    => $coldCert,
+                    ]
+                ),
             ]
         );
     }
@@ -129,7 +145,7 @@ class Database extends Record implements Connectable
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      * @throws \Throwable
      */
-    public function restore(Server $to, $coldFile)
+    public function restoreTo(Server $to, $coldFile)
     {
         /**
          * Get matching secret data.

@@ -55,8 +55,8 @@
                                     {% block body %}
                                         <p>Select services you wish to install.</p>
                                         <ul>
-                                            <li v-for="service in allServices">
-                                            ${ service.title } <a class="btn btn-xs" :href="service.getInstallOnServerUrl(server)">
+                                            <li v-for="service in allServices" v-if="!service.isInstalledOnServer(server)">
+                                            ${ service.name } <a class="btn btn-xs" :href="service.getInstallOnServerUrl(server)">
                                             <i class="fa fa-plus"></i>
                                             </a>
                                             </li>

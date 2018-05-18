@@ -36,9 +36,9 @@ class Zip extends AbstractService implements ServiceInterface
     public function compressFile($file, $output = null)
     {
         if (!$output) {
-            $output = $this->prepareDirectory('zip/compressed') . sha1random();
+            $output = $this->prepareDirectory('random') . sha1random();
         }
-        $command = 'zip ' . $file . ' ' . $output;
+        $command = 'zip ' . $output . ' ' . $file . ' && mv ' . $output . '.zip ' . $output;
         $this->exec($command);
         return $output;
     }
@@ -53,7 +53,7 @@ class Zip extends AbstractService implements ServiceInterface
     public function decompressFile($file, $output = null)
     {
         if (!$output) {
-            $output = $this->prepareDirectory('zip/decompressed') . sha1random();
+            $output = $this->prepareDirectory('random') . sha1random();
         }
         $command = 'unzip ' . $file . ' ' . $output;
         $this->exec($command);

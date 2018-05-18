@@ -67,21 +67,9 @@ class DatabaseApi extends Controller
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      * @throws \Throwable
      */
-    public function getBackupAction(Database $database)
-    {
-        return null;
-        return $this->postBackupAction($database);
-    }
-
-    /**
-     * @param Database $database
-     *
-     * @return array
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
-     * @throws \Throwable
-     */
     public function postBackupAction(Database $database)
     {
+        dd($database->backup());
         /**
          * Enable or disable mysql backup.
          */

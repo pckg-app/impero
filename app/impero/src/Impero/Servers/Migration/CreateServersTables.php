@@ -117,6 +117,13 @@ class CreateServersTables extends Migration
         $apiRequests->varchar('ip');
         $apiRequests->varchar('url');
 
+        /**
+         * Secrets.
+         */
+        $secrets = $this->table('secrets');
+        $secrets->varchar('file');
+        $secrets->text('keys');
+
         $this->save();
     }
 

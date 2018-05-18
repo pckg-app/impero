@@ -35,7 +35,7 @@ class ConnectionManager
             );
         }
 
-        return $this->connections[$server->id];
+        return $this->connections[$server->id ?? null];
     }
 
     public function __destruct()

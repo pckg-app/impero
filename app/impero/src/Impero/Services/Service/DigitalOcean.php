@@ -1,10 +1,11 @@
-<?php namespace Impero\Services\Services;
+<?php namespace Impero\Services\Service;
 
 use Aws\S3\S3Client;
-use Impero\Services\Service\AbstractService;
-use Impero\Services\Service\ServiceInterface;
+use Impero\Services\Service\Connection\LocalConnection;
+use Impero\Services\Service\Connection\SshConnection;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Sftp\SftpAdapter;
 
 /**
  * Class DigitalOcean
@@ -30,17 +31,41 @@ class DigitalOcean extends AbstractService implements ServiceInterface
      */
     public function uploadToSpaces($file)
     {
+        d('to spaced', $file);
         /**
          * Create spaces filesystem.
          */
-        $filesystem = $this->getFilesystem();
-
-        /**
-         * Transfer image to digital ocean spaces?
-         */
-        $stream = fopen($filesystem, 'r+');
+        $coldFilesystem = $this->getColdFilesystem();
+        $connection = $this->getConnection();
         $coldName = 'backup/impero/' . filename($file);
-        $filesystem->writeStream($coldName, $stream);
+        try {
+            if ($connection instanceof LocalConnection) {
+                /**
+                 * Transfer image to digital ocean spaces?
+                 * We need to be authenticated as
+                 */
+                $stream = fopen($file, 'r+');
+                $coldFilesystem->writeStream($coldName, $stream);
+            } elseif ($connection instanceof SshConnection) {
+                $connectionConfig = $connection->getConnectionConfig();
+                $adapter = new SftpAdapter(
+                    [
+                        'host'          => $connectionConfig['host'],
+                        'port'          => $connectionConfig['port'],
+                        'username'      => $connectionConfig['user'],
+                        'privateKey'    => $connectionConfig['key'],
+                        'password'      => null,
+                        'root'          => '/',
+                        'timeout'       => 10,
+                        'directoryPerm' => 0755,
+                    ]
+                );
+                $remoteFilesystem = new Filesystem($adapter);
+                $coldFilesystem->writeStream($coldName, $remoteFilesystem->readStream($file));
+            }
+        } catch (\Throwable $e) {
+            dd(exception($e), $file);
+        }
 
         return $coldName;
     }
@@ -56,7 +81,7 @@ class DigitalOcean extends AbstractService implements ServiceInterface
     {
         $filesystem = $this->getFilesystem();
 
-        $output = $this->prepareDirectory('test/test') . sha1random();
+        $output = $this->prepareDirectory('random') . sha1random();
         $stream = $filesystem->readStream($file);
         $contents = stream_get_contents($stream);
         fclose($stream);
@@ -68,7 +93,7 @@ class DigitalOcean extends AbstractService implements ServiceInterface
      * @return Filesystem
      * @throws \InvalidArgumentException
      */
-    public function getFilesystem()
+    public function getColdFilesystem()
     {
         /**
          * Create bucket config.

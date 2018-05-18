@@ -1,5 +1,7 @@
 <?php namespace Impero\Services\Service\Connection;
 
+use Impero\Servers\Record\Server;
+
 /**
  * Class LocalConnection
  *
@@ -7,6 +9,11 @@
  */
 class LocalConnection implements ConnectionInterface, Connectable
 {
+
+    /**
+     * @var null
+     */
+    protected $ssh2Sftp = null;
 
     /**
      * @param      $command
@@ -17,7 +24,10 @@ class LocalConnection implements ConnectionInterface, Connectable
      */
     public function exec($command, &$output = null, &$error = null)
     {
-        return exec($command, $output, $error);
+        d('exec local', $command);
+        $return = exec($command .' 2>&1', $output, $error);
+        d('output', $output, 'error', $error);
+        return $return;
     }
 
     /**
@@ -39,7 +49,31 @@ class LocalConnection implements ConnectionInterface, Connectable
      */
     public function createDir($dir, $mode, $recursive)
     {
-        return mkdir($dir, $mode, $recursive);
+        d('creating local', $dir);
+        $mode = 0755;
+        try {
+            $ok = mkdir($dir, $mode, $recursive);
+            return $ok;
+        } catch (\Throwable $e) {
+            dd($dir, exception($e));
+            throw $e;
+            return false;
+        }
+    }
+
+    public function deleteFile($file)
+    {
+        d('deleting local', $file);
+        //unlink($file);
+    }
+
+    public function sendFileTo($local, $remote, Server $to)
+    {
+        try {
+            $to->getConnection()->sftpSend($local, $remote);
+        } catch (\Throwable $e) {
+            dd(exception($e));
+        }
     }
 
     /**
@@ -50,6 +84,12 @@ class LocalConnection implements ConnectionInterface, Connectable
      */
     public function saveContent($file, $content)
     {
+        d('saving local content', $content);
+        $dir = implode('/', array_slice(explode('/', $file), 0, -1));
+        if (!is_dir($dir)) {
+            d('creating local dir', $dir);
+            mkdir($dir, 777, true);
+        }
         return file_put_contents($file, $content);
     }
 

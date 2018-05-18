@@ -197,6 +197,12 @@ Impero.Servers.Record.Service = class extends Pckg.Database.Record {
         return utils.url('@api.services.install', {server: server.id, service: this.id});
     }
 
+    isInstalledOnServer(server) {
+        return server.services.filter(function (service) {
+            return service.id == this.id;
+        }.bind(this)).length > 0;
+    }
+
     getEntity() {
         return new Impero.Servers.Entity.Services();
     }

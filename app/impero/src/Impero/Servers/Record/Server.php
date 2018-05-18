@@ -353,8 +353,7 @@ frontend all_https
      */
     public function deleteFile($file)
     {
-        $command = 'rm ' . $file;
-        $this->exec($command);
+        $this->getConnection()->deleteFile($file);
     }
 
     /**

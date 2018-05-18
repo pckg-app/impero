@@ -1,6 +1,7 @@
 <?php namespace Impero\Services\Service;
 
 use Defuse\Crypto\Key;
+use Impero\Services\Service\Connection\LocalConnection;
 
 /**
  * Class OpenSSL
@@ -42,7 +43,11 @@ class OpenSSL extends AbstractService implements ServiceInterface
      */
     public function getKeysDir()
     {
-        return '/home/impero/.impero/service/backup/mysql/keys/';
+        $root = $this->getConnection() instanceof LocalConnection
+            ? path('private')
+            : '/home/impero/impero/';
+        $dir = $root . 'service/random/';
+        return $dir;
     }
 
     /**

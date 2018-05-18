@@ -134,6 +134,16 @@ class SshConnection implements ConnectionInterface, Connectable
         }
     }
 
+    public function getConnectionConfig()
+    {
+        return [
+            'host' => $this->host,
+            'port' => $this->port,
+            'user' => $this->user,
+            'key'  => $this->key,
+        ];
+    }
+
     /**
      * @return Server
      */
@@ -187,6 +197,7 @@ class SshConnection implements ConnectionInterface, Connectable
      */
     public function exec($command, &$output = null, &$error = null)
     {
+        d('executing', $command);
         $e = null;
         $infoStreamContent = null;
         $errorStreamContent = null;
@@ -202,6 +213,7 @@ class SshConnection implements ConnectionInterface, Connectable
             $errorStreamContent = stream_get_contents($errorStream);
             $infoStreamContent = stream_get_contents($stream);
         } catch (Throwable $e) {
+            dd('error');
             $serverCommand->setAndSave(
                 [
                     'command' => 'Error executing command ' . $command,
@@ -212,6 +224,9 @@ class SshConnection implements ConnectionInterface, Connectable
 
             return null;
         } finally {
+            $output = $infoStreamContent;
+            $error = $errorStreamContent;
+            d('output', $output, 'error', $error);
             $serverCommand->setAndSave(
                 [
                     'command' => 'Command executed ' . $command,
@@ -258,11 +273,12 @@ class SshConnection implements ConnectionInterface, Connectable
      */
     public function sftpSend($local, $remote, $mode = null, $isFile = true)
     {
+        d('sending', $local, 'to', $remote);
         $this->server->logCommand('Copying local ' . $local . ' to remote ' . $remote, null, null, null);
 
         $sftp = $this->openSftp();
 
-        $stream = fopen("ssh2.sftp://" . intval($sftp) . $remote, 'w');
+        $stream = fopen("ssh2.sftp://" . intval($sftp) . $remote, '+w');
 
         $ok = @fwrite($stream, $isFile ? file_get_contents($local) : $local);
 
@@ -279,6 +295,7 @@ class SshConnection implements ConnectionInterface, Connectable
      */
     public function sftpRead($file)
     {
+        d('reading', $file);
         /*return '[client]
 password = s0m3p4ssw0rd';*/
 
@@ -355,9 +372,18 @@ password = s0m3p4ssw0rd';*/
      */
     public function createDir($dir, $mode, $recursive)
     {
+        d('creating', $dir);
         $sftp = $this->openSftp();
 
         return ssh2_sftp_mkdir($sftp, $dir, $mode, $recursive);
+    }
+
+    public function deleteFile($file)
+    {
+        d('deleting', $file);
+        $sftp = $this->openSftp();
+
+        //return ssh2_sftp_unlink($sftp, $file);
     }
 
     /**
@@ -392,6 +418,7 @@ password = s0m3p4ssw0rd';*/
      */
     public function rsyncCopyTo($file, Server $to)
     {
+        d('copying', $file);
         $dir = implode('/', array_slice(explode('/', $file), 0, -1));
         if (!$to->getConnection()->dirExists($dir)) {
             $to->getConnection()->exec('mkdir -p ' . $dir);
@@ -405,6 +432,7 @@ password = s0m3p4ssw0rd';*/
      */
     public function rsyncCopyFrom($file, Server $from = null)
     {
+        d('getting', $file);
         if (!$from) {
             /**
              * We are copying for example some file from impero to $this connection.
@@ -432,6 +460,7 @@ password = s0m3p4ssw0rd';*/
      */
     public function saveContent($file, $content)
     {
+        d('saving content', $file, $content);
         /**
          * Save content to temporary file.
          */

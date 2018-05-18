@@ -2,6 +2,7 @@
 
 use Impero\Servers\Record\Server;
 use Impero\Servers\Service\ConnectionManager;
+use Impero\Services\Service\Connection\LocalConnection;
 use Impero\Services\Service\GPG;
 use Impero\Services\Service\Zip;
 
@@ -65,6 +66,13 @@ class Crypto
         return $this->keys;
     }
 
+    public function setKeys($keys)
+    {
+        $this->keys = $keys;
+
+        return $this;
+    }
+
     /**
      * @return Server|null
      */
@@ -107,7 +115,7 @@ class Crypto
      */
     public function replaceFile(Server $server, $file)
     {
-        $server->getConnection()->exec('rm ' . $this->file);
+        $server->getConnection()->deleteFile($this->file);
         $this->file = $file;
     }
 
@@ -246,7 +254,7 @@ class Crypto
      */
     public function transfer()
     {
-        $encryptedCopy = $this->prepareDirectory('crypto/temp') . sha1random();
+        $encryptedCopy = $this->prepareDirectory('random') . sha1random();
         $this->from->transferFile($this->file, $encryptedCopy, $this->to);
         $this->replaceFile($this->from, $this->file);
 
@@ -261,7 +269,11 @@ class Crypto
      */
     protected function prepareDirectory($dir)
     {
-        $dir = '/home/impero/.impero/service/' . $dir;
+
+        $root = $this->getConnection() instanceof LocalConnection
+            ? path('private')
+            : '/home/impero/impero/';
+        $dir = $root . 'service/random';// . $dir;
 
         if ($this->from->getConnection()->dirExists($dir)) {
             return $dir;

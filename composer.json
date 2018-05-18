@@ -36,7 +36,8 @@
     "aferrandini/phpqrcode": "^1.0",
     "defuse/php-encryption": "dev-master",
     "league/flysystem": "1.*",
-    "league/flysystem-aws-s3-v3": "^1.0@dev"
+    "league/flysystem-aws-s3-v3": "^1.0@dev",
+    "league/flysystem-sftp": "dev-master"
   },
   "minimum-stability": "dev",
   "autoload": {

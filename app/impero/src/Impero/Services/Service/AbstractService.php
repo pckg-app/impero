@@ -1,8 +1,10 @@
 <?php namespace Impero\Services\Service;
 
 use Defuse\Crypto\Key;
+use Impero\Servers\Record\Server;
 use Impero\Services\Service\Connection\Connectable;
 use Impero\Services\Service\Connection\ConnectionInterface;
+use Impero\Services\Service\Connection\LocalConnection;
 
 /**
  * Class AbstractService
@@ -66,17 +68,21 @@ class AbstractService
      *
      * @return string
      */
-    protected function prepareDirectory($dir)
+    protected function prepareDirectory($dir, Server $server = null)
     {
-        $dir = '/home/impero/.impero/service/' . $dir;
+        $connection = $server ? $server->getConnection() : $this->getConnection();
+        $root = $connection instanceof LocalConnection
+            ? path('private')
+            : '/home/impero/impero/';
+        $dir = $root . 'service/random';// . $dir;
 
-        if ($this->getConnection()->dirExists($dir)) {
-            return $dir;
+        if ($connection->dirExists($dir)) {
+            return $dir . '/';
         }
 
-        $this->getConnection()->exec('mkdir -p ' . $dir);
+        $connection->exec('mkdir -p ' . $dir);
 
-        return $dir;
+        return $dir . '/';
     }
 
     /**
