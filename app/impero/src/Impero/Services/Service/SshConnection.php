@@ -75,6 +75,7 @@ class SshConnection
          */
         //d('authenticating ' . $user . ' with ' . $key);
 
+        $auth = null;
         if ($type == 'key') {
             $auth = ssh2_auth_pubkey_file($this->connection, $user, $key . '.pub', $key, '');
         } else {
