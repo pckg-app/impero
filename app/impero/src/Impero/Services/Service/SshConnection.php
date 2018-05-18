@@ -73,7 +73,15 @@ class SshConnection
         /**
          * Authenticate with public and private key.
          */
-        //d('authenticating ' . $user . ' with ' . $key);
+        if (!is_readable($key . '.pub')) {
+            $this->server->logCommand('Not readable public key: ' . $key . '.pub', null, null, null);
+            throw new Exception("Cannot authenticate with key");
+        }
+
+        if (!is_readable($key)) {
+            $this->server->logCommand('Not readable private key: ' . $key, null, null, null);
+            throw new Exception("Cannot authenticate with key");
+        }
 
         $auth = null;
         if ($type == 'key') {
