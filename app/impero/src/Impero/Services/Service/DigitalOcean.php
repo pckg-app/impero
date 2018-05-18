@@ -38,33 +38,32 @@ class DigitalOcean extends AbstractService implements ServiceInterface
         $coldFilesystem = $this->getColdFilesystem();
         $connection = $this->getConnection();
         $coldName = 'backup/impero/' . filename($file);
-        try {
-            if ($connection instanceof LocalConnection) {
-                /**
-                 * Transfer image to digital ocean spaces?
-                 * We need to be authenticated as
-                 */
-                $stream = fopen($file, 'r+');
-                $coldFilesystem->writeStream($coldName, $stream);
-            } elseif ($connection instanceof SshConnection) {
-                $connectionConfig = $connection->getConnectionConfig();
-                $adapter = new SftpAdapter(
-                    [
-                        'host'          => $connectionConfig['host'],
-                        'port'          => $connectionConfig['port'],
-                        'username'      => $connectionConfig['user'],
-                        'privateKey'    => $connectionConfig['key'],
-                        'password'      => null,
-                        'root'          => '/',
-                        'timeout'       => 10,
-                        'directoryPerm' => 0755,
-                    ]
-                );
-                $remoteFilesystem = new Filesystem($adapter);
-                $coldFilesystem->writeStream($coldName, $remoteFilesystem->readStream($file));
-            }
-        } catch (\Throwable $e) {
-            dd(exception($e), $file);
+        if ($connection instanceof LocalConnection) {
+            /**
+             * Transfer image to digital ocean spaces?
+             * We need to be authenticated as
+             */
+            $stream = fopen($file, 'r+');
+            $coldFilesystem->writeStream($coldName, $stream);
+        } elseif ($connection instanceof SshConnection) {
+            /**
+             * @T00D00 - solve remote transfer (remote -> s3), it should be direct
+             */
+            $connectionConfig = $connection->getConnectionConfig();
+            $adapter = new SftpAdapter(
+                [
+                    'host'          => $connectionConfig['host'],
+                    'port'          => $connectionConfig['port'],
+                    'username'      => $connectionConfig['user'],
+                    'privateKey'    => $connectionConfig['key'],
+                    'password'      => null,
+                    'root'          => '/',
+                    'timeout'       => 10,
+                    'directoryPerm' => 0755,
+                ]
+            );
+            $remoteFilesystem = new Filesystem($adapter);
+            $coldFilesystem->writeStream($coldName, $remoteFilesystem->readStream($file));
         }
 
         return $coldName;

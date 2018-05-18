@@ -97,13 +97,17 @@ class Database extends Record implements Connectable
         /**
          * Transfer encrypted backup, private key and certificate to safe / cold location.
          */
-        d('file to cold');
-        $coldFile = $backupService->toCold($crypto->getFile());
-        $keys = $crypto->getKeys();
-        d('private to cold');
-        $coldPrivate = $localBackupService->toCold($keys['private']);
-        d('cert to cold');
-        $coldCert = $localBackupService->toCold($keys['cert']);
+        try {
+            d('file to cold');
+            $coldFile = $backupService->toCold($crypto->getFile());
+            $keys = $crypto->getKeys();
+            d('private to cold');
+            $coldPrivate = $localBackupService->toCold($keys['private']);
+            d('cert to cold');
+            $coldCert = $localBackupService->toCold($keys['cert']);
+        } catch (\Throwable $e) {
+            dd(exception($e));
+        }
 
         /**
          * @T00D00 - decrypt keys?
@@ -135,6 +139,8 @@ class Database extends Record implements Connectable
                 ),
             ]
         );
+
+        return true;
     }
 
     /**

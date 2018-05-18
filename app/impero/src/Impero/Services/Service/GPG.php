@@ -85,6 +85,16 @@ class GPG extends AbstractService implements ServiceInterface
          */
         $command = 'gpg2 --batch --gen-key ' . $filename;
         $this->exec($command);
+
+        /**
+         * Import private key.
+         */
+        $this->importPrivateKey($pub);
+
+        /**
+         * Export private key.
+         */
+        $this->exportPrivateKey($random . '@impero', $sec);
     }
 
     /**
@@ -301,6 +311,7 @@ class GPG extends AbstractService implements ServiceInterface
      */
     public function deletePrivateKey($hash)
     {
+        return;
         $command = 'gpg2 --batch --yes --delete-secret-keys ' . $hash;
         $this->exec($command);
     }
@@ -340,10 +351,16 @@ class GPG extends AbstractService implements ServiceInterface
      * @param $name
      * @param $output
      */
-    public function exportPrivateKey($name, $output)
+    public function exportPrivateKey($name, $output = null)
     {
-        $command = 'gpg --export-secret-keys ' . $name . ' > ' . $output;
+        if (!$output) {
+            $output = $this->prepareDirectory('random') . sha1random();
+        }
+
+        $command = 'gpg --export-secret-keys -a ' . $name . ' > ' . $output;
         $this->exec($command);
+
+        echo "KEY: " . file_get_contents($output);
     }
 
     /**
