@@ -86,7 +86,7 @@ class SshConnection
          * Throw exception on misconfiguration.
          */
         if (!$auth) {
-            $this->server->logCommand('Cannot authenticate: ' . $type . ' ' . $user . ' ' . $key, null, null, null);
+            $this->server->logCommand('Cannot authenticate: ' . $type . ' ' . $user . ' ' . $key . ' ' . $host . ' ' . $port, null, null, null);
             throw new Exception("Cannot authenticate with key");
         } else {
             $this->server->logCommand('Authenticated with SSH', null, null, null);
