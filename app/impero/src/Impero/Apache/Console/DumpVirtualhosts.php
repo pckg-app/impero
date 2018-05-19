@@ -52,8 +52,10 @@ class DumpVirtualhosts extends Command
         $this->output('Dumping apache');
         $this->storeVirtualhosts($server, $virtualhosts);
 
-        $this->output('Dumping haproxy');
-        $this->storeVirtualhostsHaproxy($server, $virtualhostsHaproxy);
+        if ($server->getSettingValue('service.haproxy.active')) {
+            $this->output('Dumping haproxy');
+            $this->storeVirtualhostsHaproxy($server, $virtualhostsHaproxy);
+        }
 
         $this->output('Done');
     }
@@ -91,7 +93,6 @@ class DumpVirtualhosts extends Command
 
     protected function storeVirtualhostsHaproxy(Server $server, $virtualhosts)
     {
-        return;
         $local = '/tmp/server.' . $server->id . '.haproxy';
         $remote = '/etc/haproxy/haproxy.cnf';
         file_put_contents($local, $virtualhosts);
