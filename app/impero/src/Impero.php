@@ -37,6 +37,16 @@ class Impero extends Provider
         ];
     }
 
+    public function consoles()
+    {
+        return [
+            MakeMysqlBackup::class,
+            MakeStorageBackup::class,
+            MakeSystemBackup::class,
+            MakeConfigBackup::class,
+        ];
+    }
+
     public function jobs()
     {
         return [
