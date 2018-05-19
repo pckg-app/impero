@@ -41,6 +41,7 @@ class MakeStorageBackup extends Command
                 try {
                     $pid = Fork::fork(
                         function() use ($server) {
+                            $this->outputDated('Started #' . $server->id . ' cold storage backup');
                             return;
                             /**
                              * Backup primarly attached volumes.
@@ -55,6 +56,7 @@ class MakeStorageBackup extends Command
                              */
                             $storage = Storage::gets(1);
                             $storage->backup($server);
+                            $this->outputDated('Ended #' . $server->id . ' cold storage backup');
                         },
                         function() use ($server) {
                             return 'impero:backup:storage:' . $server->id;
@@ -65,7 +67,7 @@ class MakeStorageBackup extends Command
                     );
                     Fork::waitFor($pid);
                 } catch (Throwable $e) {
-                    $this->output('EXCEPTION: ' . exception($e));
+                    $this->outputDated('EXCEPTION: ' . exception($e));
                 }
             }
         );
@@ -84,6 +86,7 @@ class MakeStorageBackup extends Command
                 try {
                     $pid = Fork::fork(
                         function() use ($server) {
+                            $this->outputDated('Started #' . $server->id . ' passive storage backup');
                             return;
                             /**
                              * Backup primarly attached volumes.
@@ -92,6 +95,7 @@ class MakeStorageBackup extends Command
                              */
                             $storage = Storage::gets(1);
                             $storage->backupLive($server);
+                            $this->outputDated('Ended #' . $server->id . ' binlog backup');
                         },
                         function() use ($server) {
                             return 'impero:backup:storageLive:' . $server->id;
@@ -102,14 +106,14 @@ class MakeStorageBackup extends Command
                     );
                     Fork::waitFor($pid);
                 } catch (Throwable $e) {
-                    $this->output('EXCEPTION: ' . exception($e));
+                    $this->outputDated('EXCEPTION: ' . exception($e));
                 }
             }
         );
 
         Fork::waitWaiting();
 
-        $this->output('Storage backed up');
+        $this->outputDated('Storage backed up');
     }
 
 }

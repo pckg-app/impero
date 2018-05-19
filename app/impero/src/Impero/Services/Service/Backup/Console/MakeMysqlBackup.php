@@ -50,6 +50,7 @@ class MakeMysqlBackup extends Command
                 try {
                     $pid = Fork::fork(
                         function() use ($server) {
+                            $this->outputDated('Started #' . $server->id . ' cold backup');
                             return;
                             /**
                              * Make backup of each database separately.
@@ -59,6 +60,7 @@ class MakeMysqlBackup extends Command
                                     $database->backup();
                                 }
                             );
+                            $this->outputDated('Ended #' . $server->id . ' cold backup');
                         },
                         function() use ($server) {
                             return 'impero:backup:mysql:' . $server->id;
@@ -69,7 +71,7 @@ class MakeMysqlBackup extends Command
                     );
                     Fork::waitFor($pid);
                 } catch (Throwable $e) {
-                    $this->output('EXCEPTION: ' . exception($e));
+                    $this->outputDated('EXCEPTION: ' . exception($e));
                 }
             }
         );
@@ -96,8 +98,10 @@ class MakeMysqlBackup extends Command
                 try {
                     $pid = Fork::fork(
                         function() use ($server) {
+                            $this->outputDated('Started #' . $server->id . ' binlog backup');
                             return;
                             $server->binlogBackup();
+                            $this->outputDated('Ended #' . $server->id . ' binlog backup');
                         },
                         function() use ($server) {
                             return 'impero:backup:mysqlBinlog:' . $server->id;
@@ -108,7 +112,7 @@ class MakeMysqlBackup extends Command
                     );
                     Fork::waitFor($pid);
                 } catch (Throwable $e) {
-                    $this->output('EXCEPTION: ' . exception($e));
+                    $this->outputDated('EXCEPTION: ' . exception($e));
                 }
             }
         );
@@ -118,7 +122,7 @@ class MakeMysqlBackup extends Command
          */
         Fork::waitWaiting();
 
-        $this->output('Mysql backed up');
+        $this->outputDated('Mysql backed up');
     }
 
     /**

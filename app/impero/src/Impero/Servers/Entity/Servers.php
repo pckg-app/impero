@@ -1,5 +1,6 @@
 <?php namespace Impero\Servers\Entity;
 
+use Impero\Apache\Entity\Sites;
 use Impero\Dependencies\Entity\Dependencies;
 use Impero\Jobs\Entity\Jobs;
 use Impero\Mysql\Entity\Databases;
@@ -75,6 +76,11 @@ class Servers extends Entity
         return $this->morphsMany(Databases::class)
             ->over(DatabasesMorphs::class)
             ->foreignKey('database_id');
+    }
+
+    public function sites() {
+        return $this->hasMany(Sites::class)
+            ->foreignKey('server_id');
     }
 
 }

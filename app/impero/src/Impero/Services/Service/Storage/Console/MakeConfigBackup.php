@@ -30,11 +30,7 @@ class MakeConfigBackup extends Command
         /**
          * Receive list of all web servers?
          */
-        $servers = (new Servers())->withSites(
-            function(HasMany $sites) {
-
-            }
-        )->all();
+        $servers = (new Servers())->withSites()->all();
 
         /**
          * Filter only master servers.
@@ -45,10 +41,12 @@ class MakeConfigBackup extends Command
                 try {
                     $pid = Fork::fork(
                         function() use ($server) {
+                            $this->outputDated('Started #' . $server->id . ' config backup');
                             return;
                             /**
                              * @T00D00 - backup config/env.php files
                              */
+                            $this->outputDated('Ended #' . $server->id . ' config backup');
                         },
                         function() use ($server) {
                             return 'impero:backup:config:' . $server->id;
@@ -59,14 +57,14 @@ class MakeConfigBackup extends Command
                     );
                     Fork::waitFor($pid);
                 } catch (Throwable $e) {
-                    $this->output('EXCEPTION: ' . exception($e));
+                    $this->outputDated('EXCEPTION: ' . exception($e));
                 }
             }
         );
 
         Fork::waitWaiting();
 
-        $this->output('Config backed up');
+        $this->outputDated('Config backed up');
     }
 
 }
