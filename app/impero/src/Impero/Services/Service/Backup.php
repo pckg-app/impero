@@ -70,7 +70,6 @@ class Backup extends AbstractService implements ServiceInterface
      */
     public function toCold($file)
     {
-        d('to cold', $file);
         $do = (new DigitalOcean($this->getConnection()));
         $uploaded = $do->uploadToSpaces($file);
     }
@@ -82,7 +81,6 @@ class Backup extends AbstractService implements ServiceInterface
      */
     public function fromCold($file)
     {
-        d('from cold', $file);
         $do = (new DigitalOcean($this->getConnection()));
         return $do->downloadFromSpaces($file);
     }

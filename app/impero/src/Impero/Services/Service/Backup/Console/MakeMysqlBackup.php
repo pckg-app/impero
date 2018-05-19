@@ -4,7 +4,6 @@ use Exception;
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
-use Pckg\Database\Relation\HasMany;
 use Pckg\Queue\Service\Cron\Fork;
 use Throwable;
 
@@ -27,11 +26,7 @@ class MakeMysqlBackup
          * @T00D00 ... make backup from slaves whenever possible
          *         ... also make a backup of binlogs
          */
-        $servers = (new Servers())->withSites(
-            function(HasMany $sites) {
-
-            }
-        )->all();
+        $servers = (new Servers())->withSites()->all();
 
         /**
          * Make "cold" backup - transactional mysql dump.
@@ -56,12 +51,13 @@ class MakeMysqlBackup
                             );
                         },
                         function() use ($server) {
-                            return 'impero:backup:mysql';
+                            return 'impero:backup:mysql:' . $server->id;
                         },
                         function() {
                             throw new Exception('Cannot run mysql backup in parallel');
                         }
                     );
+                    Fork::waitFor($pid);
                 } catch (Throwable $e) {
                     /**
                      * @T00D00
@@ -69,6 +65,11 @@ class MakeMysqlBackup
                 }
             }
         );
+
+        /**
+         * Wait for regular backups to be made.
+         */
+        Fork::waitWaiting();
 
         /**
          * Make "binlog" live backups.

@@ -323,7 +323,6 @@ class GPG extends AbstractService implements ServiceInterface
     {
         $keys = $this->listKeys();
         return;
-        d($hash);
         $command = 'gpg2 --batch --yes --delete-keys ' . $hash;
         $this->exec($command);
     }
@@ -359,8 +358,6 @@ class GPG extends AbstractService implements ServiceInterface
 
         $command = 'gpg --export-secret-keys -a ' . $name . ' > ' . $output;
         $this->exec($command);
-
-        echo "KEY: " . file_get_contents($output);
     }
 
     /**

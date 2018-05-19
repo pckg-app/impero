@@ -82,7 +82,6 @@ class SshConnection implements ConnectionInterface, Connectable
         /**
          * Create connection.
          */
-        //d('connecting to ' . $host . ' : ' . $port);
         $this->connection = ssh2_connect($host, $port);
 
         if (!$this->connection) {
@@ -98,14 +97,12 @@ class SshConnection implements ConnectionInterface, Connectable
         if ($type == 'key') {
             $keygen = null;
             $command = 'ssh-keygen -lf ' . $key . '.pub -E MD5';
-            //d("command", $command);
             exec($command, $keygen);
             $keygen = $keygen[0] ?? null;
             $fingerprint = ssh2_fingerprint($this->connection, SSH2_FINGERPRINT_MD5 | SSH2_FINGERPRINT_HEX);
             $publicKeyContent = file_get_contents($key . '.pub');
             $content = explode(' ', $publicKeyContent, 3);
             $calculated = join(':', str_split(md5(base64_decode($content[1])), 2));
-            //d($calculated, $keygen, $fingerprint);
 
             if (!strpos($keygen, $calculated) || $fingerprint != $keygen) {
                 //d("Wrong server fingerprint");
@@ -115,8 +112,6 @@ class SshConnection implements ConnectionInterface, Connectable
         /**
          * Authenticate with public and private key.
          */
-        //d('authenticating ' . $user . ' with ' . $key);
-
         if ($type == 'key') {
             $auth = ssh2_auth_pubkey_file($this->connection, $user, $key . '.pub', $key, '');
         } else {
@@ -197,7 +192,6 @@ class SshConnection implements ConnectionInterface, Connectable
      */
     public function exec($command, &$output = null, &$error = null)
     {
-        d('executing', $command);
         $e = null;
         $infoStreamContent = null;
         $errorStreamContent = null;
@@ -213,7 +207,6 @@ class SshConnection implements ConnectionInterface, Connectable
             $errorStreamContent = stream_get_contents($errorStream);
             $infoStreamContent = stream_get_contents($stream);
         } catch (Throwable $e) {
-            dd('error');
             $serverCommand->setAndSave(
                 [
                     'command' => 'Error executing command ' . $command,
@@ -226,7 +219,6 @@ class SshConnection implements ConnectionInterface, Connectable
         } finally {
             $output = $infoStreamContent;
             $error = $errorStreamContent;
-            d('output', $output, 'error', $error);
             $serverCommand->setAndSave(
                 [
                     'command' => 'Command executed ' . $command,
@@ -273,7 +265,6 @@ class SshConnection implements ConnectionInterface, Connectable
      */
     public function sftpSend($local, $remote, $mode = null, $isFile = true)
     {
-        d('sending', $local, 'to', $remote);
         $this->server->logCommand('Copying local ' . $local . ' to remote ' . $remote, null, null, null);
 
         $sftp = $this->openSftp();
@@ -295,7 +286,6 @@ class SshConnection implements ConnectionInterface, Connectable
      */
     public function sftpRead($file)
     {
-        d('reading', $file);
         /*return '[client]
 password = s0m3p4ssw0rd';*/
 
@@ -372,7 +362,6 @@ password = s0m3p4ssw0rd';*/
      */
     public function createDir($dir, $mode, $recursive)
     {
-        d('creating', $dir);
         $sftp = $this->openSftp();
 
         return ssh2_sftp_mkdir($sftp, $dir, $mode, $recursive);
@@ -380,7 +369,6 @@ password = s0m3p4ssw0rd';*/
 
     public function deleteFile($file)
     {
-        d('deleting', $file);
         $sftp = $this->openSftp();
 
         //return ssh2_sftp_unlink($sftp, $file);
@@ -418,7 +406,6 @@ password = s0m3p4ssw0rd';*/
      */
     public function rsyncCopyTo($file, Server $to)
     {
-        d('copying', $file);
         $dir = implode('/', array_slice(explode('/', $file), 0, -1));
         if (!$to->getConnection()->dirExists($dir)) {
             $to->getConnection()->exec('mkdir -p ' . $dir);
@@ -432,7 +419,6 @@ password = s0m3p4ssw0rd';*/
      */
     public function rsyncCopyFrom($file, Server $from = null)
     {
-        d('getting', $file);
         if (!$from) {
             /**
              * We are copying for example some file from impero to $this connection.
@@ -460,7 +446,6 @@ password = s0m3p4ssw0rd';*/
      */
     public function saveContent($file, $content)
     {
-        d('saving content', $file, $content);
         /**
          * Save content to temporary file.
          */

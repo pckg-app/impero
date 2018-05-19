@@ -24,9 +24,7 @@ class LocalConnection implements ConnectionInterface, Connectable
      */
     public function exec($command, &$output = null, &$error = null)
     {
-        d('exec local', $command);
-        $return = exec($command .' 2>&1', $output, $error);
-        d('output', $output, 'error', $error);
+        $return = exec($command . ' 2>&1', $output, $error);
         return $return;
     }
 
@@ -49,13 +47,11 @@ class LocalConnection implements ConnectionInterface, Connectable
      */
     public function createDir($dir, $mode, $recursive)
     {
-        d('creating local', $dir);
         $mode = 0755;
         try {
             $ok = mkdir($dir, $mode, $recursive);
             return $ok;
         } catch (\Throwable $e) {
-            dd($dir, exception($e));
             throw $e;
             return false;
         }
@@ -63,7 +59,6 @@ class LocalConnection implements ConnectionInterface, Connectable
 
     public function deleteFile($file)
     {
-        d('deleting local', $file);
         //unlink($file);
     }
 
@@ -84,10 +79,8 @@ class LocalConnection implements ConnectionInterface, Connectable
      */
     public function saveContent($file, $content)
     {
-        d('saving local content', $content);
         $dir = implode('/', array_slice(explode('/', $file), 0, -1));
         if (!is_dir($dir)) {
-            d('creating local dir', $dir);
             mkdir($dir, 777, true);
         }
         return file_put_contents($file, $content);

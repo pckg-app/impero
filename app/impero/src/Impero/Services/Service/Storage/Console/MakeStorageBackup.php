@@ -3,7 +3,6 @@
 use Exception;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
-use Pckg\Database\Relation\HasMany;
 use Pckg\Queue\Service\Cron\Fork;
 
 /**
@@ -19,11 +18,7 @@ class MakeStorageBackup
         /**
          * Receive list of all storage volumes?
          */
-        $servers = (new Servers())->withSites(
-            function(HasMany $sites) {
-
-            }
-        )->all();
+        $servers = (new Servers())->withSites()->where('id', 2)->all();
 
         /**
          * Filter only master servers.
@@ -35,15 +30,17 @@ class MakeStorageBackup
                         function() use ($server) {
                             /**
                              * Backup primarly attached volumes.
+                             * On zero.gonparty.eu: backup /mnt/volume-fra1-01/live/
                              */
                         },
                         function() use ($server) {
-                            return 'impero:backup:storage';
+                            return 'impero:backup:storage:' . $server->id;
                         },
                         function() {
                             throw new Exception('Cannot run storage backup in parallel');
                         }
                     );
+                    Fork::waitFor($pid);
                 } catch (\Throwable $e) {
                     /**
                      * @T00D00
@@ -51,6 +48,8 @@ class MakeStorageBackup
                 }
             }
         );
+
+        Fork::waitWaiting();
     }
 
 }
