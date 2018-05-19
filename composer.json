@@ -16,7 +16,7 @@
     "pckg/mail": "dev-master",
     "pckg/translator": "dev-master",
     "pckg/auth": "dev-master",
-    "pckg/generic": "dev-master",
+    "pckg/generic": "dev-BR-basket",
     "pckg/helpers-js": "dev-master",
     "pckg/helpers-less": "dev-master",
     "pckg/import": "dev-master",

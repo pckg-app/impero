@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "eeceb1f380d68f925d8e3e59affda515",
+    "content-hash": "4728e7a8ab86db108de6e78e09b0c5d1",
     "packages": [
         {
             "name": "aferrandini/phpqrcode",
@@ -1178,26 +1178,60 @@
         },
         {
             "name": "kriswallsmith/assetic",
-            "version": "v1.0.5",
+            "version": "v1.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kriswallsmith/assetic.git",
-                "reference": "8ab3638325af9cd144242765494a9dc9b53ab430"
+                "reference": "9928f7c4ad98b234e3559d1049abd13387f86db5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kriswallsmith/assetic/zipball/8ab3638325af9cd144242765494a9dc9b53ab430",
-                "reference": "8ab3638325af9cd144242765494a9dc9b53ab430",
+                "url": "https://api.github.com/repos/kriswallsmith/assetic/zipball/9928f7c4ad98b234e3559d1049abd13387f86db5",
+                "reference": "9928f7c4ad98b234e3559d1049abd13387f86db5",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.1"
+                "php": ">=5.3.1",
+                "symfony/process": "~2.1|~3.0"
+            },
+            "conflict": {
+                "twig/twig": "<1.23"
+            },
+            "require-dev": {
+                "cssmin/cssmin": "3.0.1",
+                "joliclic/javascript-packer": "1.1",
+                "kamicane/packager": "1.0",
+                "leafo/lessphp": "^0.3.7",
+                "leafo/scssphp": "~0.1",
+                "mrclay/minify": "~2.2",
+                "patchwork/jsqueeze": "~1.0|~2.0",
+                "phpunit/phpunit": "~4.8",
+                "psr/log": "~1.0",
+                "ptachoire/cssembed": "~1.0",
+                "symfony/phpunit-bridge": "~2.7|~3.0",
+                "twig/twig": "~1.8|~2.0"
+            },
+            "suggest": {
+                "leafo/lessphp": "Assetic provides the integration with the lessphp LESS compiler",
+                "leafo/scssphp": "Assetic provides the integration with the scssphp SCSS compiler",
+                "leafo/scssphp-compass": "Assetic provides the integration with the SCSS compass plugin",
+                "patchwork/jsqueeze": "Assetic provides the integration with the JSqueeze JavaScript compressor",
+                "ptachoire/cssembed": "Assetic provides the integration with phpcssembed to embed data uris",
+                "twig/twig": "Assetic provides the integration with the Twig templating engine"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.4-dev"
+                }
+            },
             "autoload": {
                 "psr-0": {
                     "Assetic": "src/"
-                }
+                },
+                "files": [
+                    "src/functions.php"
+                ]
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -1217,7 +1251,7 @@
                 "compression",
                 "minification"
             ],
-            "time": "2014-12-12T05:07:58+00:00"
+            "time": "2015-11-12T13:51:40+00:00"
         },
         {
             "name": "league/flysystem",
@@ -2061,16 +2095,16 @@
         },
         {
             "name": "pckg/generic",
-            "version": "dev-master",
+            "version": "dev-BR-basket",
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/generic.git",
-                "reference": "70525db0b0b98038fd720d7dd776e4623cba0247"
+                "reference": "297cf3766db77a8c5d7f8d06e8c96175bded2fb5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/generic/zipball/70525db0b0b98038fd720d7dd776e4623cba0247",
-                "reference": "70525db0b0b98038fd720d7dd776e4623cba0247",
+                "url": "https://api.github.com/repos/pckg/generic/zipball/297cf3766db77a8c5d7f8d06e8c96175bded2fb5",
+                "reference": "297cf3766db77a8c5d7f8d06e8c96175bded2fb5",
                 "shasum": ""
             },
             "require": {
@@ -2096,7 +2130,7 @@
             ],
             "description": "Building admin interface and generic frontend made simple",
             "homepage": "https://github.com/pckg/generic",
-            "time": "2018-05-17T18:28:08+00:00"
+            "time": "2018-05-19T15:36:12+00:00"
         },
         {
             "name": "pckg/helpers-js",
@@ -3084,12 +3118,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpseclib/phpseclib.git",
-                "reference": "8c299f865f02fb1355002d32d925a343c55a840c"
+                "reference": "bf7115043344860c044a508694ef4180bde92058"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/8c299f865f02fb1355002d32d925a343c55a840c",
-                "reference": "8c299f865f02fb1355002d32d925a343c55a840c",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/bf7115043344860c044a508694ef4180bde92058",
+                "reference": "bf7115043344860c044a508694ef4180bde92058",
                 "shasum": ""
             },
             "require": {
@@ -3168,7 +3202,7 @@
                 "x.509",
                 "x509"
             ],
-            "time": "2018-04-25T20:18:51+00:00"
+            "time": "2018-05-19T12:48:33+00:00"
         },
         {
             "name": "phpspec/prophecy",
@@ -5415,25 +5449,25 @@
         },
         {
             "name": "symfony/process",
-            "version": "dev-master",
+            "version": "3.4.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "4f10286a128df6b60b3706752e11f6227fcac844"
+                "reference": "4cbf2db9abcb01486a21b7a059e03a62fae63187"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/4f10286a128df6b60b3706752e11f6227fcac844",
-                "reference": "4f10286a128df6b60b3706752e11f6227fcac844",
+                "url": "https://api.github.com/repos/symfony/process/zipball/4cbf2db9abcb01486a21b7a059e03a62fae63187",
+                "reference": "4cbf2db9abcb01486a21b7a059e03a62fae63187",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.1.3"
+                "php": "^5.5.9|>=7.0.8"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "4.2-dev"
+                    "dev-master": "3.4-dev"
                 }
             },
             "autoload": {
@@ -5460,7 +5494,7 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "https://symfony.com",
-            "time": "2018-05-16T14:42:13+00:00"
+            "time": "2018-05-16T08:49:21+00:00"
         },
         {
             "name": "symfony/translation",
