@@ -1478,12 +1478,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/maximebf/php-debugbar.git",
-                "reference": "7702b864a301f88382e9398bcb55c732c3a5493e"
+                "reference": "4048ff47eddb78d21bfd2da7dbeb975e25dcbfa4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/maximebf/php-debugbar/zipball/7702b864a301f88382e9398bcb55c732c3a5493e",
-                "reference": "7702b864a301f88382e9398bcb55c732c3a5493e",
+                "url": "https://api.github.com/repos/maximebf/php-debugbar/zipball/4048ff47eddb78d21bfd2da7dbeb975e25dcbfa4",
+                "reference": "4048ff47eddb78d21bfd2da7dbeb975e25dcbfa4",
                 "shasum": ""
             },
             "require": {
@@ -1531,7 +1531,7 @@
                 "debug",
                 "debugbar"
             ],
-            "time": "2018-05-12T20:42:30+00:00"
+            "time": "2018-05-19T17:41:13+00:00"
         },
         {
             "name": "mtdowling/jmespath.php",
@@ -2050,12 +2050,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/framework.git",
-                "reference": "71b74a53feed8d5f9b93e7d4b3822cd252a92a2d"
+                "reference": "5302af7fe16d5a9e01be419ade24b4fa7aa8db59"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/framework/zipball/71b74a53feed8d5f9b93e7d4b3822cd252a92a2d",
-                "reference": "71b74a53feed8d5f9b93e7d4b3822cd252a92a2d",
+                "url": "https://api.github.com/repos/pckg/framework/zipball/5302af7fe16d5a9e01be419ade24b4fa7aa8db59",
+                "reference": "5302af7fe16d5a9e01be419ade24b4fa7aa8db59",
                 "shasum": ""
             },
             "require": {
@@ -2091,7 +2091,7 @@
             ],
             "description": "Fully featured lightweight php framework with multilingual support, twig templating engine, and tons of other features.",
             "homepage": "https://github.com/pckg/framework",
-            "time": "2018-05-18T18:23:55+00:00"
+            "time": "2018-05-19T20:43:23+00:00"
         },
         {
             "name": "pckg/generic",
@@ -2470,12 +2470,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/queue.git",
-                "reference": "9adb566e352a8b1d0c30cb61429aa40da8a12602"
+                "reference": "c7d414a4cb2100c1d903f32bcab5dc2dedb57927"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/queue/zipball/9adb566e352a8b1d0c30cb61429aa40da8a12602",
-                "reference": "9adb566e352a8b1d0c30cb61429aa40da8a12602",
+                "url": "https://api.github.com/repos/pckg/queue/zipball/c7d414a4cb2100c1d903f32bcab5dc2dedb57927",
+                "reference": "c7d414a4cb2100c1d903f32bcab5dc2dedb57927",
                 "shasum": ""
             },
             "type": "library",
@@ -2498,7 +2498,7 @@
             ],
             "description": "Queue, cronjobs and tasks simplified",
             "homepage": "https://github.com/pckg/queue",
-            "time": "2018-05-17T16:40:28+00:00"
+            "time": "2018-05-19T20:43:44+00:00"
         },
         {
             "name": "pckg/tempus",
