@@ -17,7 +17,10 @@ class Database extends Record implements Connectable
 
     protected $entity = Databases::class;
 
-    public function getConnection() : ConnectionInterface
+    /**
+     * @return ConnectionInterface|Connectable
+     */
+    public function getConnection()
     {
         return $this->server->getConnection();
     }

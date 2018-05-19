@@ -53,9 +53,14 @@ class Site extends Record
         return $this;
     }
 
-    public function createOnFilesystem()
+    /**
+     * @param Server $server
+     *
+     * @throws \Exception
+     */
+    public function createOnFilesystem(Server $server)
     {
-        $connection = $this->getServerConnection();
+        $connection = $server->getConnection();
 
         $connection->exec('mkdir -p ' . $this->getHtdocsPath());
         $connection->exec('mkdir -p ' . $this->getLogPath());
@@ -466,47 +471,65 @@ class Site extends Record
          */
     }
 
-    public function checkout($pckg, $vars)
+    /**
+     * @param Server $server
+     * @param        $pckg
+     * @param        $vars
+     *
+     * @throws \Exception
+     */
+    public function checkout(Server $server, $pckg, $vars)
     {
         $this->vars = $vars;
 
         /**
-         * If needed we enable https / letsencrypt.
+         * Create htdocs, logs and ssl directories on $server.
+         * If needed we enable https / letsencrypt (on loadbalancer?).
+         * Reload and restart apache on new server.
          */
-        $this->prepareSite($pckg);
+        $this->prepareSite($server, $pckg);
 
         /**
          * We checkout and initialize standalone platforms or create directory structure and symlinks for linked ones.
          */
-        $this->checkoutPlatform($pckg);
+        $this->checkoutPlatform($server, $pckg);
 
         /**
          * Project is prepared on linked and standalone platforms.
          * We need to apply storage service and execute 'prepare' commands.
          * Here we create proper directories and symlinks.
          */
-        $this->preparePlatformDirs($pckg);
+        $this->preparePlatformDirs($server, $pckg);
 
         /**
          * Create database, privileges, enable backups and replication.
          * Also imports clean database, creates admin user and writes configuration.
          */
-        $this->prepareDatabase($pckg);
+        $this->prepareDatabase($server, $pckg);
 
-        $this->copyConfig($pckg);
+        /**
+         * Dump config.
+         */
+        $this->copyConfig($server, $pckg);
 
         /**
          * We probably need to import few things.
          */
-        $this->preparePlatform($pckg);
+        $this->preparePlatform($server, $pckg);
 
         /**
          * Everything is ready, we may enable cronjobs.
          */
-        $this->enableCronjobs($pckg);
+        $this->enableCronjobs($server, $pckg);
     }
 
-    public function preparePlatform($pckg)
+    /**
+     * @param Server $server
+     * @param        $pckg
+     *
+     * @throws \Exception
+     */
+    public function preparePlatform(Server $server, $pckg)
     {
         /**
          * Execute prepare commands.
@@ -515,14 +538,21 @@ class Site extends Record
         foreach ($pckg['prepare'] ?? [] as $command) {
             $commands[] = $this->replaceVars($command);
         }
-        $connection = $this->getServerConnection();
+        $connection = $server->getConnection();
         $connection->execMultiple($commands);
     }
 
-    public function copyConfig($pckg)
+    /**
+     * @param Server $server
+     * @param        $pckg
+     *
+     * @throws \Exception
+     */
+    public function copyConfig(Server $server, $pckg)
     {
+        $connection = $server->getConnection();
         foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
-            $this->createFile($dest, $this->getConfigContent());
+            $connection->saveContent($dest, $this->getConfigContent());
         }
     }
 
@@ -530,9 +560,30 @@ class Site extends Record
      * @param     $pckg
      *
      * @return Site
+     * @throws \Exception
      */
-    public function prepareSite($pckg)
+    public function prepareSite(Server $server, $pckg)
     {
+        /**
+         * Link server and site's service.
+         */
+        SitesServer::getOrCreate(['server_id' => $server->id, 'site_id' => $this->id, 'type' => 'web']);
+
+        /**
+         * Web service, log service and https service.
+         * Impero is web management service, so we create those by default.
+         * However, server_id is only primary server, services may be expanded to other servers.
+         *
+         * @T00D00 - collect all service servers and initial configuration:
+         *         - is loadbalanced? (default: no)
+         *         - web workers? (default: 1; additional: x)
+         *         - mysql master and slave configuration (default: master only; additional: master-slave)
+         *         - storages (default: root; additional: volume)
+         *         Impero should now which services live on which server and how is network connected.
+         *         We need to know about entrypoint (floating ip, server)
+         */
+        $this->createOnFilesystem($server);
+
         /**
          * Enable https on website.
          * This will call letsencrypt and ask for new certificate.
@@ -540,12 +591,14 @@ class Site extends Record
          */
         if (isset($pckg['services']['web']['https'])) {
             $this->letsencrypt();
+        } else {
+            $this->restartApache();
         }
     }
 
-    public function createNewHtdocsPath()
+    public function createNewHtdocsPath(Server $server)
     {
-        $connection = $this->getServerConnection();
+        $connection = $server->getConnection();
 
         /**
          * Move existent htdocs-old to htdocs-old-$datetime
@@ -634,25 +687,41 @@ class Site extends Record
         return $checks;
     }
 
-    public function recheckout($pckg, $vars)
+    /**
+     * @param Server $server
+     * @param        $pckg
+     * @param        $vars
+     *
+     * @throws \Exception
+     */
+    public function recheckout(Server $server, $pckg, $vars)
     {
         $this->vars = $vars;
-        $this->prepareSite($pckg);
-        $this->createNewHtdocsPath();
-        $this->checkoutPlatform($pckg);
-        $this->preparePlatformDirs($pckg);
-        $this->copyOldConfig();
+        $this->prepareSite($server, $pckg);
+        $this->createNewHtdocsPath($server);
+        $this->checkoutPlatform($server, $pckg);
+        $this->preparePlatformDirs($server, $pckg);
+        $this->copyOldConfig($server);
 
         /**
          * Everything is ready, we may enable cronjobs.
          */
-        $this->enableCronjobs($pckg);
+        $this->enableCronjobs($server, $pckg);
     }
 
-    public function deploy($pckg, $vars, $isAlias = false, $checkAlias = false)
+    /**
+     * @param Server $server
+     * @param        $pckg
+     * @param        $vars
+     * @param bool   $isAlias
+     * @param bool   $checkAlias
+     *
+     * @throws \Exception
+     */
+    public function deploy(Server $server, $pckg, $vars, $isAlias = false, $checkAlias = false)
     {
         $this->vars = $vars;
-        $connection = $this->getServerConnection();
+        $connection = $server->getConnection();
         $htdocsDir = $this->getHtdocsPath();
         $blueGreen = ($pckg['checkout']['type'] ?? null) == 'ab';
 
@@ -697,27 +766,48 @@ class Site extends Record
         }
     }
 
-    public function copyOldConfig()
+    /**
+     * @param Server $server
+     *
+     * @throws \Exception
+     */
+    public function copyOldConfig(Server $server)
     {
-        $this->getServerConnection()->exec(
+        $server->getConnection()->exec(
             'cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
             $this->getHtdocsPath() . 'config/env.php'
         );
     }
 
-    public function enableCronjobs($pckg)
+    /**
+     * @param Server $server
+     * @param        $pckg
+     */
+    public function enableCronjobs(Server $server, $pckg)
     {
+        /**
+         * Link database to site.
+         */
+        SitesServer::getOrCreate(['site_id' => $this->id, 'server_id' => $server->id, 'type' => 'cron']);
+
         /**
          * Add cronjob, we also perform uniqueness check.
          */
         foreach ($pckg['services']['cron']['commands'] ?? [] as $cron) {
-            $this->server->addCronjob($this->replaceVars($cron['command']));
+            $server->addCronjob($this->replaceVars($cron['command']));
         }
     }
 
-    public function prepareLinkedCheckout($pckg, $aliasDir)
+    /**
+     * @param Server $server
+     * @param        $pckg
+     * @param        $aliasDir
+     *
+     * @throws \Exception
+     */
+    public function prepareLinkedCheckout(Server $server, $pckg, $aliasDir)
     {
-        $connection = $this->getServerConnection();
+        $connection = $server->getConnection();
         if ($connection->dirExists($aliasDir)) {
             /**
              * Linked checkout is already prepared.
@@ -759,12 +849,18 @@ class Site extends Record
             $pckg['branch'] . '/a|b|giTcommit' . '/';
     }
 
-    public function checkoutPlatform($pckg)
+    /**
+     * @param Server $server
+     * @param        $pckg
+     *
+     * @throws \Exception
+     */
+    public function checkoutPlatform(Server $server, $pckg)
     {
         /**
          * All commands will be executed in platform's htdocs path.
          */
-        $connection = $this->getServerConnection();
+        $connection = $server->getConnection();
         $commands = [];
 
         if ($pckg['checkout']['type'] == 'linked') {
@@ -772,7 +868,7 @@ class Site extends Record
              * We need to make sure that repository and branch are already checked-out on filesystem.
              */
             $aliasDir = $this->getLinkedDir($pckg);
-            $this->prepareLinkedCheckout($pckg, $aliasDir);
+            $this->prepareLinkedCheckout($server, $pckg, $aliasDir);
 
             /**
              * Create some dirs, such as www and cache in which we will probably mount some files.
@@ -824,11 +920,17 @@ class Site extends Record
         return '/mnt/volume-fra1-01/live/' . $this->user->username . '/' . $this->document_root . '/';
     }
 
-    public function preparePlatformDirs($pckg)
+    /**
+     * @param Server $server
+     * @param        $pckg
+     *
+     * @throws \Exception
+     */
+    public function preparePlatformDirs(Server $server, $pckg)
     {
         $siteStoragePath = $this->getStorageDir();
         $htdocsOldPath = $this->getHtdocsOldPath();
-        $connection = $this->getServerConnection();
+        $connection = $server->getConnection();
 
         /**
          * Create site dir.
@@ -910,8 +1012,19 @@ class Site extends Record
         $this->getServerConnection()->sftpSend($content, $this->getHtdocsPath() . $file, null, false);
     }
 
-    public function prepareDatabase($pckg)
+    /**
+     * @param Server $server
+     * @param        $pckg
+     *
+     * @throws \Exception
+     */
+    public function prepareDatabase(Server $server, $pckg)
     {
+        /**
+         * Link database to site.
+         */
+        SitesServer::getOrCreate(['site_id' => $this->id, 'server_id' => $server->id, 'type' => 'database']);
+
         /**
          * Some defaults.
          */
@@ -932,7 +1045,7 @@ class Site extends Record
                 $database = Database::createFromPost(
                     [
                         'name'      => $dbname,
-                        'server_id' => 2,
+                        'server_id' => $server->id,
                     ]
                 );
 
@@ -952,7 +1065,7 @@ class Site extends Record
             } elseif ($config['type'] == 'search') {
                 $database = Database::gets(
                     [
-                        'server_id' => 2,
+                        'server_id' => $server->id,
                         'name'      => $config['name'],
                     ]
                 );

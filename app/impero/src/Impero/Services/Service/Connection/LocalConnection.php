@@ -116,7 +116,7 @@ class LocalConnection implements ConnectionInterface, Connectable
     /**
      * @return ConnectionInterface
      */
-    public function getConnection() : ConnectionInterface
+    public function getConnection() : LocalConnection
     {
         return $this;
     }

@@ -481,7 +481,7 @@ password = s0m3p4ssw0rd';*/
     /**
      * @return ConnectionInterface
      */
-    public function getConnection() : ConnectionInterface
+    public function getConnection() : SshConnection
     {
         return $this;
     }

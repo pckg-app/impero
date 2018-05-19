@@ -22,4 +22,7 @@ return [
     AlterUserTable::class,
     CreateServersTables::class,
     CreateListTables::class,
+    /**
+     * Migrate services.
+     */
 ];

@@ -9,8 +9,8 @@ interface Connectable
 {
 
     /**
-     * @return ConnectionInterface
+     * @return ConnectionInterface|Connectable
      */
-    public function getConnection() : ConnectionInterface;
+    public function getConnection();
 
 }

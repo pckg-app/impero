@@ -274,8 +274,8 @@ class Server extends Record implements Connectable
          */
         $sites = $this->sites;
 
-        $httpPort = $this->getSettingValue('service.haproxy.httpPort', 80);
-        $httpsPort = $this->getSettingValue('service.haproxy.httpsPort', 80);
+        $httpPort = $this->getSettingValue('service.haproxy.httpPort', 8080);
+        $httpsPort = $this->getSettingValue('service.haproxy.httpsPort', 8443);
 
         $config = 'frontend http2https
     bind *:' . $httpPort . '

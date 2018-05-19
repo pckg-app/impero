@@ -8,6 +8,9 @@ use Symfony\Component\Console\Input\InputOption;
 class DumpVirtualhosts extends Command
 {
 
+    /**
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     */
     protected function configure()
     {
         $this->setName('apache:dump')
@@ -20,6 +23,9 @@ class DumpVirtualhosts extends Command
              );
     }
 
+    /**
+     * @throws \Exception
+     */
     public function handle()
     {
         if (!$this->option('server')) {
