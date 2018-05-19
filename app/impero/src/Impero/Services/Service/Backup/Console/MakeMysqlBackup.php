@@ -4,6 +4,7 @@ use Exception;
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
+use Pckg\Framework\Console\Command;
 use Pckg\Queue\Service\Cron\Fork;
 use Throwable;
 
@@ -12,8 +13,17 @@ use Throwable;
  *
  * @package Impero\Services\Service\Backup\Console
  */
-class MakeMysqlBackup
+class MakeMysqlBackup extends Command
 {
+
+    /**
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     */
+    protected function configure()
+    {
+        $this->setName('service:mysql:backup')
+             ->setDescription('Make cold backup of mysql databases and live binlog sync');
+    }
 
     /**
      *
@@ -26,7 +36,7 @@ class MakeMysqlBackup
          * @T00D00 ... make backup from slaves whenever possible
          *         ... also make a backup of binlogs
          */
-        $servers = (new Servers())->withSites()->all();
+        $servers = (new Servers())->where('id', 2)->withSites()->all();
 
         /**
          * Make "cold" backup - transactional mysql dump.
@@ -40,13 +50,13 @@ class MakeMysqlBackup
                 try {
                     $pid = Fork::fork(
                         function() use ($server) {
+                            return;
+                            /**
+                             * Make backup of each database separately.
+                             */
                             $server->databases->each(
                                 function(Database $database) {
                                     $database->backup();
-
-                                    /**
-                                     * Should we wait for process?
-                                     */
                                 }
                             );
                         },
@@ -59,9 +69,7 @@ class MakeMysqlBackup
                     );
                     Fork::waitFor($pid);
                 } catch (Throwable $e) {
-                    /**
-                     * @T00D00
-                     */
+                    $this->output('EXCEPTION: ' . exception($e));
                 }
             }
         );
@@ -85,9 +93,32 @@ class MakeMysqlBackup
                  *           - reconfigure haproxy mysql balancer
                  *           - reconfigure slave as master (allow write connections)
                  */
-                //$server->binlogBackup();
+                try {
+                    $pid = Fork::fork(
+                        function() use ($server) {
+                            return;
+                            $server->binlogBackup();
+                        },
+                        function() use ($server) {
+                            return 'impero:backup:mysqlBinlog:' . $server->id;
+                        },
+                        function() {
+                            throw new Exception('Cannot run mysql binlog backup in parallel');
+                        }
+                    );
+                    Fork::waitFor($pid);
+                } catch (Throwable $e) {
+                    $this->output('EXCEPTION: ' . exception($e));
+                }
             }
         );
+
+        /**
+         * Wait for binlog backups to be made.
+         */
+        Fork::waitWaiting();
+
+        $this->output('Mysql backed up');
     }
 
     /**

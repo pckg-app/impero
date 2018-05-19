@@ -3,6 +3,7 @@
 use Exception;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
+use Pckg\Framework\Console\Command;
 use Pckg\Queue\Service\Cron\Fork;
 use Throwable;
 
@@ -11,8 +12,17 @@ use Throwable;
  *
  * @package Impero\Services\Service\Backup\Console
  */
-class MakeSystemBackup
+class MakeSystemBackup extends Command
 {
+
+    /**
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     */
+    protected function configure()
+    {
+        $this->setName('service:system:backup')
+             ->setDescription('Make backup of other system service configuration files');
+    }
 
     /**
      *
@@ -30,17 +40,15 @@ class MakeSystemBackup
                              * Throw backup event for all services that are listening for backup event. :)
                              */
                         },
-                        function() {
-                            return 'impero:backup:system';
+                        function() use ($server) {
+                            return 'impero:backup:system:' . $server->id;
                         },
                         function() {
                             throw new Exception('Cannot run system backup in parallel');
                         }
                     );
                 } catch (Throwable $e) {
-                    /**
-                     * @T00D00 - log error
-                     */
+                    $this->output('EXCEPTION: ' . exception($e));
                 }
             }
         );

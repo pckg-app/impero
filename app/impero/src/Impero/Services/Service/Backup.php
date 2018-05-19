@@ -1,6 +1,8 @@
 <?php namespace Impero\Services\Service;
 
 use Impero\Mysql\Record\Database;
+use Impero\Servers\Record\Server;
+use Impero\Storage\Record\Storage;
 
 /**
  * Class Backup
@@ -49,6 +51,19 @@ class Backup extends AbstractService implements ServiceInterface
         $this->getConnection()->exec($dumpCommand);
 
         return $backupFile;
+    }
+
+    /**
+     * @param Server  $server
+     * @param Storage $storage
+     *
+     * @return mixed
+     * @throws \Exception
+     */
+    public function createStorageBackup(Server $server, Storage $storage)
+    {
+        $zip = (new Zip($server->getConnection()));
+        return $zip->compressDirectory($storage->location);
     }
 
     /**
