@@ -198,7 +198,7 @@ Impero.Servers.Record.Service = class extends Pckg.Database.Record {
     }
 
     isInstalledOnServer(server) {
-        return server.services.filter(function (service) {
+        return (server.services || []).filter(function (service) {
             return service.id == this.id;
         }.bind(this)).length > 0;
     }
