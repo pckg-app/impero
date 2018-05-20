@@ -329,6 +329,9 @@ frontend all_https
             //$replaced = str_replace(['.', '-'], ['\.', '\-'], implode('|', $domains));
             //$config .= "\n" . '    acl bcknd-' . $site->id . ' hdr_reg(host) -i ^(' . $replaced . ')$';
             $config .= "\n" . '    acl bcknd-' . $site->id . ' hdr(host) -i ' . implode(' ', $domains->all());
+        }
+
+        foreach ($sites as $site) {
             $config .= "\n" . '    use_backend backend-' . $site->id . ' if bcknd-' . $site->id;
         }
         //$config .= "\n" . '    default_backend b';
