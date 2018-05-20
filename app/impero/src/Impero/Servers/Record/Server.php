@@ -349,7 +349,6 @@ frontend all_https
             $config .= "\n" . 'backend backend' . $site->id;
             $config .= "\n" . '    balance roundrobin';
             $config .= "\n" . '    mode tcp';
-            $config .= "\n" . '    option httpclose';
             $config .= "\n" . '    option forwardfor';
             foreach ($workers as $worker) {
                 $workerHttpsPort = $worker->getSettingValue('service.apache2.httpsPort', 443);
