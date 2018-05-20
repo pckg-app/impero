@@ -334,7 +334,9 @@ frontend all_https
         foreach ($sites as $site) {
             $config .= "\n" . '    use_backend backend' . $site->id . ' if bcknd' . $site->id;
         }
-        //$config .= "\n" . '    default_backend b';
+        if ($first = $sites->first()) {
+            $config .= "\n" . '    default_backend backend' . $first->id;
+        }
 
         foreach ($sites as $site) {
             /**
