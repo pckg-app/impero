@@ -22,6 +22,7 @@ class DumpMysql extends Command
 
     public function handle()
     {
+        return;
         if (!$this->option('server')) {
             $this->output('No server selected');
 

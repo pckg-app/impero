@@ -69,7 +69,6 @@ class DatabaseApi extends Controller
      */
     public function postBackupAction(Database $database)
     {
-        dd($database->backup());
         /**
          * Enable or disable mysql backup.
          */
