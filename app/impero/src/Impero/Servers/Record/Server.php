@@ -359,7 +359,7 @@ frontend all_https
 
             $config .= "\n" . 'tcp-request inspect-delay 5s';
             $config .= "\n" . 'tcp-request content accept if clienthello';
-            $config .= "\n" . 'tcp-request content accept if tls';
+            //$config .= "\n" . 'tcp-request content accept if tls';
 
             $config .= "\n" . 'option ssl-hello-chk';
 
