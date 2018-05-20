@@ -125,7 +125,7 @@ class DumpVirtualhosts extends Command
     protected function storeVirtualhostsHaproxy(Server $server, $virtualhosts)
     {
         $local = '/tmp/server.' . $server->id . '.haproxy';
-        $remote = '/etc/haproxy/haproxy.cnf';
+        $remote = '/etc/haproxy/haproxy.cfg';
         file_put_contents($local, $virtualhosts);
         if ($this->option('dry')) {
             return;
