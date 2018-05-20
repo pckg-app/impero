@@ -353,7 +353,7 @@ frontend all_https
             $config .= "\n" . '    option forwardfor';
             foreach ($workers as $worker) {
                 $workerHttpsPort = $worker->getSettingValue('service.apache2.httpsPort', 443);
-                $config .= "\n" . '    server ' . $worker->name . ' ' . $worker->privateIp . ':' . $workerHttpsPort .
+                $config .= "\n" . '    server ' . $site->domain . '-' . $worker->name . ' ' . $worker->privateIp . ':' . $workerHttpsPort .
                     ' check';
             }
         }
