@@ -327,6 +327,10 @@ frontend all_https
     bind *:' . $httpsPort . '
     mode tcp
     #option tcplog
+    
+  tcp-request inspect-delay 5s
+  tcp-request content accept if { req_ssl_hello_type 1 }
+    
     http-response set-header Strict-Transport-Security max-age=15768000';
 
         foreach ($sites as $site) {
@@ -352,13 +356,13 @@ frontend all_https
             $config .= "\n" . 'backend backend' . $site->id;
             $config .= "\n" . '    balance roundrobin';
             $config .= "\n" . '    mode tcp';
-            $config .= "\n" . '    option forwardfor';
+            //$config .= "\n" . '    option forwardfor';
 
-            $config .= "\n" . 'acl clienthello req_ssl_hello_type 1';
-            $config .= "\n" . 'acl serverhello rep_ssl_hello_type 2';
+            //$config .= "\n" . 'acl clienthello req_ssl_hello_type 1';
+            //$config .= "\n" . 'acl serverhello rep_ssl_hello_type 2';
 
-            $config .= "\n" . 'tcp-request inspect-delay 5s';
-            $config .= "\n" . 'tcp-request content accept if clienthello';
+            //$config .= "\n" . 'tcp-request inspect-delay 5s';
+            //$config .= "\n" . 'tcp-request content accept if clienthello';
             //$config .= "\n" . 'tcp-request content accept if tls';
 
             $config .= "\n" . 'option ssl-hello-chk';
