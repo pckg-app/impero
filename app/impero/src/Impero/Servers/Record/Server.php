@@ -290,12 +290,14 @@ class Server extends Record implements Connectable
         # Default SSL material locations
         ca-base /etc/ssl/certs
         crt-base /etc/ssl/private
-
-        # Default ciphers to use on SSL-enabled listening sockets.
-        # For more information, see ciphers(1SSL). This list is from:
-        #  https://hynek.me/articles/hardening-your-web-servers-ssl-ciphers/
-        ssl-default-bind-ciphers ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES$
-        ssl-default-bind-options no-sslv3
+        
+        # https://mozilla.github.io/server-side-tls/ssl-config-generator/?hsts=no
+        # haproxy 1.6.3
+        # openssl 1.1.0g
+        ssl-default-bind-ciphers ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
+    ssl-default-bind-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+    ssl-default-server-ciphers ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
+    ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
 
 defaults
         log     global
@@ -324,7 +326,8 @@ defaults
 frontend all_https
     bind *:' . $httpsPort . '
     mode tcp
-    option tcplog';
+    option tcplog
+    http-response set-header Strict-Transport-Security max-age=15768000';
 
         foreach ($sites as $site) {
             $domains = $site->getUniqueDomains();
