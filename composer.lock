@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4728e7a8ab86db108de6e78e09b0c5d1",
+    "content-hash": "9503dfab67b704efe63a8387bddbfde6",
     "packages": [
         {
             "name": "aferrandini/phpqrcode",
@@ -1820,6 +1820,44 @@
                 "sdk"
             ],
             "time": "2017-11-13T19:21:59+00:00"
+        },
+        {
+            "name": "pckg-app/api",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pckg-app/api.git",
+                "reference": "d0e578ac741c9b904ff0d7fc4a40aa2019f08bd7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pckg-app/api/zipball/d0e578ac741c9b904ff0d7fc4a40aa2019f08bd7",
+                "reference": "d0e578ac741c9b904ff0d7fc4a40aa2019f08bd7",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^6.3",
+                "pckg/database": "dev-master"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Pckg": "src\\"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bojan Rajh",
+                    "email": "schtr4jh@schtr4jh.net"
+                }
+            ],
+            "description": "Core api for pckg apps",
+            "homepage": "https://github.com/pckg-app/api",
+            "time": "2018-05-16T12:48:17+00:00"
         },
         {
             "name": "pckg/auth",
@@ -6014,7 +6052,8 @@
         "dimsemenov/magnific-popup": 20,
         "defuse/php-encryption": 20,
         "league/flysystem-aws-s3-v3": 20,
-        "league/flysystem-sftp": 20
+        "league/flysystem-sftp": 20,
+        "pckg-app/api": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

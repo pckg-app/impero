@@ -5,6 +5,7 @@ use Impero\Services\Service\Backup\Console\MakeMysqlBackup;
 use Impero\Services\Service\Storage\Console\MakeConfigBackup;
 use Impero\Services\Service\Storage\Console\MakeStorageBackup;
 use Impero\Services\Service\System\Console\MakeSystemBackup;
+use Pckg\Auth\Middleware\LoginWithApiKeyHeader;
 use Pckg\Auth\Middleware\RestrictAccess;
 use Pckg\Framework\Provider;
 use Pckg\Generic\Middleware\EncapsulateResponse;
@@ -27,6 +28,7 @@ class Impero extends Provider
     public function middlewares()
     {
         return [
+            LoginWithApiKeyHeader::class,
             RestrictAccess::class,
             RegisterCoreAssets::class,
         ];

@@ -37,7 +37,8 @@
     "defuse/php-encryption": "dev-master",
     "league/flysystem": "1.*",
     "league/flysystem-aws-s3-v3": "^1.0@dev",
-    "league/flysystem-sftp": "dev-master"
+    "league/flysystem-sftp": "dev-master",
+    "pckg-app/api": "dev-master"
   },
   "minimum-stability": "dev",
   "autoload": {
