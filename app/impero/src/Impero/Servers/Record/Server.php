@@ -317,6 +317,8 @@ defaults
 
         $config .= 'frontend http2https
     bind *:' . $httpPort . '
+    mode http
+    http-request replace-header Host ^(.*?)(:[0-9]+)?$ \1:' . $httpsPort . '
     redirect scheme https code 301 if !{ ssl_fc }
     
 frontend all_https
@@ -334,7 +336,7 @@ frontend all_https
         foreach ($sites as $site) {
             $config .= "\n" . '    use_backend backend' . $site->id . ' if bcknd' . $site->id;
         }
-        if ($first = $sites->first()) {
+        if (false && $first = $sites->first()) {
             $config .= "\n" . '    default_backend backend' . $first->id;
         }
 
@@ -347,6 +349,8 @@ frontend all_https
             $config .= "\n" . 'backend backend' . $site->id;
             $config .= "\n" . '    balance roundrobin';
             $config .= "\n" . '    mode tcp';
+            $config .= "\n" . '    option httpclose';
+            $config .= "\n" . '    option forwardfor';
             foreach ($workers as $worker) {
                 $workerHttpsPort = $worker->getSettingValue('service.apache2.httpsPort', 443);
                 $config .= "\n" . '    server ' . $worker->name . ' ' . $worker->privateIp . ':' . $workerHttpsPort .
