@@ -121,7 +121,7 @@ class Site extends Record
         return $this->getInsecureVirtualhost($server) . "\n\n" . $this->getSecureVirtualhost($server);
     }
 
-    protected function getServiceServers($service)
+    public function getServiceServers($service)
     {
         if (in_array($service, ['web', 'db', 'lb', 'cron'])) {
             /**
@@ -1052,7 +1052,7 @@ class Site extends Record
                 /**
                  * Manually call backup and replication.
                  */
-                $database->requireScriptBackup(); // temporarly
+                $database->requireScriptBackup(); // temporarly, until we do not automate backups triggered from impero
                 $database->requireMysqlMasterReplication();
 
                 /**

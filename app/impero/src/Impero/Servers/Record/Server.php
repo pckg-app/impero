@@ -194,7 +194,7 @@ class Server extends Record implements Connectable
         $eth1 = $this->getSettingValue('server.network.eth1.ip');
 
         if ($eth1) {
-            return $eth1->value;
+            return $eth1;
         }
 
         /**
@@ -203,7 +203,7 @@ class Server extends Record implements Connectable
         $eth0 = $this->getSettingValue('server.network.eth0.ip');
 
         if ($eth0) {
-            return $eth0->value;
+            return $eth0;
         }
 
         return $this->ip;
@@ -246,7 +246,7 @@ class Server extends Record implements Connectable
 
         $server = $this;
         $sites->each(
-            function(SitesServer $sitesServer) use (&$virtualhosts, &$virtualhostsNginx, $server) {
+            function(SitesServer $sitesServer) use (&$virtualhosts, $server) {
                 /**
                  * Apache: apache port
                  * Nginx: nginx port
@@ -256,7 +256,7 @@ class Server extends Record implements Connectable
             }
         );
 
-        return implode($virtualhosts);
+        return implode("\n\n", $virtualhosts);
     }
 
     public function getHaproxyConfig()
@@ -265,7 +265,7 @@ class Server extends Record implements Connectable
          * First, check that apache is active on server.
          */
         $active = $this->getSettingValue('service.haproxy.active');
-        if (!$active) {
+        if (false && !$active) {
             return null;
         }
 
@@ -290,7 +290,7 @@ frontend all_https
             $domains = $site->getUniqueDomains();
             //$replaced = str_replace(['.', '-'], ['\.', '\-'], implode('|', $domains));
             //$config .= "\n" . '    acl bcknd-' . $site->id . ' hdr_reg(host) -i ^(' . $replaced . ')$';
-            $config .= "\n" . '    acl bcknd-' . $site->id . ' hdr(host) -i ' . implode(' ', $domains);
+            $config .= "\n" . '    acl bcknd-' . $site->id . ' hdr(host) -i ' . implode(' ', $domains->all());
             $config .= "\n" . '    use_backend backend-' . $site->id . ' if bcknd-' . $site->id;
         }
         //$config .= "\n" . '    default_backend b';

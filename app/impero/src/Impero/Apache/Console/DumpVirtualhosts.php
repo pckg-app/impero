@@ -20,6 +20,12 @@ class DumpVirtualhosts extends Command
                      'server' => 'Server ID',
                  ],
                  InputOption::VALUE_REQUIRED
+             )
+             ->addOptions(
+                 [
+                     'dry' => 'Do not dump or restart',
+                 ],
+                 InputOption::VALUE_NONE
              );
     }
 
@@ -41,6 +47,8 @@ class DumpVirtualhosts extends Command
 
         /**
          * Get server services: web and lb.
+         *
+         * @T00D00 - run this in parallel
          */
 
         $this->output('Building apache');
@@ -60,11 +68,21 @@ class DumpVirtualhosts extends Command
         $this->output('Done');
     }
 
+    /**
+     * @param Server $server
+     * @param        $virtualhosts
+     *
+     * @throws \Exception
+     */
     protected function storeVirtualhosts(Server $server, $virtualhosts)
     {
         $local = '/tmp/server.' . $server->id . '.virtualhosts';
         $remote = '/etc/apache2/sites-enabled/002-impero.conf';
         file_put_contents($local, $virtualhosts);
+        if ($this->option('dry')) {
+            return;
+        }
+        $this->outputDated('Dumping and restarting (apache)');
         $sshConnection = $server->getConnection();
         $sshConnection->sftpSend($local, $remote);
         unlink($local);
@@ -75,12 +93,19 @@ class DumpVirtualhosts extends Command
         $sshConnection->exec('sudo service apache2 graceful');
     }
 
+    /**
+     * @param Server $server
+     * @param        $virtualhosts
+     */
     protected function storeVirtualhostsNginx(Server $server, $virtualhosts)
     {
-        return;
         $local = '/tmp/server.' . $server->id . '.virtualhosts';
         $remote = '/etc/apache2/sites-enabled/002-impero.conf';
         file_put_contents($local, $virtualhosts);
+        if ($this->option('dry')) {
+            return;
+        }
+        $this->outputDated('Dumping and restarting (nginx)');
         $sshConnection = $server->getConnection();
         $sshConnection->sftpSend($local, $remote);
         unlink($local);
@@ -91,11 +116,21 @@ class DumpVirtualhosts extends Command
         $sshConnection->exec('sudo service nginx restart');
     }
 
+    /**
+     * @param Server $server
+     * @param        $virtualhosts
+     *
+     * @throws \Exception
+     */
     protected function storeVirtualhostsHaproxy(Server $server, $virtualhosts)
     {
         $local = '/tmp/server.' . $server->id . '.haproxy';
         $remote = '/etc/haproxy/haproxy.cnf';
         file_put_contents($local, $virtualhosts);
+        if ($this->option('dry')) {
+            return;
+        }
+        $this->outputDated('Dumping and restarting (haproxy)');
         $sshConnection = $server->getConnection();
         $sshConnection->sftpSend($local, $remote);
         unlink($local);
