@@ -325,8 +325,8 @@ defaults
     
 frontend all_https
     bind *:' . $httpsPort . '
-    mode tcp
-    option tcplog
+    mode http
+    #option tcplog
     http-response set-header Strict-Transport-Security max-age=15768000';
 
         foreach ($sites as $site) {
@@ -351,13 +351,13 @@ frontend all_https
 
             $config .= "\n" . 'backend backend' . $site->id;
             $config .= "\n" . '    balance roundrobin';
-            $config .= "\n" . '    mode tcp';
+            $config .= "\n" . '    mode http';
             $config .= "\n" . '    option forwardfor';
             foreach ($workers as $worker) {
                 $workerHttpsPort = $worker->getSettingValue('service.apache2.httpsPort', 443);
                 $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name
                     . ' ' . $worker->privateIp . ':' . $workerHttpsPort .
-                    ' check';
+                    ' check'; // ssl verify none
             }
         }
 
