@@ -24,6 +24,7 @@ class Mysql extends Provider
                            'controller' => DatabaseApi::class,
                            'urlPrefix'  => '/api/database',
                            'namePrefix' => 'api.impero.database',
+                           'tags' => ['auth:in'],
                        ]))->routes([
                                        ''            => (new Route('', 'database')),
                                        '.search'     => (new Route('/search', 'search')),
@@ -48,6 +49,7 @@ class Mysql extends Provider
                            'controller' => DatabaseUserApi::class,
                            'urlPrefix'  => '/api/databaseUser',
                            'namePrefix' => 'api.impero.databaseUser',
+                           'tags' => ['auth:in'],
                        ]))->routes([
                                        '' => (new Route('', 'user'))->resolvers(),
                                    ]),

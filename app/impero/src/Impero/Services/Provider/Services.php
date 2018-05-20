@@ -16,6 +16,7 @@ class Services extends Provider
                     'controller' => ServicesController::class,
                     'urlPrefix'  => '/api/services',
                     'namePrefix' => 'api.services',
+                    'tags' => ['auth:in'],
                 ],
                 [
                     '' => route('', 'services'),

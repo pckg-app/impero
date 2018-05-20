@@ -45,11 +45,11 @@ class Impero extends Provider
     {
         return [
             'url' => [
-                '/'      => [
+                '/maestro-impero' => [
                     'controller' => ImperoController::class,
                     'view'       => 'index',
                 ],
-                '/intro' => [
+                '/'               => [
                     'controller' => ImperoController::class,
                     'view'       => 'intro',
                 ],
@@ -74,7 +74,7 @@ class Impero extends Provider
     public function assets()
     {
         return [
-            'main'  => [
+            'main'        => [
                 '/app/impero/src/Pckg/Generic/public/app.js',
             ],
             'footerFirst' => [

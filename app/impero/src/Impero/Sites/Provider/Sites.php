@@ -16,6 +16,7 @@ class Sites extends Provider
                     'controller' => SitesController::class,
                     'urlPrefix'  => '/site',
                     'namePrefix' => 'impero.site',
+                    'tags' => ['auth:in'],
                 ],
                 [
                     '.confirmDelete' => route('/[site]/confirm-delete', 'confirmDelete')
@@ -27,6 +28,7 @@ class Sites extends Provider
                     'controller' => SitesController::class,
                     'urlPrefix'  => '/api/site',
                     'namePrefix' => 'api.impero.site',
+                    'tags' => ['auth:in'],
                 ]
             ))->routes(
                 [

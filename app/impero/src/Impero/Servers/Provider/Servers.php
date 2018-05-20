@@ -22,6 +22,7 @@ class Servers extends Provider
                            'controller' => ServersController::class,
                            'urlPrefix'  => '/impero/servers',
                            'namePrefix' => 'impero.servers',
+                           'tags' => ['auth:in'],
                        ]))->routes([
                                        ''                                => new Route('', 'index'),
                                        '.server'                         => (new Route('/server/[server]',
@@ -77,6 +78,7 @@ class Servers extends Provider
                            'controller' => ServersController::class,
                            'urlPrefix'  => '/api/server',
                            'namePrefix' => 'api.server',
+                           'tags' => ['auth:in'],
                        ]))->routes([
                                        '.cronjob' => (new Route('/[server]/cronjob', 'cronjob'))->resolvers([
                                                                                                                 'server' => Server::class,
