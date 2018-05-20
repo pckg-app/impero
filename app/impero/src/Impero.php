@@ -65,6 +65,15 @@ class Impero extends Provider
         ];
     }
 
+    public function assets()
+    {
+        return [
+            'vue' => [
+                '/dist/build/js/backend.js',
+            ],
+        ];
+    }
+
 }
 
 /**
