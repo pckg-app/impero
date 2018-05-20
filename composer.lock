@@ -1827,12 +1827,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg-app/api.git",
-                "reference": "d0e578ac741c9b904ff0d7fc4a40aa2019f08bd7"
+                "reference": "525ef22ff2e23823a5c502af8219dc3c91289ef7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg-app/api/zipball/d0e578ac741c9b904ff0d7fc4a40aa2019f08bd7",
-                "reference": "d0e578ac741c9b904ff0d7fc4a40aa2019f08bd7",
+                "url": "https://api.github.com/repos/pckg-app/api/zipball/525ef22ff2e23823a5c502af8219dc3c91289ef7",
+                "reference": "525ef22ff2e23823a5c502af8219dc3c91289ef7",
                 "shasum": ""
             },
             "require": {
@@ -1857,7 +1857,7 @@
             ],
             "description": "Core api for pckg apps",
             "homepage": "https://github.com/pckg-app/api",
-            "time": "2018-05-16T12:48:17+00:00"
+            "time": "2018-05-20T10:24:29+00:00"
         },
         {
             "name": "pckg/auth",
