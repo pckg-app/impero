@@ -39,9 +39,9 @@ class DatabaseApi extends Controller
         $databaseName = post('name');
 
         $database = Database::gets([
-                                       'server_id' => $server,
-                                       'name'      => $databaseName,
-                                   ]);
+            'server_id' => $server,
+            'name'      => $databaseName,
+        ]);
 
         return [
             'database' => $database,
@@ -60,29 +60,38 @@ class DatabaseApi extends Controller
         ];
     }
 
-    public function getBackupAction(Database $database)
-    {
-        return $this->postBackupAction($database);
-    }
-
+    /**
+     * @param Database $database
+     *
+     * @return array
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
     public function postBackupAction(Database $database)
     {
         /**
          * Enable or disable mysql backup.
          */
-        $database->backup();
+        $database->requireScriptBackup();
 
         return [
             'success' => true,
         ];
     }
 
+    /**
+     * @param Database $database
+     *
+     * @return array
+     * @throws \Exception
+     */
     public function postReplicateAction(Database $database)
     {
         /**
          * Enable or disable mysql replication.
          */
-        $database->replicate();
+        $database->requireMysqlMasterReplication();
+        $database->replicateOnMaster();
 
         return [
             'success' => true,

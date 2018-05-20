@@ -26,7 +26,7 @@ class Composer extends AbstractDependency
     public function getStatus()
     {
         $response = $this->getConnection()
-                         ->exec('composer diagnose', $error);
+                         ->exec('composer diagnose');
 
         $outdated = strpos($response, 'You are not running the latest stable version');
 

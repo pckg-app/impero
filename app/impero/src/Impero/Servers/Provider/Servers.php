@@ -82,49 +82,6 @@ class Servers extends Provider
                                                                                                                 'server' => Server::class,
                                                                                                             ]),
                                    ]),
-            (new Group([
-                           'controller' => Sites::class,
-                           'urlPrefix'  => '/api/site',
-                           'namePrefix' => 'api.impero.site',
-                       ]))->routes([
-                                       '.create'         => (new Route('', 'create')),
-                                       ''                => (new Route('/[site]', 'site'))
-                                           ->resolvers([
-                                                           'site' => Site::class,
-                                                       ]),
-                                       '.exec'           => (new Route('/[site]/exec', 'exec'))
-                                           ->resolvers([
-                                                           'site' => Site::class,
-                                                       ]),
-                                       '.createFile'     => (new Route('/[site]/createFile', 'createFile'))
-                                           ->resolvers([
-                                                           'site' => Site::class,
-                                                       ]),
-                                       '.setDomain'      => (new Route('/[site]/set-domain', 'setDomain'))
-                                           ->resolvers([
-                                                           'site' => Site::class,
-                                                       ]),
-                                       '.letsencrypt'    => (new Route('/[site]/letsencrypt', 'letsencrypt'))
-                                           ->resolvers([
-                                                           'site' => Site::class,
-                                                       ]),
-                                       '.hasSiteDir'     => (new Route('/[site]/has-site-dir', 'hasSiteDir'))
-                                           ->resolvers([
-                                                           'site' => Site::class,
-                                                       ]),
-                                       '.hasRootDir'     => (new Route('/[site]/has-root-dir', 'hasRootDir'))
-                                           ->resolvers([
-                                                           'site' => Site::class,
-                                                       ]),
-                                       '.hasSiteSymlink' => (new Route('/[site]/has-site-symlink', 'hasSiteSymlink'))
-                                           ->resolvers([
-                                                           'site' => Site::class,
-                                                       ]),
-                                       '.hasSiteFile'    => (new Route('/[site]/has-site-file', 'hasSiteFile'))
-                                           ->resolvers([
-                                                           'site' => Site::class,
-                                                       ]),
-                                   ]),
         ];
     }
 }

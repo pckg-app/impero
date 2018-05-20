@@ -1,12 +1,26 @@
 <?php namespace Impero\Services\Service;
 
+/**
+ * Class Nginx
+ *
+ * @package Impero\Services\Service
+ */
 class Nginx extends AbstractService implements ServiceInterface
 {
 
+    /**
+     * @var string
+     */
     protected $service = 'ngingx';
 
+    /**
+     * @var string
+     */
     protected $name = 'Nginx';
 
+    /**
+     * @return bool|mixed|string
+     */
     public function getVersion()
     {
         $response = $this->getConnection()

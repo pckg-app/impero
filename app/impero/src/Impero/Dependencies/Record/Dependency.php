@@ -16,7 +16,7 @@ use Impero\Dependencies\Dependency\Xvfb;
 use Impero\Dependencies\Dependency\Yarn;
 use Impero\Dependencies\Dependency\Zip;
 use Impero\Dependencies\Entity\Dependencies;
-use Impero\Services\Service\SshConnection;
+use Impero\Services\Service\Connection\SshConnection;
 use Pckg\Concept\Reflect;
 use Pckg\Database\Record;
 

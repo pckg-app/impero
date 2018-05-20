@@ -9,7 +9,7 @@ use Impero\Servers\Entity\ServersServices;
 use Impero\Servers\Entity\Systems;
 use Impero\Servers\Form\Server as ServerForm;
 use Impero\Servers\Record\Server;
-use Impero\Services\Service\SshConnection;
+use Impero\Services\Service\Connection\SshConnection;
 use Pckg\Generic\Service\Generic;
 use Pckg\Generic\Service\Generic\CallableAction;
 use Throwable;
@@ -154,6 +154,7 @@ class Servers
             $command = 'ssh-keygen -b 4096 -t rsa -C \'www-data@impero.foobar.si\' -f ' . $privateKey . ' -N "" 2>&1';
             exec($command, $output, $return_var);
             //d("generated", $command, $output, $return_var);
+            // openssl rand -base64 32
         }
 
         /**

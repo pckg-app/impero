@@ -41,11 +41,30 @@
 
                     <button class="btn btn-success btn-xs"
                             title="Install services"
-                            @click.prevent><i
+                            @click.prevent="openInstallServicesPopup"><i
                                 class="fa fa-plus"></i></button>
 
                     <div class="row">
                         <div class="col-md-6">
+
+                            <div>
+                                {% embed 'Pckg/Generic/View/modal.twig' with {close: true, id: 'installServicesModal'} %}
+                                    {% block header %}
+                                        <h4>Install services</h4>
+                                    {% endblock %}
+                                    {% block body %}
+                                        <p>Select services you wish to install.</p>
+                                        <ul>
+                                            <li v-for="service in allServices" v-if="!service.isInstalledOnServer(server)">
+                                            ${ service.name } <a class="btn btn-xs" :href="service.getInstallOnServerUrl(server)">
+                                            <i class="fa fa-plus"></i>
+                                            </a>
+                                            </li>
+                                        </ul>
+                                    {% endblock %}
+                                {% endembed %}
+                            </div>
+
                             <h3>Services</h3>
                             <table class="table table-condensed table-striped">
                                 <thead>
@@ -61,8 +80,7 @@
                                     <td>${ service.getVersion() }</td>
                                     <td>
                                         <button class="btn btn-warning btn-xs"
-                                                @click="service.configure()"
-                                                v-else><i class="fa fa-cogs"></i></button>
+                                                @click="service.configure()"><i class="fa fa-cogs"></i></button>
                                         ${ service.getStatus() }
                                     </td>
                                 </tr>
@@ -294,9 +312,23 @@
                 Impero.Servers.Entity.Servers.id(this.id, function (server) {
                     this.server = server;
                 }.bind(this));
+            },
+            openInstallServicesPopup: function () {
+                /**
+                 * Get and show list of available services to install.
+                 * Start flow for each separate service (haproxy requires one flow, mysql requires another, ...).
+                 */
+                $('#installServicesModal').modal('show');
             }
         },
         computed: {
+            allServices: function(){
+                /**
+                * @T00D00 - how to
+                 */
+                console.log('calling allServices');
+                return Impero.Servers.Entity.Services.getAllServices();
+            },
             services: function () {
                 return this.server.services
                     ? this.server.services
@@ -315,6 +347,7 @@
         },
         created: function () {
             this.fetchServer();
+            $store.commit('prepareServices');
         }
     });
 </script>
