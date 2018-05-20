@@ -328,11 +328,11 @@ frontend all_https
             $domains = $site->getUniqueDomains();
             //$replaced = str_replace(['.', '-'], ['\.', '\-'], implode('|', $domains));
             //$config .= "\n" . '    acl bcknd-' . $site->id . ' hdr_reg(host) -i ^(' . $replaced . ')$';
-            $config .= "\n" . '    acl bcknd-' . $site->id . ' hdr(host) -i ' . implode(' ', $domains->all());
+            $config .= "\n" . '    acl bcknd' . $site->id . ' hdr(host) -i ' . implode(' ', $domains->all());
         }
 
         foreach ($sites as $site) {
-            $config .= "\n" . '    use_backend backend-' . $site->id . ' if bcknd-' . $site->id;
+            $config .= "\n" . '    use_backend backend' . $site->id . ' if bcknd' . $site->id;
         }
         //$config .= "\n" . '    default_backend b';
 
@@ -342,7 +342,7 @@ frontend all_https
              */
             $workers = $site->getServiceServers('web');
 
-            $config .= "\n" . 'backend backend-' . $site->id;
+            $config .= "\n" . 'backend backend' . $site->id;
             $config .= "\n" . '    balance roundrobin';
             $config .= "\n" . '    mode tcp';
             foreach ($workers as $worker) {
