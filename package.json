@@ -18,16 +18,16 @@
     "less": "^2.7.3",
     "moment": "^2.19.1",
     "owl.carousel": "^2.2.0",
-    "sortablejs": "^1.7.0",
-    "tinymce": "^4.7.2",
-    "vue": "^2.5.3",
-    "vue-router": "^3.0.1",
-    "vuedraggable": "^2.15.0",
-    "vuex": "^2.5.0",
-    "vue-loader": "^15.0.11",
-    "vue-template-compiler": "^2.5.9",
     "puppeteer": "^1.1.1",
     "simple-vue-validator": "^0.14.2",
-    "vee-validate": "^2.0.0-rc.27"
+    "sortablejs": "^1.7.0",
+    "tinymce": "^4.7.2",
+    "vee-validate": "^2.0.0-rc.27",
+    "vue": "^2.5.3",
+    "vue-loader": "^15.0.11",
+    "vue-router": "^3.0.1",
+    "vue-template-compiler": "^2.5.9",
+    "vuedraggable": "^2.15.0",
+    "vuex": "^2.5.0"
   }
 }
