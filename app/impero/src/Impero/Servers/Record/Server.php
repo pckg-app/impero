@@ -330,7 +330,7 @@ frontend all_https
             $domains = $site->getUniqueDomains();
             //$replaced = str_replace(['.', '-'], ['\.', '\-'], implode('|', $domains));
             //$config .= "\n" . '    acl bcknd-' . $site->id . ' hdr_reg(host) -i ^(' . $replaced . ')$';
-            $config .= "\n" . '    acl bcknd' . $site->id . ' hdr(host) -i ' . implode(' ', $domains->all());
+            $config .= "\n" . '    acl bcknd' . $site->id . ' req.ssl_sni -i ' . implode(' ', $domains->all());
         }
 
         foreach ($sites as $site) {
