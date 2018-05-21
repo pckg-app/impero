@@ -241,8 +241,8 @@ class Server extends Record implements Connectable
          * Get all sites for web service on this server.
          */
         $sitesServers = (new SitesServers())->where('server_id', $this->id)
-                                     ->where('type', 'web')
-                                     ->all();
+                                            ->where('type', 'web')
+                                            ->all();
 
         $server = $this;
         $sitesServers->each(
@@ -272,7 +272,11 @@ class Server extends Record implements Connectable
         /**
          * Get all sites that are routed to this server and proxied to workers.
          */
-        $sitesServers = (new SitesServers())->where('server_id', $this->id)->where('type', 'web')->all();
+        $sitesServers = (new SitesServers())->where(
+            'id', (new SitesServers())->select('sites_servers.site_id')
+                                      ->where('server_id', $this->id)
+                                      ->where('type', 'web')
+        );
 
         $httpPort = $this->getSettingValue('service.haproxy.httpPort', 8080);
         $httpsPort = $this->getSettingValue('service.haproxy.httpsPort', 8443);
@@ -356,7 +360,9 @@ frontend all_https
             /**
              * Match requests by SNI.
              */
-            $config .= "\n" . '    acl bcknd' . $sitesServer->site_id . ' req.ssl_sni -i ' . implode(' ', $domains->all());
+            $config .= "\n" . '    acl bcknd' . $sitesServer->site_id . ' req.ssl_sni -i ' . implode(
+                    ' ', $domains->all()
+                );
         }
 
         foreach ($sitesServers as $sitesServer) {
