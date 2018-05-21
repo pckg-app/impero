@@ -19,6 +19,11 @@ class Sites
 
     public function deleteSiteAction(Site $site)
     {
+
+        return [
+            'success' => true,
+            'message' => 'System administrator notified about request',
+        ];
         $deleteUrl = url('impero.site.confirmDelete', ['site' => $site], true) . '?hash=' . $site->hash;
 
         email(
@@ -33,11 +38,6 @@ class Sites
             ],
             new SimpleUser('schtr4jh@schtr4jh.net')
         );
-
-        return [
-            'success' => true,
-            'message' => 'System administrator notified about request',
-        ];
     }
 
     /**
