@@ -276,7 +276,7 @@ class Server extends Record implements Connectable
             'site_id', (new SitesServers())->select('sites_servers.site_id')
                                            ->where('server_id', $this->id)
                                            ->where('type', 'web')
-        );
+        )->all()->groupBy('site_id');
 
         $httpPort = $this->getSettingValue('service.haproxy.httpPort', 8080);
         $httpsPort = $this->getSettingValue('service.haproxy.httpsPort', 8443);
@@ -353,38 +353,40 @@ frontend all_https
     # We do not allow downgrading to https
     http-response set-header Strict-Transport-Security max-age=15768000';
 
-        foreach ($sitesServers as $sitesServer) {
-            $domains = $sitesServer->site->getUniqueDomains();
+        foreach ($sitesServers as $sitesServersGrouped) {
+            $site = collect($sitesServersGrouped)->first()->site;
+            $domains = $site->getUniqueDomains();
             //$replaced = str_replace(['.', '-'], ['\.', '\-'], implode('|', $domains));
             //$config .= "\n" . '    acl bcknd-' . $site->id . ' hdr_reg(host) -i ^(' . $replaced . ')$';
             /**
              * Match requests by SNI.
              */
-            $config .= "\n" . '    acl bcknd' . $sitesServer->site_id . ' req.ssl_sni -i ' . implode(
+            $config .= "\n" . '    acl bcknd' . $site->id . ' req.ssl_sni -i ' . implode(
                     ' ', $domains->all()
                 );
         }
 
-        foreach ($sitesServers as $sitesServer) {
+        foreach ($sitesServers as $sitesServersGrouped) {
+            $site = collect($sitesServersGrouped)->first()->site;
             /**
              * Forward requests to backend.
              */
-            $config .= "\n" . '    use_backend backend' . $sitesServer->site_id . ' if bcknd' . $sitesServer->site_id;
+            $config .= "\n" . '    use_backend backend' . $site->id . ' if bcknd' . $site->id;
         }
         /**
          * We need to define fallback backend.
          */
-        if (false && $first = $sitesServers->first()) {
+        if (false && $sitesServers) {
             $config .= "\n" . '    default_backend fallback';
         }
 
         $allWorkers = [];
-        foreach ($sitesServers as $sitesServer) {
-            $site = $sitesServer->site;
+        foreach ($sitesServers as $sitesServersGrouped) {
+            $site = collect($sitesServersGrouped)->first()->site;
             /**
              * Receive list of all server that site is deployed to.
              */
-            $workers = $site->getServiceServers('web');
+            $workers = collect($sitesServersGrouped)->map('server');
 
             $config .= "\n" . 'backend backend' . $site->id;
             $config .= "\n" . '    balance roundrobin';
