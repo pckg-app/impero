@@ -368,7 +368,7 @@ frontend all_https
         /**
          * We need to define fallback backend.
          */
-        if ($first = $sites->first()) {
+        if (false && $first = $sites->first()) {
             $config .= "\n" . '    default_backend fallback';
         }
 
@@ -404,7 +404,7 @@ frontend all_https
         }
 
         $firstWorker = collect($allWorkers)->first();
-        if ($firstWorker) {
+        if (false && $firstWorker) {
             $config .= '
         backend fallback
             balance roundrobin
