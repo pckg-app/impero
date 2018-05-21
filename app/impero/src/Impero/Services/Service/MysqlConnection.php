@@ -1,6 +1,7 @@
 <?php namespace Impero\Services\Service;
 
 use Exception;
+use Impero\Services\Service\Connection\SshConnection;
 use PDO;
 
 /**

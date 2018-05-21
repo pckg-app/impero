@@ -43,7 +43,7 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function getMysqlConnection()
     {
-        return new MysqlConnection($this->connection);
+        return new MysqlConnection($this->getConnection());
     }
 
     /**
