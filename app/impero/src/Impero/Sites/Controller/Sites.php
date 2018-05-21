@@ -19,12 +19,12 @@ class Sites
 
     public function deleteSiteAction(Site $site)
     {
+        $deleteUrl = url('impero.site.confirmDelete', ['site' => $site], true) . '?hash=' . $site->hash;
 
         return [
             'success' => true,
             'message' => 'System administrator notified about request',
         ];
-        $deleteUrl = url('impero.site.confirmDelete', ['site' => $site], true) . '?hash=' . $site->hash;
 
         email(
             [
