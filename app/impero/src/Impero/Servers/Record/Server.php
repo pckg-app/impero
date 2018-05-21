@@ -272,7 +272,7 @@ class Server extends Record implements Connectable
         /**
          * Get all sites that are routed to this server and proxied to workers.
          */
-        $sites = $this->sites;
+        $sitesServers = (new SitesServers())->where('server_id', $this->id)->where('type', 'web')->all();
 
         $httpPort = $this->getSettingValue('service.haproxy.httpPort', 8080);
         $httpsPort = $this->getSettingValue('service.haproxy.httpsPort', 8443);
@@ -349,31 +349,32 @@ frontend all_https
     # We do not allow downgrading to https
     http-response set-header Strict-Transport-Security max-age=15768000';
 
-        foreach ($sites as $site) {
-            $domains = $site->getUniqueDomains();
+        foreach ($sitesServers as $sitesServer) {
+            $domains = $sitesServer->site->getUniqueDomains();
             //$replaced = str_replace(['.', '-'], ['\.', '\-'], implode('|', $domains));
             //$config .= "\n" . '    acl bcknd-' . $site->id . ' hdr_reg(host) -i ^(' . $replaced . ')$';
             /**
              * Match requests by SNI.
              */
-            $config .= "\n" . '    acl bcknd' . $site->id . ' req.ssl_sni -i ' . implode(' ', $domains->all());
+            $config .= "\n" . '    acl bcknd' . $sitesServer->site_id . ' req.ssl_sni -i ' . implode(' ', $domains->all());
         }
 
-        foreach ($sites as $site) {
+        foreach ($sitesServers as $sitesServer) {
             /**
              * Forward requests to backend.
              */
-            $config .= "\n" . '    use_backend backend' . $site->id . ' if bcknd' . $site->id;
+            $config .= "\n" . '    use_backend backend' . $sitesServer->site_id . ' if bcknd' . $sitesServer->site_id;
         }
         /**
          * We need to define fallback backend.
          */
-        if (false && $first = $sites->first()) {
+        if (false && $first = $sitesServers->first()) {
             $config .= "\n" . '    default_backend fallback';
         }
 
         $allWorkers = [];
-        foreach ($sites as $site) {
+        foreach ($sitesServers as $sitesServer) {
+            $site = $sitesServer->site;
             /**
              * Receive list of all server that site is deployed to.
              */
