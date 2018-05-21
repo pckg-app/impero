@@ -276,7 +276,9 @@ class Server extends Record implements Connectable
             'site_id', (new SitesServers())->select('sites_servers.site_id')
                                            ->where('server_id', $this->id)
                                            ->where('type', 'web')
-        )->all()->groupBy('site_id');
+        )->where('type', 'web')
+                                            ->all()
+                                            ->groupBy('site_id');
 
         $httpPort = $this->getSettingValue('service.haproxy.httpPort', 8080);
         $httpsPort = $this->getSettingValue('service.haproxy.httpsPort', 8443);
