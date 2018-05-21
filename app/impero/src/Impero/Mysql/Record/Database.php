@@ -103,8 +103,13 @@ class Database extends Record implements Connectable
         try {
             $coldFile = $backupService->toCold($crypto->getFile());
             $keys = $crypto->getKeys();
-            $coldPrivate = $localBackupService->toCold($keys['private']);
-            $coldCert = $localBackupService->toCold($keys['cert']);
+            /**
+             * @T00D00
+             */
+            $coldPrivate = $keys['private'];
+            $coldCert = $keys['cert'];
+            //$coldPrivate = $localBackupService->toCold($keys['private']);
+            //$coldCert = $localBackupService->toCold($keys['cert']);
         } catch (\Throwable $e) {
             dd(exception($e));
         }
@@ -223,8 +228,10 @@ class Database extends Record implements Connectable
          */
         $mysqlService = new Mysql($this->getConnection());
         if ($mysqlService->isReplicatedOnMaster($this)) {
+            return d('is replicated');
             return;
         }
+        return d('is not');
 
         $mysqlService->replicateOnMaster($this);
     }
@@ -244,6 +251,7 @@ class Database extends Record implements Connectable
          */
         $mysqlSlaveService = (new Mysql($slaveServer->getConnection()));
         $backupMasterService = new Backup($this->getConnection());
+        $mysqlSlaveService->getConnection()->exec('mkdir -p /home/impero/impero/service/random');
 
         /**
          * Check if database is alredy replicated.
@@ -286,7 +294,6 @@ class Database extends Record implements Connectable
          * Import backup.
          */
         $this->importBackup($backupFile, $slaveServer);
-
         /**
          * Start slave.
          */
@@ -296,7 +303,7 @@ class Database extends Record implements Connectable
          * Wait few seconds for slave to get in sync.
          * Then refresh cluster configuration.
          */
-        //
+        dd('done?');
     }
 
     /**
@@ -310,18 +317,46 @@ class Database extends Record implements Connectable
          * Read binlog position and resume slave sync.
          * -- CHANGE MASTER TO MASTER_LOG_FILE='mysql-bin.002142', MASTER_LOG_POS=752877;
          */
-        $positionLine = $this->server->exec('head ' . $backupPath)[0] ?? null;
+        $positionLine = explode("\n", $this->server->exec('head ' . $backupPath))[0] ?? null;
         if (!$positionLine) {
             throw new Exception('Cannot parse binlog position from backup.');
         }
 
-        $command = trim(str_replace('-- CHANGE MASTER TO', 'START SLAVE UNTIL', $positionLine));
+        /**
+         * Validate
+         */
 
-        if (strpos($command, 'START SLAVE UNTIL') !== 0) {
-            throw new Exception('Error preparing resume slave statement');
+        if (!strpos($positionLine, 'MASTER_LOG_FILE=') || !strpos($positionLine, 'MASTER_LOG_POS=')) {
+            throw new Exception('No data provider for binlog position.');
         }
 
-        $slaveServer->execSql($command);
+        /**
+         * Parse.
+         */
+        $start = strpos($positionLine, 'MASTER_LOG_FILE') + strlen('MASTER_LOG_FILE=') + 1;
+        $logFile = substr($positionLine, $start, strpos($positionLine, ',', $start + 1) - $start - 1);
+        $start = strpos($positionLine, 'MASTER_LOG_POS') + strlen('MASTER_LOG_POS=');
+        $logPosition = substr($positionLine, $start, -1);
+
+        /**
+         * Validate.
+         */
+        if (strpos($logFile, 'mysql-bin.') !== 0 || !$logPosition || (int)$logPosition != $logPosition) {
+            throw new Exception('Cannot parse binlog position');
+        }
+
+        /**
+         * Build commands.
+         */
+        $syncSql = 'START SLAVE UNTIL MASTER_LOG_FILE = \'' . $logFile . '\', MASTER_LOG_POS = ' . $logPosition;
+        $waitSql = 'SELECT MASTER_POS_WAIT(\'' . $logFile . '\', ' . $logPosition . ');';
+
+        /**
+         * First execute slave sync command:
+         * Then execute command that waits for slave to catch up with master. :)
+         */
+        $slaveServer->execSql($syncSql);
+        $slaveServer->execSql($waitSql);
     }
 
     /**

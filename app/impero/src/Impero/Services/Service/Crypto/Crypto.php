@@ -168,8 +168,7 @@ class Crypto
         /**
          * Encrypt compressed file.
          */
-        $encryptedFile = $this->encrypt();
-        $this->replaceFile($this->from, $encryptedFile);
+        return $encryptedFile = $this->encrypt();
     }
 
     /**
@@ -209,7 +208,6 @@ class Crypto
          * Delete original after usage.
          */
         $compressedFile = $this->decrypt();
-        $this->replaceFile($this->to, $compressedFile);
 
         /**
          * Decompress file with Zip service.
@@ -256,7 +254,7 @@ class Crypto
     {
         $encryptedCopy = $this->prepareDirectory('random') . sha1random();
         $this->from->transferFile($this->file, $encryptedCopy, $this->to);
-        $this->replaceFile($this->from, $this->file);
+        $this->replaceFile($this->from, $encryptedCopy);
 
         return $encryptedCopy;
     }
@@ -270,18 +268,18 @@ class Crypto
     protected function prepareDirectory($dir)
     {
 
-        $root = $this->getConnection() instanceof LocalConnection
+        $root = $this->to->getConnection() instanceof LocalConnection
             ? path('private')
             : '/home/impero/impero/';
         $dir = $root . 'service/random';// . $dir;
 
-        if ($this->from->getConnection()->dirExists($dir)) {
-            return $dir;
+        if ($this->to->getConnection()->dirExists($dir)) {
+            return $dir . '/';
         }
 
-        $this->from->getConnection()->exec('mkdir -p ' . $dir);
+        $this->to->getConnection()->exec('mkdir -p ' . $dir);
 
-        return $dir;
+        return $dir . '/';
     }
 
 }

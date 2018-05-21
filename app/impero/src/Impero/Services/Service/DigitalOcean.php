@@ -31,7 +31,6 @@ class DigitalOcean extends AbstractService implements ServiceInterface
      */
     public function uploadToSpaces($file)
     {
-        d('to spaced', $file);
         /**
          * Create spaces filesystem.
          */

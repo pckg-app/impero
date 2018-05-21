@@ -24,7 +24,12 @@ class LocalConnection implements ConnectionInterface, Connectable
      */
     public function exec($command, &$output = null, &$error = null)
     {
+        if (strpos($command, 'gpg2') === 0) {
+            $command = 'gpg2 --homedir /home/www-data/.gnupg ' . substr($command, 5);
+        }
+
         $return = exec($command . ' 2>&1', $output, $error);
+
         return $return;
     }
 

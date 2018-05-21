@@ -1,19 +1,14 @@
 <?php namespace Impero\Sites\Resolver;
 
 use Impero\Apache\Entity\Sites;
+use Pckg\Framework\Provider\Helper\EntityResolver;
 use Pckg\Framework\Provider\RouteResolver;
 
 class Site implements RouteResolver
 {
 
-    public function resolve($value)
-    {
-        return (new Sites())->where('id', $value)->oneOrFail();
-    }
+    use EntityResolver;
 
-    public function parametrize($record)
-    {
-        return $record->id;
-    }
+    protected $entity = Sites::class;
 
 }

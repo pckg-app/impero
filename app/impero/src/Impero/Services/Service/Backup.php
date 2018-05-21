@@ -48,6 +48,7 @@ class Backup extends AbstractService implements ServiceInterface
         $flags = '--routines --triggers --skip-opt --order-by-primary --create-options --compact --master-data=2 --single-transaction --extended-insert --add-locks --disable-keys';
 
         $dumpCommand = 'mysqldump ' . $flags . ' -u ' . $user . ' ' . $database->name . ' > ' . $backupFile;
+        d($dumpCommand);
         $this->getConnection()->exec($dumpCommand);
 
         return $backupFile;
@@ -72,6 +73,14 @@ class Backup extends AbstractService implements ServiceInterface
      */
     public function importMysqlBackup(Database $database, $file)
     {
+        $output = $this->exec('mysql -u impero -e \'SHOW DATABASES WHERE `Database` = "' . $database->name . '"\'');
+        if (trim($output)) {
+            /**
+             * Already existing.
+             */
+            return;
+        }
+        $this->exec('mysql -u impero -e \'CREATE DATABASE IF NOT EXISTS `' . $database->name . '`\'');
         $command = 'mysql -u impero ' . $database->name . ' < ' . $file;
         $this->getConnection()->exec($command);
     }

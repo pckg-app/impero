@@ -69,17 +69,21 @@ class MysqlConnection
      * @return array
      * @throws Exception
      */
-    public function query($database, $sql, $binds = [])
+    public function query($database = null, $sql = null, $binds = [])
     {
         if (!$this->pdo) {
             $tunnelPort = $this->sshConnection->tunnel();
 
-            $p = "mysql:host=127.0.0.1:" . $tunnelPort . ";charset=utf8;dbname=" . $database;
+            $p = "mysql:host=127.0.0.1:" . $tunnelPort . ";charset=utf8" . ($database ? ";dbname=" . $database : '');
             $this->pdo = new PDO(
                 $p,
                 'impero',
                 $this->getMysqlPassword()
             );
+        }
+
+        if (!$sql) {
+            return null;
         }
 
         $prepared = $this->pdo->prepare($sql);

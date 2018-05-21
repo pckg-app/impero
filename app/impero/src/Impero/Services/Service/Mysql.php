@@ -27,6 +27,7 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
+        // /etc/mysql/conf.d/impero.cnf
         $response = $this->getConnection()
                          ->exec('mysql -V');
 
@@ -126,8 +127,10 @@ class Mysql extends AbstractService implements ServiceInterface
     public function requireMysqlMasterReplication()
     {
         if ($this->isMysqlMasterReplicated()) {
+            return d('is');
             return;
         }
+        return d('not');
 
         $this->replicateMysqlMaster();
     }

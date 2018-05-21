@@ -133,7 +133,9 @@ class SshConnection implements ConnectionInterface, Connectable
          * Throw exception on misconfiguration.
          */
         if (!$auth) {
-            $this->server->logCommand('Cannot authenticate: ' . $type . ' ' . $user . ' ' . $key . ' ' . $host . ' ' . $port, null, null, null);
+            $this->server->logCommand(
+                'Cannot authenticate: ' . $type . ' ' . $user . ' ' . $key . ' ' . $host . ' ' . $port, null, null, null
+            );
             throw new Exception("Cannot authenticate with key");
         } else {
             $this->server->logCommand('Authenticated with SSH', null, null, null);
@@ -230,6 +232,7 @@ class SshConnection implements ConnectionInterface, Connectable
         } finally {
             $output = $infoStreamContent;
             $error = $errorStreamContent;
+
             $serverCommand->setAndSave(
                 [
                     'command' => 'Command executed ' . $command,
@@ -421,7 +424,9 @@ password = s0m3p4ssw0rd';*/
         if (!$to->getConnection()->dirExists($dir)) {
             $to->getConnection()->exec('mkdir -p ' . $dir);
         }
-        $this->exec('rsync -a ' . $file . ' impero@' . $to->privateIp . ':' . $file);
+        $this->exec(
+            'rsync -a ' . $file . ' impero@' . $to->privateIp . ':' . $file . ' -e \'ssh -p ' . $to->port . '\''
+        );
     }
 
     /**
@@ -434,7 +439,7 @@ password = s0m3p4ssw0rd';*/
             /**
              * We are copying for example some file from impero to $this connection.
              */
-            $command = 'rsync -a ' . $file . ' impero@' . $this->host . ':' . $file;
+            $command = 'rsync -a ' . $file . ' impero@' . $this->host . ':' . $file . ' -e \'ssh -p ' . $this->port . '\'';
 
             /**
              * @T00D00 ... how to do this transparent?
@@ -447,7 +452,7 @@ password = s0m3p4ssw0rd';*/
         /**
          * We are copying for example some file from $this connection to remote $from
          */
-        $command = 'rsync -a impero@' . $from->privateIp . ':' . $file . ' ' . $file;
+        $command = 'rsync -a impero@' . $from->privateIp . ':' . $file . ' ' . $file . ' -e \'ssh -p ' . $from->port . '\'';
         $this->exec($command);
     }
 
@@ -480,6 +485,15 @@ password = s0m3p4ssw0rd';*/
     public function getConnection() : SshConnection
     {
         return $this;
+    }
+
+    public function sendFileTo($local, $remote, Server $to)
+    {
+        try {
+            $to->getConnection()->sftpSend($local, $remote);
+        } catch (\Throwable $e) {
+            dd(exception($e));
+        }
     }
 
 }

@@ -1,5 +1,7 @@
 <?php namespace Impero\Services\Service;
 
+use Exception;
+
 /**
  * Class Zip
  *
@@ -38,7 +40,8 @@ class Zip extends AbstractService implements ServiceInterface
         if (!$output) {
             $output = $this->prepareDirectory('random') . sha1random();
         }
-        $command = 'zip ' . $output . ' ' . $file . ' && mv ' . $output . '.zip ' . $output;
+        $dir = collect(explode('/', $output))->slice(0, -1)->implode('/');
+        $command = 'cd ' . $dir . ' && zip -j ' . $output . ' ' . $file . ' && mv ' . $output . '.zip ' . $output;
         $this->exec($command);
         return $output;
     }
@@ -69,13 +72,21 @@ class Zip extends AbstractService implements ServiceInterface
      * @return null|string
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
-    public function decompressFile($file, $output = null)
+    public function decompressFile($file)
     {
-        if (!$output) {
-            $output = $this->prepareDirectory('random') . sha1random();
+        $output = $this->exec('unzip -l ' . $file);
+        $output = explode(' ', explode("\n", trim($output))[3] ?? '');
+        $output = end($output);
+
+        if (strlen($output) != 40) {
+            throw new Exception("Cannot parse zip content");
         }
-        $command = 'unzip ' . $file . ' ' . $output;
-        $this->exec($command);
+
+        $dir = $this->prepareDirectory('random');
+        $this->exec('cd ' . $dir . ' && unzip -qq ' . $file);
+
+        $output = $dir . $output;
+
         return $output;
     }
 

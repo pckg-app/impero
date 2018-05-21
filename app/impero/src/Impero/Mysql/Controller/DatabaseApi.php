@@ -72,6 +72,8 @@ class DatabaseApi extends Controller
         /**
          * Enable or disable mysql backup.
          */
+        $database->backup();
+        dd('ok');
         $database->requireScriptBackup();
 
         return [

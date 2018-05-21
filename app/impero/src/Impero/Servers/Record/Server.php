@@ -466,11 +466,11 @@ frontend all_https
      * @return null|string
      * @throws \Exception
      */
-    public function decompressFile($file, $output)
+    public function decompressFile($file)
     {
         $zipService = new Zip($this->getConnection());
 
-        return $zipService->decompressFile($file, $output);
+        return $zipService->decompressFile($file);
     }
 
     /**
@@ -492,7 +492,7 @@ frontend all_https
      */
     public function transferFile($file, $destination, Server $toServer)
     {
-        $command = 'rsync -a ' . $file . ' impero@' . $toServer->ip . ':' . $destination;
+        $command = 'rsync -a ' . $file . ' impero@' . $toServer->ip . ':' . $destination . ' -e \'ssh -p ' . $toServer->port . '\'';
         $this->exec($command);
     }
 
