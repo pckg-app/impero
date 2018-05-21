@@ -45,7 +45,19 @@ class HAProxy extends AbstractService implements ServiceInterface
         return substr($response, $start, $length);
     }
 
+    public function reload()
+    {
+        $command = 'sudo service haproxy reload';
+        $this->exec($command);
+    }
+
     public function restart()
+    {
+        $command = 'sudo service haproxy restart';
+        $this->exec($command);
+    }
+
+    public function reloadSocket()
     {
         $command = 'sudo haproxy -f /etc/haproxy/haproxy.cfg -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)';
         $this->exec($command);
