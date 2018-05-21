@@ -2,6 +2,7 @@
 
 use Exception;
 use Impero\Apache\Record\Site;
+use Impero\Apache\Record\SitesServer;
 use Impero\Mysql\Entity\Databases;
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
@@ -23,9 +24,12 @@ class Sites
 
         email(
             [
-                'subject' => 'Confirm /impero site #' . $site->id . ' (' . $site->title . ') removal',
+                'subject' => 'Confirm /impero site #' . $site->id . ' (' . $site->server_name . ') removal',
                 'content' => '<p>Hey Bojan,</p>'
-                    . '<p>someone requested removal of site ' . $site->id . ' (' . $site->title . '.</p>'
+                    . '<p>someone requested removal of site ' . $site->id . ' (' . $site->server_name . ').</p>'
+                    . '<p>This action will create a backup of database, storage and config, remove app from all 
+servers and services, delete all related backups (except final one :)). Backup will still be available for 14 days
+for manual reuse.</p>'
                     . '<p>If you really want to delete site and all it\'s contents, please login to /impero and click '
                     . '<a href="' . $deleteUrl . '">here</a>.'
                     . '</p>'
@@ -53,6 +57,19 @@ class Sites
         }
 
         if (false) {
+            email(
+                [
+                    'subject' => 'Confirmation of /impero site #' . $site->id . ' (' . $site->server_name . ') removal',
+                    'content' => '<p>Hey Bojan,</p>'
+                        . '<p>site ' . $site->id . ' (' . $site->server_name . ') was deleted on you request.</p>'
+                        . '<p>Before we deleted *everything* we made storage, database and config backup which will be 
+available for another 14 days in /impero dashboard in case of missdelete. After 14 days backup files will be deleted 
+automatically and permanently.</p>'
+                        . '<p>Best regards, /impero team</p>',
+                ],
+                new SimpleUser('schtr4jh@schtr4jh.net')
+            );
+
             $site->undeploy([], []);
         }
 
@@ -227,7 +244,25 @@ class Sites
      */
     public function postDeployAction(Site $site)
     {
-        $site->deploy($site->server, post('pckg', []), post('vars', []), post('isAlias', false), post('checkAlias', false));
+        /**
+         * Currently only mailo is deployed to different servers.
+         * Mailo is directly checked-out so we can pull on both servers. Migrate only first instance.
+         * Linked checkouts pulls only linked directories. Migrates first instance of each site.
+         */
+        $migrate = true;
+        $site->siteServers->filter('type', 'web')->each(
+            function(SitesServer $sitesServer) use ($site, &$migrate) {
+                $site->deploy(
+                    $sitesServer->server,
+                    post('pckg', []),
+                    post('vars', []),
+                    post('isAlias', false),
+                    post('checkAlias', false),
+                    $migrate
+                );
+                $migrate = false;
+            }
+        );
 
         return [
             'site' => $site,

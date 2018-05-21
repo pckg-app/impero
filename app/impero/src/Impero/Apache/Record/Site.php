@@ -416,6 +416,68 @@ class Site extends Record
         return $connection->fileExists($this->getHtdocsPath() . $file);
     }
 
+    public function removeLetsencrypt()
+    {
+        /**
+         * Delete ssl symlinks.
+         * Invalidate certificate? Backup certificate?
+         * Delete letsencrypt history.
+         */
+    }
+
+    public function createFullBackup()
+    {
+        /**
+         * Storage
+         * Mysql
+         * Config
+         * Certificate
+         * Upload everything to space.
+         */
+    }
+
+    public function removeFromStorage()
+    {
+        /**
+         * Delete storage volumes.
+         */
+    }
+
+    public function removeFromDatabase()
+    {
+        /**
+         * Delete databases
+         * Delete users
+         */
+    }
+
+    public function removeFromBackups()
+    {
+        /**
+         * Remove storage, database and config backups
+         * Remove backup keys
+         * All except last backup
+         */
+    }
+
+    public function restartAllServices()
+    {
+        /**
+         * Haproxy
+         * Apache
+         * Mysql
+         * Nginx
+         */
+    }
+
+    public function invalidateApiKeys()
+    {
+        /**
+         * @T00D00 - remove this to cleanup or something
+         *         - invalidate mailo, pendo, ... api keys
+         */
+    }
+
     /**
      * Delete:
      *  - cronjobs (cron)
@@ -429,17 +491,17 @@ class Site extends Record
     public function undeploy($pckg, $vars)
     {
         /**
+         * - backup
+         */
+        $this->createFullBackup();
+
+        /**
          * - system
          *   - remove cronjobs
          *   - remove letsencrypt
          */
-
-        /** - uncheckout
-         *   - delete checkout.create.dir dirs
-         *   - delete checkout.symlink.dir dir symlinks
-         *   - delete checkout.symlink.file file symlinks
-         *   - delete checkout.config config files
-         */
+        $this->sitesServers->filter('type', 'cron')->each->undeploy();
+        $this->removeLetsencrypt();
 
         /** - storage
          *   - delete git checkout (whole htdocs?)
@@ -449,26 +511,33 @@ class Site extends Record
          *   - delete services.storage.dir dirs
          *   - unmount services.web.mount dirs and files
          */
+        $this->sitesServers->filter('type', 'web')->each->undeploy();
+        $this->removeFromStorage();
 
         /** - database
          *   - disable master and slave replication
          *   - remove users
          *   - remove databases
          */
+        $this->sitesServers->filter('type', 'database')->each->undeploy();
+        $this->removeFromDatabase();
 
         /** - backups
          *   - remove storage, database and config backups
          */
+        $this->removeFromBackups();
 
         /** - project
          *   - invalidate api keys (center, pendo, mailo, ...)
          */
+        $this->invalidateApiKeys();
 
         /** - services
          *   - apache
          *   - nginx
          *   - haproxy
          */
+        $this->restartAllServices();
     }
 
     /**
@@ -718,7 +787,7 @@ class Site extends Record
      *
      * @throws \Exception
      */
-    public function deploy(Server $server, $pckg, $vars, $isAlias = false, $checkAlias = false)
+    public function deploy(Server $server, $pckg, $vars, $isAlias = false, $checkAlias = false, $migrate = true)
     {
         $this->vars = $vars;
         $connection = $server->getConnection();
@@ -759,6 +828,9 @@ class Site extends Record
         /**
          * Standalone and aliased platforms are migrated in their htdocs directory.
          */
+        if (!$migrate) {
+            return;
+        }
         foreach ($pckg['migrate'] ?? [] as $command) {
             $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
             $finalCommand .= $this->replaceVars($command);

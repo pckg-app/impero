@@ -8,4 +8,12 @@ class SitesServer extends Record
 
     protected $entity = SitesServers::class;
 
+    public function undeploy()
+    {
+        /**
+         * web, database, cron, lb
+         */
+        // $this->delete();
+    }
+
 }

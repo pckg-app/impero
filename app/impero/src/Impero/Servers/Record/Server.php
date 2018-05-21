@@ -240,12 +240,12 @@ class Server extends Record implements Connectable
         /**
          * Get all sites for web service on this server.
          */
-        $sites = (new SitesServers())->where('server_id', $this->id)
+        $sitesServers = (new SitesServers())->where('server_id', $this->id)
                                      ->where('type', 'web')
                                      ->all();
 
         $server = $this;
-        $sites->each(
+        $sitesServers->each(
             function(SitesServer $sitesServer) use (&$virtualhosts, $server) {
                 /**
                  * Apache: apache port
