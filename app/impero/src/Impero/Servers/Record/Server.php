@@ -286,11 +286,19 @@ class Server extends Record implements Connectable
         user haproxy
         group haproxy
         daemon
+        
+        # Increase TLS session cache size and lifetime to avoid computing too many symmetric keys
+        tune.ssl.cachesize 100000
+        tune.ssl.lifetime 600
+        
+        # Set up a TLS record to match a TCP segment size to improve client side rendering of content
+        tune.ssl.maxrecord 1460
 
         # Default SSL material locations
         ca-base /etc/ssl/certs
         crt-base /etc/ssl/private
         
+        # Use Mozilla\'s SSL config generator
         # https://mozilla.github.io/server-side-tls/ssl-config-generator/?hsts=no
         # haproxy 1.6.3
         # openssl 1.1.0g
@@ -318,35 +326,53 @@ defaults
         $config .= "\n\n";
 
         $config .= 'frontend http2https
+    # Http listens on on http port and redirects all requests to https
     bind *:' . $httpPort . '
     mode http
-    http-request replace-header Host ^(.*?)(:[0-9]+)?$ \1:' . $httpsPort . '
-    redirect scheme https code 301 if !{ ssl_fc }
+    
+    # Change http to https port
+    http-request replace-header Host ^(.*?)(:[0-9]+)?$ \1:8082
+    
+    # Change scheme to https and port to https port
+    http-request redirect location https://%[req.hdr(Host)]%[capture.req.uri]
     
 frontend all_https
+    # Https listens only on https port and forwards requests to backends
     bind *:' . $httpsPort . '
     mode tcp
     #option tcplog
     
-  tcp-request inspect-delay 5s
-  tcp-request content accept if { req_ssl_hello_type 1 }
+    # This is needed for proper ssl handshake
+    tcp-request inspect-delay 5s
+    tcp-request content accept if { req_ssl_hello_type 1 }
     
+    # We do not allow downgrading to https
     http-response set-header Strict-Transport-Security max-age=15768000';
 
         foreach ($sites as $site) {
             $domains = $site->getUniqueDomains();
             //$replaced = str_replace(['.', '-'], ['\.', '\-'], implode('|', $domains));
             //$config .= "\n" . '    acl bcknd-' . $site->id . ' hdr_reg(host) -i ^(' . $replaced . ')$';
+            /**
+             * Match requests by SNI.
+             */
             $config .= "\n" . '    acl bcknd' . $site->id . ' req.ssl_sni -i ' . implode(' ', $domains->all());
         }
 
         foreach ($sites as $site) {
+            /**
+             * Forward requests to backend.
+             */
             $config .= "\n" . '    use_backend backend' . $site->id . ' if bcknd' . $site->id;
         }
-        if (false && $first = $sites->first()) {
-            $config .= "\n" . '    default_backend backend' . $first->id;
+        /**
+         * We need to define fallback backend.
+         */
+        if ($first = $sites->first()) {
+            $config .= "\n" . '    default_backend fallback';
         }
 
+        $allWorkers = [];
         foreach ($sites as $site) {
             /**
              * Receive list of all server that site is deployed to.
@@ -369,11 +395,25 @@ frontend all_https
             $config .= "\n" . 'option ssl-hello-chk';
 
             foreach ($workers as $worker) {
+                $allWorkers[$worker->id] = $worker;
                 $workerHttpsPort = $worker->getSettingValue('service.apache2.httpsPort', 443);
                 $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name
                     . ' ' . $worker->privateIp . ':' . $workerHttpsPort .
                     ' check cookie ' . $site->server_name . '-' . $worker->name; // ssl verify none
             }
+        }
+
+        $firstWorker = collect($allWorkers)->first();
+        if ($firstWorker) {
+            $config .= '
+        backend fallback
+            balance roundrobin
+            mode tcp
+            option ssl-check-chk
+            server fallback-' . $firstWorker->name . ' ' . $worker->privateIp . ':'
+                . $worker->getSettingValue('service.apacke2.httpsPort', 443)
+                . ' check cookie fallback-' . $worker->name . '
+        ';
         }
 
         $config .= "\n\n";
