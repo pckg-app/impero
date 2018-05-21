@@ -250,7 +250,7 @@ automatically and permanently.</p>'
          * Linked checkouts pulls only linked directories. Migrates first instance of each site.
          */
         $migrate = true;
-        $site->siteServers->filter('type', 'web')->each(
+        $site->sitesServers->filter('type', 'web')->each(
             function(SitesServer $sitesServer) use ($site, &$migrate) {
                 $site->deploy(
                     $sitesServer->server,
