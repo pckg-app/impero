@@ -393,7 +393,7 @@ frontend all_https
             $config .= "\n" . 'backend backend' . $site->id;
             $config .= "\n" . '    balance roundrobin';
             $config .= "\n" . '    mode tcp';
-            $config .= "\n" . '    cookie PHPSESSID prefix nocache';
+            //$config .= "\n" . '    cookie PHPSESSID prefix nocache';
             //$config .= "\n" . '    option forwardfor';
 
             //$config .= "\n" . 'acl clienthello req_ssl_hello_type 1';
@@ -410,7 +410,7 @@ frontend all_https
                 $workerHttpsPort = $worker->getSettingValue('service.apache2.httpsPort', 443);
                 $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name
                     . ' ' . $worker->privateIp . ':' . $workerHttpsPort .
-                    ' check cookie ' . $site->server_name . '-' . $worker->name; // ssl verify none
+                    ' check';// 'cookie ' . $site->server_name . '-' . $worker->name; // ssl verify none
             }
         }
 

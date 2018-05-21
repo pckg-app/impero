@@ -2,6 +2,8 @@
 
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
+use Impero\Services\Service\Apache;
+use Impero\Services\Service\HAProxy;
 use Pckg\Framework\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -90,7 +92,7 @@ class DumpVirtualhosts extends Command
         /**
          * @T00D00 - check if apache is offline and apply previous configuration.
          */
-        $sshConnection->exec('sudo service apache2 graceful');
+        (new Apache($sshConnection))->restart();
     }
 
     /**
@@ -135,7 +137,7 @@ class DumpVirtualhosts extends Command
         $sshConnection->sftpSend($local, $remote);
         unlink($local);
 
-        $sshConnection->exec('sudo service haproxy restart');
+        (new HAProxy($sshConnection))->restart();
     }
 
 }
