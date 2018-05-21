@@ -273,9 +273,9 @@ class Server extends Record implements Connectable
          * Get all sites that are routed to this server and proxied to workers.
          */
         $sitesServers = (new SitesServers())->where(
-            'id', (new SitesServers())->select('sites_servers.site_id')
-                                      ->where('server_id', $this->id)
-                                      ->where('type', 'web')
+            'site_id', (new SitesServers())->select('sites_servers.site_id')
+                                           ->where('server_id', $this->id)
+                                           ->where('type', 'web')
         );
 
         $httpPort = $this->getSettingValue('service.haproxy.httpPort', 8080);
