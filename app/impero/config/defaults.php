@@ -1,5 +1,7 @@
 <?php
 
+use Pckg\Mail\Service\Mail\Handler\Command;
+
 return [
     'pckg'    => [
         'auth' => [
@@ -25,6 +27,9 @@ return [
                     'userGroup'      => 'status_id',
                 ],
             ],
+        ],
+        'mail' => [
+            'handler' => Command::class,
         ],
     ],
     'rollbar' => [
