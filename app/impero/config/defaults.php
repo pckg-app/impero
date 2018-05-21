@@ -36,7 +36,9 @@ return [
         'access_token' => 'af5cdf8a51284be0b3fd2d3af59a62f2',
     ],
     'site'    => [
-        'contact' => 'impero@foobar.si',
-        'name'    => '/impero',
+        'contact' => [
+            'email' => 'impero@foobar.si',
+            'name'  => '/impero',
+        ],
     ],
 ];
