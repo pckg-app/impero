@@ -14,8 +14,6 @@ use Impero\Services\Service\Crypto\Crypto;
 class GPG extends AbstractService implements ServiceInterface
 {
 
-    // sudo apt-get install gnupg2 -y
-
     /**
      * @var string
      */
@@ -486,7 +484,8 @@ class GPG extends AbstractService implements ServiceInterface
         $connection = $this->getConnection();
         if ($connection instanceof LocalConnection) {
             $connection->exec(
-                'rsync -a ' . $file . ' impero@' . $to->ip . ':' . ($target ?? $file) . ' -e \'ssh -p ' . $to->port . '\''
+                'rsync -a ' . $file . ' impero@' . $to->ip . ':' . ($target ?? $file) . ' -e \'ssh -p ' . $to->port
+                . '\' -i ' . path('private') . 'keys/id_rsa_' . $to->id
             );
         } else {
             /**
