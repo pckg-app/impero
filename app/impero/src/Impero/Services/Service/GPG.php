@@ -97,7 +97,7 @@ class GPG extends AbstractService implements ServiceInterface
          *
          * @T00D00
          */
-        if (false && $this->getConnection() instanceof LocalConnection) {
+        if ($this->getConnection() instanceof LocalConnection) {
             $this->exportPrivateKey($random . '@impero', $sec);
             $this->generateRevokeCertificate($random . '@impero', $cert);
         }
@@ -146,6 +146,7 @@ class GPG extends AbstractService implements ServiceInterface
             $this->exec($command);
             return $output;
         }
+        die("why is this used?");
         $toGpgService = new GPG($to);
         $toGpgService->tempUseFile(
             $crypto->getKeys()['public'], $from, function() use ($toGpgService, $from, $input, $output, $keyFiles) {
@@ -368,6 +369,7 @@ class GPG extends AbstractService implements ServiceInterface
         );
 
         if (!$key) {
+            dd('doesnt exist', $keys);
             throw new Exception('Key doesnot exist');
         }
 
@@ -399,6 +401,7 @@ class GPG extends AbstractService implements ServiceInterface
     public function listKeys($gpg = '')
     {
         $command = 'gpg' . $gpg . ' --list-secret-keys --fingerprint';
+        $command = 'gpg' . $gpg . ' --fingerprint';
         $this->exec($command, $output);
         if (is_array($output)) {
             $output = implode("\n", $output);
@@ -480,9 +483,19 @@ class GPG extends AbstractService implements ServiceInterface
          * Copy public key from impero to $to.
          * Copy public key from $from to $to.
          */
-        $this->getConnection()->exec(
-            'rsync -a ' . $file . ' impero@' . $to->ip . ':' . ($target ?? $file) . ' -e \'ssh -p ' . $to->port . '\''
-        );
+        $connection = $this->getConnection();
+        if ($connection instanceof LocalConnection) {
+            $connection->exec(
+                'rsync -a ' . $file . ' impero@' . $to->ip . ':' . ($target ?? $file) . ' -e \'ssh -p ' . $to->port . '\''
+            );
+        } else {
+            /**
+             * Remotes are synced.
+             */
+            $connection->exec(
+                'rsync -a ' . $file . ' impero@' . $to->ip . ':' . ($target ?? $file) . ' -e \'ssh -p ' . $to->port . '\''
+            );
+        }
     }
 
 }

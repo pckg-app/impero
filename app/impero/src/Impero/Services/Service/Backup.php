@@ -48,7 +48,6 @@ class Backup extends AbstractService implements ServiceInterface
         $flags = '--routines --triggers --skip-opt --order-by-primary --create-options --compact --master-data=2 --single-transaction --extended-insert --add-locks --disable-keys';
 
         $dumpCommand = 'mysqldump ' . $flags . ' -u ' . $user . ' ' . $database->name . ' > ' . $backupFile;
-        d($dumpCommand);
         $this->getConnection()->exec($dumpCommand);
 
         return $backupFile;

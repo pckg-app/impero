@@ -31,6 +31,7 @@ class DigitalOcean extends AbstractService implements ServiceInterface
      */
     public function uploadToSpaces($file)
     {
+        d('to spaces', $file);
         /**
          * Create spaces filesystem.
          */
@@ -38,6 +39,7 @@ class DigitalOcean extends AbstractService implements ServiceInterface
         $connection = $this->getConnection();
         $coldName = 'backup/impero/' . filename($file);
         if ($connection instanceof LocalConnection) {
+            d('local');
             /**
              * Transfer image to digital ocean spaces?
              * We need to be authenticated as
@@ -45,6 +47,7 @@ class DigitalOcean extends AbstractService implements ServiceInterface
             $stream = fopen($file, 'r+');
             $coldFilesystem->writeStream($coldName, $stream);
         } elseif ($connection instanceof SshConnection) {
+            d('ssh');
             /**
              * @T00D00 - solve remote transfer (remote -> s3), it should be direct
              *         the problem is, how to configure s3ctl script remotely?
@@ -66,6 +69,7 @@ class DigitalOcean extends AbstractService implements ServiceInterface
             $remoteFilesystem = new Filesystem($adapter);
             $coldFilesystem->writeStream($coldName, $remoteFilesystem->readStream($file));
         }
+        d('spaced', $coldName);
 
         return $coldName;
     }

@@ -116,6 +116,7 @@ class Crypto
     public function replaceFile(Server $server, $file)
     {
         $server->getConnection()->deleteFile($this->file);
+        d('replacing ' . $this->file . ' with ' . $file);
         $this->file = $file;
     }
 

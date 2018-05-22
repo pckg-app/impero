@@ -92,7 +92,7 @@ class Database extends Record implements Connectable
         $backupFile = $backupService->createMysqlBackup($this);
 
         /**
-         * Compress and encrypt backup.
+         * Compress and encrypt backup on remote server.
          */
         $crypto = new Crypto($this->server, null, $backupFile);
         $crypto->compressAndEncrypt();
@@ -271,7 +271,7 @@ class Database extends Record implements Connectable
          *
          * @T00D00 - take down only $database, then sync only $database from binlog.
          */
-        $mysqlSlaveService->stopSlave();
+        //$mysqlSlaveService->stopSlave();
 
         /**
          * Create backup.
@@ -281,7 +281,7 @@ class Database extends Record implements Connectable
         /**
          * Resume slave until backup.
          */
-        $this->syncSlaveUntilBackup($backupFile, $slaveServer);
+        //$this->syncSlaveUntilBackup($backupFile, $slaveServer);
 
         /**
          * Let backup service take care of full transfer.
@@ -297,7 +297,7 @@ class Database extends Record implements Connectable
         /**
          * Start slave.
          */
-        $mysqlSlaveService->startSlave();
+        //$mysqlSlaveService->startSlave();
 
         /**
          * Wait few seconds for slave to get in sync.

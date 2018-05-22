@@ -45,7 +45,7 @@ class MysqlConnection
      */
     public function execute($sql, &$error = null)
     {
-        $command = 'mysql -u impero -e' . escapeshellarg($sql . ';');
+        $command = 'mysql -u impero -e ' . escapeshellarg($sql . ';');
 
         $result = $this->sshConnection->exec($command, $error);
 
