@@ -78,16 +78,31 @@ class DumpVirtualhosts extends Command
      */
     protected function storeVirtualhosts(Server $server, $virtualhosts)
     {
+        /**
+         * Virtualhosts.
+         */
         $local = '/tmp/server.' . $server->id . '.virtualhosts';
         $remote = '/etc/apache2/sites-enabled/002-impero.conf';
         file_put_contents($local, $virtualhosts);
+        /**
+         * Ports.
+         */
+        $localPorts = '/tmp/server.' . $server->id . '.ports';
+        $remotePorts = '/etc/apache2/ports.conf';
+        $portsConfig = $server->getApachePortsConfig();
+        file_put_contents($localPorts, $portsConfig);
+        /**
+         * Skip sending when dry.
+         */
         if ($this->option('dry')) {
             return;
         }
         $this->outputDated('Dumping and restarting (apache)');
         $sshConnection = $server->getConnection();
         $sshConnection->sftpSend($local, $remote);
+        $sshConnection->sftpSend($localPorts, $remotePorts);
         unlink($local);
+        unlink($localPorts);
 
         /**
          * @T00D00 - check if apache is offline and apply previous configuration.
