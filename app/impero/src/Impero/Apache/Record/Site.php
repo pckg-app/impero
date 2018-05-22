@@ -6,6 +6,7 @@ use Impero\Apache\Entity\Sites;
 use Impero\Mysql\Record\Database;
 use Impero\Mysql\Record\User as DatabaseUser;
 use Impero\Servers\Record\Server;
+use Impero\Servers\Record\Task;
 use Impero\Services\Service\Connection\SshConnection;
 use Pckg\Database\Record;
 
@@ -551,45 +552,51 @@ class Site extends Record
     {
         $this->vars = $vars;
 
-        /**
-         * Create htdocs, logs and ssl directories on $server.
-         * If needed we enable https / letsencrypt (on loadbalancer?).
-         * Reload and restart apache on new server.
-         */
-        $this->prepareSite($server, $pckg);
+        $task = Task::create('Checking out site #' . $this->id);
 
-        /**
-         * We checkout and initialize standalone platforms or create directory structure and symlinks for linked ones.
-         */
-        $this->checkoutPlatform($server, $pckg);
+        return $task->make(
+            function() use ($server, $pckg) {
+                /**
+                 * Create htdocs, logs and ssl directories on $server.
+                 * If needed we enable https / letsencrypt (on loadbalancer?).
+                 * Reload and restart apache on new server.
+                 */
+                $this->prepareSite($server, $pckg);
 
-        /**
-         * Project is prepared on linked and standalone platforms.
-         * We need to apply storage service and execute 'prepare' commands.
-         * Here we create proper directories and symlinks.
-         */
-        $this->preparePlatformDirs($server, $pckg);
+                /**
+                 * We checkout and initialize standalone platforms or create directory structure and symlinks for linked ones.
+                 */
+                $this->checkoutPlatform($server, $pckg);
 
-        /**
-         * Create database, privileges, enable backups and replication.
-         * Also imports clean database, creates admin user and writes configuration.
-         */
-        $this->prepareDatabase($server, $pckg);
+                /**
+                 * Project is prepared on linked and standalone platforms.
+                 * We need to apply storage service and execute 'prepare' commands.
+                 * Here we create proper directories and symlinks.
+                 */
+                $this->preparePlatformDirs($server, $pckg);
 
-        /**
-         * Dump config.
-         */
-        $this->copyConfig($server, $pckg);
+                /**
+                 * Create database, privileges, enable backups and replication.
+                 * Also imports clean database, creates admin user and writes configuration.
+                 */
+                $this->prepareDatabase($server, $pckg);
 
-        /**
-         * We probably need to import few things.
-         */
-        $this->preparePlatform($server, $pckg);
+                /**
+                 * Dump config.
+                 */
+                $this->copyConfig($server, $pckg);
 
-        /**
-         * Everything is ready, we may enable cronjobs.
-         */
-        $this->enableCronjobs($server, $pckg);
+                /**
+                 * We probably need to import few things.
+                 */
+                $this->preparePlatform($server, $pckg);
+
+                /**
+                 * Everything is ready, we may enable cronjobs.
+                 */
+                $this->enableCronjobs($server, $pckg);
+            }
+        );
     }
 
     /**
@@ -600,15 +607,20 @@ class Site extends Record
      */
     public function preparePlatform(Server $server, $pckg)
     {
-        /**
-         * Execute prepare commands.
-         */
-        $commands = [];
-        foreach ($pckg['prepare'] ?? [] as $command) {
-            $commands[] = $this->replaceVars($command);
-        }
-        $connection = $server->getConnection();
-        $connection->execMultiple($commands);
+        $task = Task::create('Preparing site #' . $this->id);
+        return $task->make(
+            function() use ($server, $pckg) {
+                /**
+                 * Execute prepare commands.
+                 */
+                $commands = [];
+                foreach ($pckg['prepare'] ?? [] as $command) {
+                    $commands[] = $this->replaceVars($command);
+                }
+                $connection = $server->getConnection();
+                $connection->execMultiple($commands);
+            }
+        );
     }
 
     /**
@@ -619,10 +631,16 @@ class Site extends Record
      */
     public function copyConfig(Server $server, $pckg)
     {
-        $connection = $server->getConnection();
-        foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
-            $connection->saveContent($dest, $this->getConfigContent());
-        }
+        $task = Task::create('Copying config for site #' . $this->id);
+
+        return $task->make(
+            function() use ($server, $pckg) {
+                $connection = $server->getConnection();
+                foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
+                    $connection->saveContent($dest, $this->getConfigContent());
+                }
+            }
+        );
     }
 
     /**
@@ -633,58 +651,70 @@ class Site extends Record
      */
     public function prepareSite(Server $server, $pckg)
     {
-        /**
-         * Link server and site's service.
-         */
-        SitesServer::getOrCreate(['server_id' => $server->id, 'site_id' => $this->id, 'type' => 'web']);
+        $task = Task::create('Preparing site #' . $this->id);
 
-        /**
-         * Web service, log service and https service.
-         * Impero is web management service, so we create those by default.
-         * However, server_id is only primary server, services may be expanded to other servers.
-         *
-         * @T00D00 - collect all service servers and initial configuration:
-         *         - is loadbalanced? (default: no)
-         *         - web workers? (default: 1; additional: x)
-         *         - mysql master and slave configuration (default: master only; additional: master-slave)
-         *         - storages (default: root; additional: volume)
-         *         Impero should now which services live on which server and how is network connected.
-         *         We need to know about entrypoint (floating ip, server)
-         */
-        $this->createOnFilesystem($server);
+        return $task->make(
+            function() use ($server, $pckg) {
+                /**
+                 * Link server and site's service.
+                 */
+                SitesServer::getOrCreate(['server_id' => $server->id, 'site_id' => $this->id, 'type' => 'web']);
 
-        /**
-         * Enable https on website.
-         * This will call letsencrypt and ask for new certificate.
-         * It will also add ssl virtualhost and restart apache.
-         */
-        if (isset($pckg['services']['web']['https'])) {
-            $this->letsencrypt();
-        } else {
-            $this->restartApache();
-        }
+                /**
+                 * Web service, log service and https service.
+                 * Impero is web management service, so we create those by default.
+                 * However, server_id is only primary server, services may be expanded to other servers.
+                 *
+                 * @T00D00 - collect all service servers and initial configuration:
+                 *         - is loadbalanced? (default: no)
+                 *         - web workers? (default: 1; additional: x)
+                 *         - mysql master and slave configuration (default: master only; additional: master-slave)
+                 *         - storages (default: root; additional: volume)
+                 *         Impero should now which services live on which server and how is network connected.
+                 *         We need to know about entrypoint (floating ip, server)
+                 */
+                $this->createOnFilesystem($server);
+
+                /**
+                 * Enable https on website.
+                 * This will call letsencrypt and ask for new certificate.
+                 * It will also add ssl virtualhost and restart apache.
+                 */
+                if (isset($pckg['services']['web']['https'])) {
+                    $this->letsencrypt();
+                } else {
+                    $this->restartApache();
+                }
+            }
+        );
     }
 
     public function createNewHtdocsPath(Server $server)
     {
-        $connection = $server->getConnection();
+        $task = Task::create('Creating new htdocs path');
 
-        /**
-         * Move existent htdocs-old to htdocs-old-$datetime
-         */
-        if ($connection->dirExists($this->getHtdocsOldPath())) {
-            $connection->exec('mv ' . $this->getHtdocsOldPath() . ' ' . $this->getHtdocsOlderPath());
-        }
+        return $task->make(
+            function() use ($server) {
+                $connection = $server->getConnection();
 
-        /**
-         * Move existent htdocs to htdocs-old
-         */
-        $connection->exec('mv ' . $this->getHtdocsPath() . ' ' . $this->getHtdocsOldPath());
+                /**
+                 * Move existent htdocs-old to htdocs-old-$datetime
+                 */
+                if ($connection->dirExists($this->getHtdocsOldPath())) {
+                    $connection->exec('mv ' . $this->getHtdocsOldPath() . ' ' . $this->getHtdocsOlderPath());
+                }
 
-        /**
-         * Create new htdocs path
-         */
-        $connection->exec('mkdir ' . $this->getHtdocsPath());
+                /**
+                 * Move existent htdocs to htdocs-old
+                 */
+                $connection->exec('mv ' . $this->getHtdocsPath() . ' ' . $this->getHtdocsOldPath());
+
+                /**
+                 * Create new htdocs path
+                 */
+                $connection->exec('mkdir ' . $this->getHtdocsPath());
+            }
+        );
     }
 
     public function check($pckg, $fix = false)
@@ -845,9 +875,15 @@ class Site extends Record
      */
     public function copyOldConfig(Server $server)
     {
-        $server->getConnection()->exec(
-            'cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
-            $this->getHtdocsPath() . 'config/env.php'
+        $task = Task::create('Copying old config');
+
+        return $task->make(
+            function() use ($server) {
+                $server->getConnection()->exec(
+                    'cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
+                    $this->getHtdocsPath() . 'config/env.php'
+                );
+            }
         );
     }
 
@@ -857,17 +893,23 @@ class Site extends Record
      */
     public function enableCronjobs(Server $server, $pckg)
     {
-        /**
-         * Link database to site.
-         */
-        SitesServer::getOrCreate(['site_id' => $this->id, 'server_id' => $server->id, 'type' => 'cron']);
+        $task = Task::create('Enabling cronjobs for site #' . $this->id);
 
-        /**
-         * Add cronjob, we also perform uniqueness check.
-         */
-        foreach ($pckg['services']['cron']['commands'] ?? [] as $cron) {
-            $server->addCronjob($this->replaceVars($cron['command']));
-        }
+        return $task->make(
+            function() use ($server, $pckg) {
+                /**
+                 * Link database to site.
+                 */
+                SitesServer::getOrCreate(['site_id' => $this->id, 'server_id' => $server->id, 'type' => 'cron']);
+
+                /**
+                 * Add cronjob, we also perform uniqueness check.
+                 */
+                foreach ($pckg['services']['cron']['commands'] ?? [] as $cron) {
+                    $server->addCronjob($this->replaceVars($cron['command']));
+                }
+            }
+        );
     }
 
     /**
@@ -929,58 +971,64 @@ class Site extends Record
      */
     public function checkoutPlatform(Server $server, $pckg)
     {
-        /**
-         * All commands will be executed in platform's htdocs path.
-         */
-        $connection = $server->getConnection();
-        $commands = [];
+        $task = Task::create('Checking out site #' . $this->id);
 
-        if ($pckg['checkout']['type'] == 'linked') {
-            /**
-             * We need to make sure that repository and branch are already checked-out on filesystem.
-             */
-            $aliasDir = $this->getLinkedDir($pckg);
-            $this->prepareLinkedCheckout($server, $pckg, $aliasDir);
+        return $task->make(
+            function() use ($server, $pckg) {
+                /**
+                 * All commands will be executed in platform's htdocs path.
+                 */
+                $connection = $server->getConnection();
+                $commands = [];
 
-            /**
-             * Create some dirs, such as www and cache in which we will probably mount some files.
-             * We won't store any data in those directories.
-             */
-            foreach ($pckg['checkout']['create']['dir'] as $dir) {
-                $commands[] = 'mkdir ' . $this->getHtdocsPath() . $dir;
+                if ($pckg['checkout']['type'] == 'linked') {
+                    /**
+                     * We need to make sure that repository and branch are already checked-out on filesystem.
+                     */
+                    $aliasDir = $this->getLinkedDir($pckg);
+                    $this->prepareLinkedCheckout($server, $pckg, $aliasDir);
+
+                    /**
+                     * Create some dirs, such as www and cache in which we will probably mount some files.
+                     * We won't store any data in those directories.
+                     */
+                    foreach ($pckg['checkout']['create']['dir'] as $dir) {
+                        $commands[] = 'mkdir ' . $this->getHtdocsPath() . $dir;
+                    }
+
+                    /**
+                     * Create dir and file symlinks for shared stuff.
+                     */
+                    foreach ($pckg['checkout']['symlink']['dir'] as $dir) {
+                        $commands[] = 'ln -s ' . $aliasDir . $dir . ' ' . $this->getHtdocsPath() . $dir;
+                    }
+                    foreach ($pckg['checkout']['symlink']['file'] as $file) {
+                        $commands[] = 'ln -s ' . $aliasDir . $file . ' ' . $this->getHtdocsPath() . $file;
+                    }
+
+                    $connection->execMultiple($commands);
+                } else { // default type = multiple
+                    /**
+                     * Standalone platforms clones git repository and checkouts branch
+                     */
+                    $commands = [
+                        'git clone ' . $pckg['repository'] . ' .',
+                        'git checkout ' . $pckg['branch'],
+                    ];
+
+                    /**
+                     * We also execute project defined commands for initialization like dependency install.
+                     */
+                    foreach ($pckg['init'] as $initCommand) {
+                        $commands[] = $initCommand;
+                    }
+
+                    $errorStream = null;
+                    $outputStream = null;
+                    $connection->execMultiple($commands, $outputStream, $errorStream, $this->getHtdocsPath());
+                }
             }
-
-            /**
-             * Create dir and file symlinks for shared stuff.
-             */
-            foreach ($pckg['checkout']['symlink']['dir'] as $dir) {
-                $commands[] = 'ln -s ' . $aliasDir . $dir . ' ' . $this->getHtdocsPath() . $dir;
-            }
-            foreach ($pckg['checkout']['symlink']['file'] as $file) {
-                $commands[] = 'ln -s ' . $aliasDir . $file . ' ' . $this->getHtdocsPath() . $file;
-            }
-
-            $connection->execMultiple($commands);
-        } else { // default type = multiple
-            /**
-             * Standalone platforms clones git repository and checkouts branch
-             */
-            $commands = [
-                'git clone ' . $pckg['repository'] . ' .',
-                'git checkout ' . $pckg['branch'],
-            ];
-
-            /**
-             * We also execute project defined commands for initialization like dependency install.
-             */
-            foreach ($pckg['init'] as $initCommand) {
-                $commands[] = $initCommand;
-            }
-
-            $errorStream = null;
-            $outputStream = null;
-            $connection->execMultiple($commands, $outputStream, $errorStream, $this->getHtdocsPath());
-        }
+        );
     }
 
     public function getStorageDir()
@@ -1000,63 +1048,69 @@ class Site extends Record
      */
     public function preparePlatformDirs(Server $server, $pckg)
     {
-        $siteStoragePath = $this->getStorageDir();
-        $htdocsOldPath = $this->getHtdocsOldPath();
-        $connection = $server->getConnection();
+        $task = Task::create('Preparing site #' . $this->id . ' directories');
 
-        /**
-         * Create site dir.
-         */
-        $hasSiteDir = $connection->dirExists($siteStoragePath);
-        if (!$hasSiteDir) {
-            $connection->makeAndAllow($siteStoragePath);
-        }
+        return $task->make(
+            function() use ($server, $pckg) {
+                $siteStoragePath = $this->getStorageDir();
+                $htdocsOldPath = $this->getHtdocsOldPath();
+                $connection = $server->getConnection();
 
-        foreach ($pckg['services']['storage']['dir'] ?? [] as $storageDir) {
-            $hasStorageDir = $connection->dirExists($siteStoragePath . $storageDir);
-            if ($hasStorageDir) {
                 /**
-                 * Storage already exists and will be mounted.
+                 * Create site dir.
                  */
-                continue;
+                $hasSiteDir = $connection->dirExists($siteStoragePath);
+                if (!$hasSiteDir) {
+                    $connection->makeAndAllow($siteStoragePath);
+                }
+
+                foreach ($pckg['services']['storage']['dir'] ?? [] as $storageDir) {
+                    $hasStorageDir = $connection->dirExists($siteStoragePath . $storageDir);
+                    if ($hasStorageDir) {
+                        /**
+                         * Storage already exists and will be mounted.
+                         */
+                        continue;
+                    }
+
+                    $hasOldDir = $connection->dirExists($htdocsOldPath . $storageDir);
+                    if ($hasOldDir) {
+                        /**
+                         * Existing dirs are copied to storage server.
+                         * Recreation is skipped.
+                         */
+                        $connection->makeAndAllow($siteStoragePath . $storageDir);
+
+                        /**
+                         * Transfer contents.
+                         */
+                        $connection->exec(
+                            'rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath .
+                            $storageDir . '/ --stats'
+                        );
+                        continue;
+                    }
+
+                    /**
+                     * Create $storageDir directory in site's directory on storage server.
+                     */
+                    $connection->makeAndAllow($siteStoragePath . $storageDir);
+                }
+
+                /**
+                 * Create symlink.
+                 * Also, check if dir exists
+                 */
+                foreach ($pckg['services']['web']['mount'] ?? [] as $linkPoint => $storageDir) {
+                    /**
+                     * If mount point was previously created, it will be recreated.
+                     * If it was directory and it does
+                     */
+                    $originPoint = $this->replaceVars($storageDir);
+                    $connection->exec('ln -s ' . $originPoint . ' ' . $this->getHtdocsPath() . $linkPoint);
+                }
             }
-
-            $hasOldDir = $connection->dirExists($htdocsOldPath . $storageDir);
-            if ($hasOldDir) {
-                /**
-                 * Existing dirs are copied to storage server.
-                 * Recreation is skipped.
-                 */
-                $connection->makeAndAllow($siteStoragePath . $storageDir);
-
-                /**
-                 * Transfer contents.
-                 */
-                $connection->exec(
-                    'rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath .
-                    $storageDir . '/ --stats'
-                );
-                continue;
-            }
-
-            /**
-             * Create $storageDir directory in site's directory on storage server.
-             */
-            $connection->makeAndAllow($siteStoragePath . $storageDir);
-        }
-
-        /**
-         * Create symlink.
-         * Also, check if dir exists
-         */
-        foreach ($pckg['services']['web']['mount'] ?? [] as $linkPoint => $storageDir) {
-            /**
-             * If mount point was previously created, it will be recreated.
-             * If it was directory and it does
-             */
-            $originPoint = $this->replaceVars($storageDir);
-            $connection->exec('ln -s ' . $originPoint . ' ' . $this->getHtdocsPath() . $linkPoint);
-        }
+        );
     }
 
     public function replaceVars($command, $vars = [])
@@ -1092,80 +1146,87 @@ class Site extends Record
      */
     public function prepareDatabase(Server $server, $pckg)
     {
-        /**
-         * Link database to site.
-         */
-        SitesServer::getOrCreate(['site_id' => $this->id, 'server_id' => $server->id, 'type' => 'database']);
+        $task = Task::create('Preparing database for site #' . $this->id);
 
-        /**
-         * Some defaults.
-         */
-        $dbpass = auth()->createPassword(20);
-
-        /**
-         * Create listed mysql databases.
-         */
-        foreach ($pckg['services']['db']['mysql']['database'] as $key => $config) {
-            $database = null;
-
-            if ($config['type'] == 'searchOrCreate') {
-                $dbname = $this->replaceVars($config['name']);
+        return $task->make(
+            function() use ($server, $pckg) {
+                /**
+                 * Link database to site.
+                 */
+                SitesServer::getOrCreate(['site_id' => $this->id, 'server_id' => $server->id, 'type' => 'database']);
 
                 /**
-                 * Create mysql database, user and set privileges.
+                 * Some defaults.
                  */
-                $database = Database::createFromPost(
-                    [
-                        'name'      => $dbname,
-                        'server_id' => $server->id,
-                    ]
-                );
+                $dbpass = auth()->createPassword(20);
 
                 /**
-                 * Manually call backup and replication.
+                 * Create listed mysql databases.
                  */
-                $database->requireScriptBackup(); // temporarly, until we do not automate backups triggered from impero
-                $database->requireMysqlMasterReplication();
+                foreach ($pckg['services']['db']['mysql']['database'] as $key => $config) {
+                    $database = null;
 
-                /**
-                 * For configuration.
-                 */
-                $this->vars = array_merge(
-                    $this->vars,
-                    ['$dbname' => $dbname, '$dbpass' => $dbpass]
-                );
-            } elseif ($config['type'] == 'search') {
-                $database = Database::gets(
-                    [
-                        'server_id' => $server->id,
-                        'name'      => $config['name'],
-                    ]
-                );
-            }
+                    if ($config['type'] == 'searchOrCreate') {
+                        $dbname = $this->replaceVars($config['name']);
 
-            /**
-             * Check for access.
-             */
-            if (!$database) {
-                continue; // skip?
-            }
+                        /**
+                         * Create mysql database, user and set privileges.
+                         */
+                        $database = Database::createFromPost(
+                            [
+                                'name'      => $dbname,
+                                'server_id' => $server->id,
+                            ]
+                        );
 
-            foreach ($config['user'] ?? [] as $user => $privilege) {
-                $dbuser = $this->replaceVars($user);
-                if (!isset($this->vars['$dbuser'])) {
-                    $this->vars['$dbuser'] = $dbuser;
+                        /**
+                         * Manually call backup and replication.
+                         */
+                        $database->requireScriptBackup(
+                        ); // temporarly, until we do not automate backups triggered from impero
+                        $database->requireMysqlMasterReplication();
+
+                        /**
+                         * For configuration.
+                         */
+                        $this->vars = array_merge(
+                            $this->vars,
+                            ['$dbname' => $dbname, '$dbpass' => $dbpass]
+                        );
+                    } elseif ($config['type'] == 'search') {
+                        $database = Database::gets(
+                            [
+                                'server_id' => $server->id,
+                                'name'      => $config['name'],
+                            ]
+                        );
+                    }
+
+                    /**
+                     * Check for access.
+                     */
+                    if (!$database) {
+                        continue; // skip?
+                    }
+
+                    foreach ($config['user'] ?? [] as $user => $privilege) {
+                        $dbuser = $this->replaceVars($user);
+                        if (!isset($this->vars['$dbuser'])) {
+                            $this->vars['$dbuser'] = $dbuser;
+                        }
+                        DatabaseUser::createFromPost(
+                            [
+                                'username'  => $dbuser,
+                                'password'  => $dbpass,
+                                'server_id' => 2,
+                                'database'  => $database->id,
+                                'privilege' => $privilege,
+                            ]
+                        );
+                    }
                 }
-                DatabaseUser::createFromPost(
-                    [
-                        'username'  => $dbuser,
-                        'password'  => $dbpass,
-                        'server_id' => 2,
-                        'database'  => $database->id,
-                        'privilege' => $privilege,
-                    ]
-                );
             }
-        }
+        );
     }
 
     public function getConfigContent()
