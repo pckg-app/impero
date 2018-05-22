@@ -56,7 +56,7 @@ class Mysql extends AbstractService implements ServiceInterface
 
         return $task->make(
             function() {
-                return $this->getMysqlConnection()->execute('START SLAVE;');
+                return $this->getMysqlConnection()->execute('STOP SLAVE;START SLAVE;');
             }
         );
     }
