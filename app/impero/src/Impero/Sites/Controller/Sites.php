@@ -313,9 +313,6 @@ automatically and permanently.</p>'
             $databases[] = str_replace(array_keys($variables), array_values($variables), $database['name']);
         }
 
-        // temp
-        $databases = ['ws5b1209_shop', 'pckg_derive']; // rentor, comms backend
-
         if (!$databases) {
             return ['success' => false, 'message' => 'No databases'];
         }

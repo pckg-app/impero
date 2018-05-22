@@ -270,7 +270,6 @@ class Database extends Record implements Connectable
 
         $task->make(
             function() use ($slaveServer) {
-
                 /**
                  * Generate new passphrase for backup service: private/mysql/backup/keys/$hash.
                  * This key will be transfered from impero to master and from impero to slave.
@@ -298,7 +297,7 @@ class Database extends Record implements Connectable
                  *
                  * @T00D00 - take down only $database, then sync only $database from binlog.
                  */
-                //$mysqlSlaveService->stopSlave();
+                $mysqlSlaveService->stopSlave();
 
                 /**
                  * Create backup.
@@ -312,7 +311,7 @@ class Database extends Record implements Connectable
                 /**
                  * Resume slave until backup.
                  */
-                //$this->syncSlaveUntilBackup($backupFile, $slaveServer);
+                $this->syncSlaveUntilBackup($backupFile, $slaveServer);
 
                 /**
                  * Let backup service take care of full transfer.
@@ -325,10 +324,11 @@ class Database extends Record implements Connectable
                  * Import backup.
                  */
                 $this->importBackup($backupFile, $slaveServer);
+
                 /**
                  * Start slave.
                  */
-                //$mysqlSlaveService->startSlave();
+                $mysqlSlaveService->startSlave();
 
                 /**
                  * Wait few seconds for slave to get in sync.
