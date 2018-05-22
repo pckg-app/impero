@@ -41,6 +41,8 @@ class Task extends Record
          * Bind it as current.
          */
         context()->bind(Task::class, $task);
+
+        return $task;
     }
 
     public function end()

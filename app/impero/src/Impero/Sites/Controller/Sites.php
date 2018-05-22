@@ -257,7 +257,7 @@ automatically and permanently.</p>'
                 $migrate = true;
                 $site->sitesServers->filter('type', 'web')->each(
                     function(SitesServer $sitesServer) use ($site, &$migrate) {
-                        
+
                         $site->deploy(
                             $sitesServer->server,
                             post('pckg', []),
