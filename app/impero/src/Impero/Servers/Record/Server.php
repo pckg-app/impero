@@ -430,8 +430,9 @@ frontend all_https
                 $allWorkers[$worker->id] = $worker;
                 $workerHttpsPort = $worker->getSettingValue('service.apache2.httpsPort', 443);
                 $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name
-                    . ' ' . $worker->privateIp . ':' . $workerHttpsPort .
-                    ' check weight ' . $worker->getSettingValue('service.haproxy.weight', 1);// 'cookie ' . $site->server_name . '-' . $worker->name; // ssl verify none
+                    . ' ' . $worker->privateIp . ':' . $workerHttpsPort . ' check weight '
+                    . $worker->getSettingValue('service.haproxy.weight', 1);
+                // 'cookie ' . $site->server_name . '-' . $worker->name; // ssl verify none
             }
         }
 
