@@ -1,6 +1,7 @@
 <?php namespace Impero\Services\Service;
 
 use Exception;
+use Impero\Servers\Record\Task;
 
 /**
  * Class Zip
@@ -37,13 +38,19 @@ class Zip extends AbstractService implements ServiceInterface
      */
     public function compressFile($file, $output = null)
     {
-        if (!$output) {
-            $output = $this->prepareDirectory('random') . sha1random();
-        }
-        $dir = collect(explode('/', $output))->slice(0, -1)->implode('/');
-        $command = 'cd ' . $dir . ' && zip -j ' . $output . ' ' . $file . ' && mv ' . $output . '.zip ' . $output;
-        $this->exec($command);
-        return $output;
+        $task = Task::create('Compressing file ');
+
+        return $task->make(
+            function() use ($file, $output) {
+                if (!$output) {
+                    $output = $this->prepareDirectory('random') . sha1random();
+                }
+                $dir = collect(explode('/', $output))->slice(0, -1)->implode('/');
+                $command = 'cd ' . $dir . ' && zip -j ' . $output . ' ' . $file . ' && mv ' . $output . '.zip ' . $output;
+                $this->exec($command);
+                return $output;
+            }
+        );
     }
 
     /**

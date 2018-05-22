@@ -147,13 +147,17 @@ class Server extends Record implements Connectable
 
     public function logCommand($command, $info, $error, $e)
     {
+        $task = context()->getOrDefault(Task::class);
+
         return ServerCommand::create(
             [
                 'server_id'   => $this->id,
+                'task_id'     => $task->id ?? null,
                 'command'     => $command,
                 'info'        => $info,
-                'error'       => ($e ? 'EXCEPTION: ' . exception($e) . "\n" : null) .
-                    $error,
+                'error'       => ($e
+                        ? 'EXCEPTION: ' . exception($e) . "\n"
+                        : null) . $error,
                 'executed_at' => date('Y-m-d H:i:s'),
                 'code'        => null,
             ]
@@ -492,8 +496,14 @@ frontend all_https
      */
     public function transferFile($file, $destination, Server $toServer)
     {
+        $task = Task::create('Rsyncing file');
         $command = 'rsync -a ' . $file . ' impero@' . $toServer->ip . ':' . $destination . ' -e \'ssh -p ' . $toServer->port . '\'';
-        $this->exec($command);
+
+        return $task->make(
+            function() use ($command) {
+                return $this->exec($command);
+            }
+        );
     }
 
     /**

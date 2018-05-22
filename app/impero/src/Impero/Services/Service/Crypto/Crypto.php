@@ -1,6 +1,7 @@
 <?php namespace Impero\Services\Service\Crypto;
 
 use Impero\Servers\Record\Server;
+use Impero\Servers\Record\Task;
 use Impero\Servers\Service\ConnectionManager;
 use Impero\Services\Service\Connection\LocalConnection;
 use Impero\Services\Service\GPG;
@@ -131,21 +132,27 @@ class Crypto
      */
     public function processFullTransfer()
     {
-        /**
-         * Compress, encrypt, and delete all unused copies.
-         * We know that we'll transfer file from $from to $to server.
-         */
-        $this->compressAndEncrypt();
+        $task = Task::create('Transferring file');
 
-        /**
-         * Transfer backup.
-         */
-        $this->transfer();
+        return $task->make(
+            function() {
+                /**
+                 * Compress, encrypt, and delete all unused copies.
+                 * We know that we'll transfer file from $from to $to server.
+                 */
+                $this->compressAndEncrypt();
 
-        /**
-         * Decrypt, decompress, and delete all unused copies.
-         */
-        $this->decryptAndDecompress();
+                /**
+                 * Transfer backup.
+                 */
+                $this->transfer();
+
+                /**
+                 * Decrypt, decompress, and delete all unused copies.
+                 */
+                return $this->decryptAndDecompress();
+            }
+        );
     }
 
     /**
@@ -182,15 +189,21 @@ class Crypto
      */
     public function encrypt()
     {
-        /**
-         * File is then encrypted with gpg service.
-         * Delete original after usage.
-         */
-        $fromGpgService = new GPG($this->from);
-        $encryptedFile = $fromGpgService->encrypt($this);
-        $this->replaceFile($this->from, $encryptedFile);
+        $task = Task::create('Encrypting file');
 
-        return $encryptedFile;
+        return $task->make(
+            function() {
+                /**
+                 * File is then encrypted with gpg service.
+                 * Delete original after usage.
+                 */
+                $fromGpgService = new GPG($this->from);
+                $encryptedFile = $fromGpgService->encrypt($this);
+                $this->replaceFile($this->from, $encryptedFile);
+
+                return $encryptedFile;
+            }
+        );
     }
 
     /**

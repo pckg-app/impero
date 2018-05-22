@@ -19,8 +19,16 @@ class CreateServersTables extends Migration
         $servers->varchar('port', 5);
         $servers->varchar('user');
 
+        $tasks = $this->table('tasks');
+        $tasks->title();
+        $tasks->parent();
+        $tasks->varchar('status');
+        $tasks->datetime('started_at');
+        $tasks->datetime('ended_at');
+
         $serverCommands = $this->table('server_commands');
         $serverCommands->integer('server_id')->references('servers');
+        $serverCommands->integer('task_id')->references('tasks')->nullable();
         $serverCommands->text('command');
         $serverCommands->text('info');
         $serverCommands->text('error');

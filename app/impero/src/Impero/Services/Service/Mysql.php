@@ -2,6 +2,7 @@
 
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
+use Impero\Servers\Record\Task;
 use Pckg\Collection;
 
 /**
@@ -51,7 +52,13 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function startSlave()
     {
-        $this->getMysqlConnection()->execute('START SLAVE;');
+        $task = Task::create('Starting slave');
+
+        return $task->make(
+            function() {
+                return $this->getMysqlConnection()->execute('START SLAVE;');
+            }
+        );
     }
 
     /**
@@ -59,7 +66,13 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function stopSlave()
     {
-        $this->getMysqlConnection()->execute('STOP SLAVE;');
+        $task = Task::create('Stopping slave');
+
+        return $task->make(
+            function() {
+                $this->getMysqlConnection()->execute('STOP SLAVE;');
+            }
+        );
     }
 
     /**
