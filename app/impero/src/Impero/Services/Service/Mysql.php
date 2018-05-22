@@ -127,10 +127,8 @@ class Mysql extends AbstractService implements ServiceInterface
     public function requireMysqlMasterReplication()
     {
         if ($this->isMysqlMasterReplicated()) {
-            return d('is');
             return;
         }
-        return d('not');
 
         $this->replicateMysqlMaster();
     }

@@ -228,10 +228,8 @@ class Database extends Record implements Connectable
          */
         $mysqlService = new Mysql($this->getConnection());
         if ($mysqlService->isReplicatedOnMaster($this)) {
-            return d('is replicated');
             return;
         }
-        return d('is not');
 
         $mysqlService->replicateOnMaster($this);
     }
@@ -303,7 +301,6 @@ class Database extends Record implements Connectable
          * Wait few seconds for slave to get in sync.
          * Then refresh cluster configuration.
          */
-        dd('done?');
     }
 
     /**

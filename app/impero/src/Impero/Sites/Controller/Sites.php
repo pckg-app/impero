@@ -315,10 +315,9 @@ automatically and permanently.</p>'
         $databases = (new Databases())->where('name', $databases)->all();
         $databases->each(
             function(Database $database) use ($server) {
-                //$database->requireMysqlMasterReplication();
-                //$database->replicateOnMaster();
+                $database->requireMysqlMasterReplication();
+                $database->replicateOnMaster();
                 $database->replicateTo($server);
-                return dd($database->name);
             }
         );
 
