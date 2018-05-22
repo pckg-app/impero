@@ -819,53 +819,65 @@ class Site extends Record
      */
     public function deploy(Server $server, $pckg, $vars, $isAlias = false, $checkAlias = false, $migrate = true)
     {
+        $task = Task::create('Deploying site #' . $this->id . ' to server #' . $server->id);
+
         $this->vars = $vars;
-        $connection = $server->getConnection();
-        $htdocsDir = $this->getHtdocsPath();
-        $blueGreen = ($pckg['checkout']['type'] ?? null) == 'ab';
 
-        $errorStream = null;
-        $deployDir = null;
-        if ($blueGreen) {
-            /**
-             * We should also support blue-green (or a-b deployments).
-             * This would mean that we checkout code in new directory (/www/_ab/[repository]/[branch]/[a|b|gitCommit].
-             * And then change symlink of /www/_abc/[repository]/[branch] to /www/_ab/[repository]/[branch]/[a|b|gitCommit].
-             * ln -sfn /www/_ab/[repository]/[branch]/[a|b|gitCommit] /www/_abc/[repository]/[branch]
-             * Sites are still linked to /www/_abc/[repository]/[branch] and gets updated immediately after symlink change.
-             */
-            $deployDir = $this->getBlueGreenDir($pckg);
-        } elseif ($checkAlias) {
-            /**
-             * Aliased platforms are checkout in _linked directory.
-             */
-            $deployDir = $this->getLinkedDir($pckg);
-        } elseif (!$isAlias) {
-            /**
-             * Standalone platforms are checkout in site's htdocs dir.
-             */
-            $deployDir = $htdocsDir;
-        }
+        return $task->make(
+            function() use ($server, $pckg, $isAlias, $checkAlias, $migrate) {
+                $connection = $server->getConnection();
+                $htdocsDir = $this->getHtdocsPath();
+                $blueGreen = ($pckg['checkout']['type'] ?? null) == 'ab';
 
-        if ($deployDir) {
-            foreach ($pckg['deploy'] ?? [] as $command) {
-                $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
-                $finalCommand .= $this->replaceVars($command);
-                $connection->exec($finalCommand);
+                $errorStream = null;
+                $deployDir = null;
+                if ($blueGreen) {
+                    /**
+                     * We should also support blue-green (or a-b deployments).
+                     * This would mean that we checkout code in new directory (/www/_ab/[repository]/[branch]/[a|b|gitCommit].
+                     * And then change symlink of /www/_abc/[repository]/[branch] to /www/_ab/[repository]/[branch]/[a|b|gitCommit].
+                     * ln -sfn /www/_ab/[repository]/[branch]/[a|b|gitCommit] /www/_abc/[repository]/[branch]
+                     * Sites are still linked to /www/_abc/[repository]/[branch] and gets updated immediately after symlink change.
+                     */
+                    $deployDir = $this->getBlueGreenDir($pckg);
+                } elseif ($checkAlias) {
+                    /**
+                     * Aliased platforms are checkout in _linked directory.
+                     */
+                    $deployDir = $this->getLinkedDir($pckg);
+                } elseif (!$isAlias) {
+                    /**
+                     * Standalone platforms are checkout in site's htdocs dir.
+                     */
+                    $deployDir = $htdocsDir;
+                }
+
+                if ($deployDir) {
+                    foreach ($pckg['deploy'] ?? [] as $command) {
+                        $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
+                        $finalCommand .= $this->replaceVars($command);
+                        $connection->exec($finalCommand);
+                    }
+                }
+
+                /**
+                 * Standalone and aliased platforms are migrated in their htdocs directory.
+                 */
+                if (!$migrate) {
+                    return;
+                }
+                $task = Task::create('Migrating site #' . $this->id);
+                $task->make(
+                    function() use ($pckg, $deployDir, $connection) {
+                        foreach ($pckg['migrate'] ?? [] as $command) {
+                            $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
+                            $finalCommand .= $this->replaceVars($command);
+                            $connection->exec($finalCommand);
+                        }
+                    }
+                );
             }
-        }
-
-        /**
-         * Standalone and aliased platforms are migrated in their htdocs directory.
-         */
-        if (!$migrate) {
-            return;
-        }
-        foreach ($pckg['migrate'] ?? [] as $command) {
-            $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
-            $finalCommand .= $this->replaceVars($command);
-            $connection->exec($finalCommand);
-        }
+        );
     }
 
     /**

@@ -6,6 +6,7 @@ use Impero\Apache\Record\SitesServer;
 use Impero\Mysql\Entity\Databases;
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
+use Impero\Servers\Record\Task;
 use Pckg\Mail\Service\Mail\Adapter\SimpleUser;
 
 class Sites
@@ -249,18 +250,24 @@ automatically and permanently.</p>'
          * Mailo is directly checked-out so we can pull on both servers. Migrate only first instance.
          * Linked checkouts pulls only linked directories. Migrates first instance of each site.
          */
-        $migrate = true;
-        $site->sitesServers->filter('type', 'web')->each(
-            function(SitesServer $sitesServer) use ($site, &$migrate) {
-                $site->deploy(
-                    $sitesServer->server,
-                    post('pckg', []),
-                    post('vars', []),
-                    post('isAlias', false),
-                    post('checkAlias', false),
-                    $migrate
+        $task = Task::create('Migrating site #' . $site->id);
+
+        $task->make(
+            function() use ($site) {
+                $migrate = true;
+                $site->sitesServers->filter('type', 'web')->each(
+                    function(SitesServer $sitesServer) use ($site, &$migrate) {
+                        $site->deploy(
+                            $sitesServer->server,
+                            post('pckg', []),
+                            post('vars', []),
+                            post('isAlias', false),
+                            post('checkAlias', false),
+                            $migrate
+                        );
+                        $migrate = false;
+                    }
                 );
-                $migrate = false;
             }
         );
 
