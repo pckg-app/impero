@@ -820,7 +820,6 @@ class Site extends Record
     public function deploy(Server $server, $pckg, $vars, $isAlias = false, $checkAlias = false, $migrate = true)
     {
         $task = Task::create('Deploying site #' . $this->id . ' to server #' . $server->id);
-
         $this->vars = $vars;
 
         return $task->make(
