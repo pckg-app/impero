@@ -250,7 +250,7 @@ automatically and permanently.</p>'
          * Mailo is directly checked-out so we can pull on both servers. Migrate only first instance.
          * Linked checkouts pulls only linked directories. Migrates first instance of each site.
          */
-        $task = Task::create('Migrating site #' . $site->id);
+        $task = Task::create('Deploying site #' . $site->id);
 
         $task->make(
             function() use ($site) {
