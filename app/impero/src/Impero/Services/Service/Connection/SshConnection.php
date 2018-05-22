@@ -233,7 +233,7 @@ class SshConnection implements ConnectionInterface, Connectable
             $output = $infoStreamContent;
             $error = $errorStreamContent;
 
-            d($command, $output, $error);
+            //d($command, $output, $error);
 
             $serverCommand->setAndSave(
                 [

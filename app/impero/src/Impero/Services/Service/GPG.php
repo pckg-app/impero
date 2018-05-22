@@ -367,7 +367,6 @@ class GPG extends AbstractService implements ServiceInterface
         );
 
         if (!$key) {
-            dd('doesnt exist', $keys);
             throw new Exception('Key doesnot exist');
         }
 
@@ -398,7 +397,6 @@ class GPG extends AbstractService implements ServiceInterface
      */
     public function listKeys($gpg = '')
     {
-        $command = 'gpg' . $gpg . ' --list-secret-keys --fingerprint';
         $command = 'gpg' . $gpg . ' --fingerprint';
         $this->exec($command, $output);
         if (is_array($output)) {

@@ -29,7 +29,7 @@ class LocalConnection implements ConnectionInterface, Connectable
         }
 
         $return = exec($command . ' 2>&1', $output, $error);
-        d($command, $output, $error);
+        //d($command, $output, $error);
 
         return $return;
     }
