@@ -485,7 +485,7 @@ class GPG extends AbstractService implements ServiceInterface
         if ($connection instanceof LocalConnection) {
             $connection->exec(
                 'rsync -a ' . $file . ' impero@' . $to->ip . ':' . ($target ?? $file) . ' -e \'ssh -p ' . $to->port
-                . '\' -i ' . path('private') . 'keys/id_rsa_' . $to->id . '\''
+                . ' -i ' . path('private') . 'keys/id_rsa_' . $to->id . '\''
             );
         } else {
             /**
