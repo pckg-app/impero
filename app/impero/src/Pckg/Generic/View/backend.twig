@@ -23,7 +23,7 @@
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 {{ _menuService.build('admin') | raw }}
 
-                {{ _pluginService.make('Pckg\\Auth\\Controller\\Auth', 'getUserHeader') | raw }}
+                {#{ _pluginService.make('Pckg\\Auth\\Controller\\Auth', 'getUserHeader') | raw }#}
             </div>
         {% endif %}
     </div>

@@ -319,10 +319,46 @@ automatically and permanently.</p>'
 
         $databases = (new Databases())->where('name', $databases)->all();
         $databases->each(
-            function(Database $database) use ($server) {
+            function(Database $database) use ($server, $site) {
+                $sitesServer = SitesServer::getOrNew([
+                                                          'site_id'   => $site->id,
+                                                          'server_id' => $server->id,
+                                                          'type'      => 'database:slave',
+                                                      ]);
+                if (!$sitesServer->isNew()) {
+                    /**
+                     * Skip existing?
+                     * @T00D00 ... at some point site may have multiple different databases over different servers
+                     *         ... link database with server instead
+                     * @T00D00 ... implement connections
+                     *         ... serve with server: zero@eth1 - one@eth1
+                     *         ... database with site
+                     *         ... database with server
+                     */
+                    return;
+                }
+
+                /**
+                 * Check that master is configured as master.
+                 */
                 $database->requireMysqlMasterReplication();
+
+                /**
+                 * Check that binlog is actually created for database.
+                 */
                 $database->replicateOnMaster();
+
+                /**
+                 * Make backup and enable replication on slae.
+                 */
                 $database->replicateTo($server);
+
+                /**
+                 * When successfuly, link database:slave service to it.
+                 */
+                if ($sitesServer->isNew()) {
+                    $sitesServer->save();
+                }
             }
         );
 

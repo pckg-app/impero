@@ -7,6 +7,7 @@ use Impero\Mysql\Entity\Databases;
 use Impero\Servers\Record\Server;
 use Impero\Services\Entity\Services;
 use Pckg\Database\Entity;
+use Pckg\Database\Relation\HasAndBelongsTo;
 use Pckg\Generic\Entity\ListItems;
 use Pckg\Generic\Entity\Settings;
 use Pckg\Generic\Entity\SettingsMorphs;
@@ -19,68 +20,82 @@ class Servers extends Entity
     public function tags()
     {
         return $this->hasMany(Tags::class)
-            ->foreignKey('server_id');
+                    ->foreignKey('server_id');
     }
 
     public function system()
     {
         return $this->belongsTo(Systems::class)
-            ->foreignKey('system_id');
+                    ->foreignKey('system_id');
     }
 
     public function status()
     {
         return $this->belongsTo(ListItems::class)
-            ->foreignKey('status')
-            ->primaryKey('slug')
-            ->where('list_items.list_id', 'servers.status');
+                    ->foreignKey('status')
+                    ->primaryKey('slug')
+                    ->where('list_items.list_id', 'servers.status');
     }
 
     public function services()
     {
         return $this->hasAndBelongsTo(Services::class)
-            ->over(ServersServices::class)
-            ->leftForeignKey('server_id')
-            ->rightForeignKey('service_id');
+                    ->over(ServersServices::class)
+                    ->leftForeignKey('server_id')
+                    ->rightForeignKey('service_id');
     }
 
     public function dependencies()
     {
         return $this->hasAndBelongsTo(Dependencies::class)
-            ->over(ServersDependencies::class)
-            ->leftForeignKey('server_id')
-            ->rightForeignKey('dependency_id');
+                    ->over(ServersDependencies::class)
+                    ->leftForeignKey('server_id')
+                    ->rightForeignKey('dependency_id');
     }
 
     public function jobs()
     {
         return $this->hasMany(Jobs::class)
-            ->foreignKey('server_id');
+                    ->foreignKey('server_id');
     }
 
     public function settings()
     {
         return $this->morphsMany(Settings::class)
-            ->over(SettingsMorphs::class)
-            ->foreignKey('server_id');
+                    ->over(SettingsMorphs::class)
+                    ->foreignKey('server_id');
+    }
+
+    public function serversMorphs(callable $callable = null)
+    {
+        return $this->hasMany(ServersMorphs::class, $callable)
+                    ->foreignKey('server_id');
     }
 
     public function masterDatabases()
     {
         return $this->hasMany(Databases::class)
-            ->foreignKey('server_id');
+                    ->foreignKey('server_id');
     }
 
     public function slaveDatabases()
     {
-        return $this->morphsMany(Databases::class)
-            ->over(DatabasesMorphs::class)
-            ->foreignKey('database_id');
+        return $this->hasAndBelongsTo(Databases::class)
+                    ->over(
+                        ServersMorphs::class, function(HasAndBelongsTo $databases) {
+                        $databases->getMiddleEntity()
+                                  ->where('morph_id', Databases::class)
+                                  ->where('type', 'database:slave');
+                    }
+                    )
+                    ->leftForeignKey('server_id')
+                    ->rightForeignKey('poly_id');
     }
 
-    public function sites() {
+    public function sites()
+    {
         return $this->hasMany(Sites::class)
-            ->foreignKey('server_id');
+                    ->foreignKey('server_id');
     }
 
 }

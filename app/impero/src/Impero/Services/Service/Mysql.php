@@ -56,7 +56,7 @@ class Mysql extends AbstractService implements ServiceInterface
 
         return $task->make(
             function() {
-                return $this->getMysqlConnection()->execute('STOP SLAVE;START SLAVE;');
+                return $this->getMysqlConnection()->execute('START SLAVE;');
             }
         );
     }
@@ -104,16 +104,30 @@ class Mysql extends AbstractService implements ServiceInterface
     {
         dd('Slave replication is not yet enabled?');
         $file = $this->getReplicationConfigLocation();
-        $lines[] = '[mysqld]';
-        $lines[] = 'server-id = 2';
-        $lines[] = 'relay-log = /var/log/mysql/mysql-relay-bin.log';
-        $lines[] = 'log_bin = /var/log/mysql/mysql-bin.log';
+        $content = $this->getSlaveReplicationConfig();
 
         /**
          * Save changes and restart mysql server.
          */
-        $this->getConnection()->sftpSend($file, implode("\n", $lines));
+        $this->getConnection()->sftpSend($file, $content);
         $this->getConnection()->exec('sudo service mysql restart');
+    }
+
+    public function getMasterReplicationConfig()
+    {
+        return '[mysqld]
+server-id = 1
+log_bin = /var/log/mysql/mysql-bin.log
+expire_logs_days = 5
+max_binlog_size = 100M';
+    }
+
+    public function getSlaveReplicationConfig()
+    {
+        return '[mysqld]
+server-id = 2
+log_bin = /var/log/mysql/mysql-bin.log
+relay-log = /var/log/mysql/mysql-relay-bin.log';
     }
 
     /**
@@ -201,13 +215,33 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function refreshSlaveReplicationFilter(Collection $databases)
     {
-        $dbString = $databases->map(
-            function(Database $database) {
-                return '`' . $database->name . '.%`';
+        $task = Task::create('Refresing slave replication filter');
+
+        return $task->make(
+            function() use ($databases) {
+                $dbString = $databases->map(
+                    function(Database $database) {
+                        return '`' . $database->name . '.%`';
+                    }
+                )->implode(',');
+                $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
+                $this->getMysqlConnection()->execute($sql);
             }
-        )->implode(',');
-        $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
-        $this->getMysqlConnection()->execute($sql);
+        );
+    }
+
+    public function dumpSlaveReplicationFilter(Collection $databases)
+    {
+        $task = Task::create('Dumping mysql slave replication configuration');
+
+        return $task->make(
+            function() {
+                /**
+                 * Dump original slave filter and list of replicated tables.
+                 * If restart is needed that server is restarted manually.
+                 */
+            }
+        );
     }
 
     /**

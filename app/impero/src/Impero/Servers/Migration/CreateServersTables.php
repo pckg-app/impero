@@ -36,6 +36,12 @@ class CreateServersTables extends Migration
         $serverCommands->datetime('executed_at');
 
         /**
+         * Morphs.
+         */
+        $serversMorphs = $this->morphtable('servers', 'server_id');
+        $serversMorphs->varchar('type');
+
+        /**
          * Services
          */
         $serversServices = $this->table('servers_services');

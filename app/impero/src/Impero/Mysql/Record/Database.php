@@ -326,6 +326,19 @@ class Database extends Record implements Connectable
                 $this->importBackup($backupFile, $slaveServer);
 
                 /**
+                 * Stop slave.
+                 */
+                $mysqlSlaveService->stopSlave();
+
+                /**
+                 * Update binlog update.
+                 * Dump new mysql config.
+                 */
+                $databasesOnSlave = $slaveServer->slaveDatabases;
+                $mysqlSlaveService->refreshSlaveReplicationFilter($databasesOnSlave);
+                $mysqlSlaveService->dumpSlaveReplicationFilter($databasesOnSlave);
+
+                /**
                  * Start slave.
                  */
                 $mysqlSlaveService->startSlave();

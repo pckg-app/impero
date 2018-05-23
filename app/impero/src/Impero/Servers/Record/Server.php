@@ -225,6 +225,14 @@ class Server extends Record implements Connectable
 
     public function getMysqlConfig()
     {
+        return [];
+        /**
+         * @T00D00 ...
+         *
+         */
+        return [
+            '/etc/mysql/conf.d/replication.cnf' => '',
+        ];
         /**
          * Mysql config is separated into:
          */
