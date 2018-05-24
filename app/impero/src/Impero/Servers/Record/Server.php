@@ -407,7 +407,7 @@ frontend all_https
         /**
          * We need to define fallback backend.
          */
-        if (false && $sitesServers) {
+        if ($sitesServers) {
             $config .= "\n" . '    default_backend fallback';
         }
 
@@ -445,15 +445,15 @@ frontend all_https
         }
 
         $firstWorker = collect($allWorkers)->first();
-        if (false && $firstWorker) {
+        if ($firstWorker) {
             $config .= '
         backend fallback
             balance roundrobin
             mode tcp
-            option ssl-check-chk
+            option ssl-hello-chk
             server fallback-' . $firstWorker->name . ' ' . $worker->privateIp . ':'
                 . $worker->getSettingValue('service.apacke2.httpsPort', 443)
-                . ' check cookie fallback-' . $worker->name . '
+                . ' check weight 1
         ';
         }
 
