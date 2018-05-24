@@ -637,7 +637,7 @@ class Site extends Record
             function() use ($server, $pckg) {
                 $connection = $server->getConnection();
                 foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
-                    $connection->saveContent($dest, $this->getConfigContent());
+                    $connection->saveContent($this->getHtdocsPath() . $dest, $this->getConfigContent());
                 }
             }
         );
