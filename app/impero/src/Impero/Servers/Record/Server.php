@@ -452,7 +452,7 @@ frontend all_https
             mode tcp
             option ssl-hello-chk
             server fallback-' . $firstWorker->name . ' ' . $worker->privateIp . ':'
-                . $worker->getSettingValue('service.apacke2.httpsPort', 443)
+                . $worker->getSettingValue('service.apache2.httpsPort', 443)
                 . ' check weight 1
         ';
         }
