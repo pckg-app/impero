@@ -3,11 +3,14 @@
 use Defuse\Crypto\Key;
 use Impero\Apache\Console\DumpVirtualhosts;
 use Impero\Apache\Entity\Sites;
+use Impero\Apache\Entity\SitesServers;
 use Impero\Mysql\Record\Database;
 use Impero\Mysql\Record\User as DatabaseUser;
+use Impero\Servers\Entity\ServersMorphs;
 use Impero\Servers\Record\Server;
 use Impero\Servers\Record\Task;
 use Impero\Services\Service\Connection\SshConnection;
+use Impero\Services\Service\Rsync;
 use Pckg\Database\Record;
 
 class Site extends Record
@@ -61,11 +64,17 @@ class Site extends Record
      */
     public function createOnFilesystem(Server $server)
     {
-        $connection = $server->getConnection();
+        $task = Task::create('Creating site #' . $this->id . ' on filesystem on server #' . $server->id);
 
-        $connection->exec('mkdir -p ' . $this->getHtdocsPath());
-        $connection->exec('mkdir -p ' . $this->getLogPath());
-        $connection->exec('mkdir -p ' . $this->getSslPath());
+        return $task->make(
+            function() use ($server) {
+                $connection = $server->getConnection();
+
+                $connection->exec('mkdir -p ' . $this->getHtdocsPath());
+                $connection->exec('mkdir -p ' . $this->getLogPath());
+                $connection->exec('mkdir -p ' . $this->getSslPath());
+            }
+        );
     }
 
     public function getMountpoint()
@@ -284,6 +293,17 @@ class Site extends Record
 
     public function letsencrypt()
     {
+        /**
+         * @T00D00 - when site already has a certificateand it does not need a refresh we simply copy certificates to new server
+         */
+        if ($this->ssl == 'letsencrypt') {
+            /**
+             * Already requested, skip - copy certificates.
+             */
+            // $this->restartApache();
+            return;
+        }
+
         /**
          * Generate certificate only, agree with tos, run in non interactive mode, set rsa key size,
          * set admin email, default webroot path, certificate name, domains, usage with apache
@@ -541,6 +561,72 @@ class Site extends Record
         $this->restartAllServices();
     }
 
+    public function addCronWorker(Server $server, $pckg, $vars)
+    {
+        $this->vars = $vars;
+
+        $task = Task::create('Adding cron worker for site #' . $this->id . ' on server #' . $server->id);
+
+        return $task->make(
+            function() use ($server, $pckg) {
+
+            }
+        );
+    }
+
+    public function addWebWorker(Server $server, $pckg, $vars)
+    {
+        $this->vars = $vars;
+
+        $task = Task::create('Adding web worker for site #' . $this->id . ' on server #' . $server);
+
+        return $task->make(
+            function() use ($server, $pckg) {
+                /**
+                 * Create webserver directories.
+                 */
+                $this->createOnFilesystem($server);
+
+                /**
+                 * Checkout platform.
+                 */
+                $this->checkoutPlatform($server, $pckg);
+
+                /**
+                 * We are extending site to another server.
+                 * All directories are existent.
+                 *
+                 * @T00D00 - check that volume is actually mounted
+                 * @T00D00 - check that tmp directory is local, cache is shared
+                 */
+                $this->preparePlatformDirs($server, $pckg);
+
+                /**
+                 * Copy config.
+                 *
+                 * @T00D00 - allow different "configurations"
+                 */
+                $this->copyConfigFromWorker($server, $pckg);
+
+                /**
+                 * Database don't need to be changed
+                 * Platform was already prepared.
+                 * Cronjobs should be extended manually as service.
+                 */
+
+                /**
+                 * Check for letsencrypt.
+                 * Restart apache and haproxy.
+                 */
+                if (isset($pckg['services']['web']['https'])) {
+                    $this->letsencrypt();
+                } else {
+                    $this->restartApache();
+                }
+            }
+        );
+    }
+
     /**
      * @param Server $server
      * @param        $pckg
@@ -552,7 +638,7 @@ class Site extends Record
     {
         $this->vars = $vars;
 
-        $task = Task::create('Checking out site #' . $this->id);
+        $task = Task::create('Checking out site #' . $this->id . ' on server #' . $server->id);
 
         return $task->make(
             function() use ($server, $pckg) {
@@ -638,6 +724,32 @@ class Site extends Record
                 $connection = $server->getConnection();
                 foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
                     $connection->saveContent($this->getHtdocsPath() . $dest, $this->getConfigContent());
+                }
+            }
+        );
+    }
+
+    /**
+     * @param Server $server
+     * @param        $pckg
+     *
+     * @throws \Exception
+     */
+    public function copyConfigFromWorker(Server $server, $pckg)
+    {
+        $task = Task::create('Copying config for site #' . $this->id . ' to server #' . $server->id);
+
+        return $task->make(
+            function() use ($server, $pckg) {
+                $otherWorker = (new ServersMorphs())->where('type', 'web')
+                                                    ->where('server_id', $server->id, '!=')
+                                                    ->where('morph_id', Sites::class)
+                                                    ->where('poly_id', $this->id)
+                                                    ->one();
+
+                $connection = $server->getConnection();
+                foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
+                    (new Rsync($server->getConnection()))->copyTo($otherWorker, $this->getHtdocsPath() . $dest);
                 }
             }
         );
@@ -982,7 +1094,7 @@ class Site extends Record
      */
     public function checkoutPlatform(Server $server, $pckg)
     {
-        $task = Task::create('Checking out site #' . $this->id);
+        $task = Task::create('Checking out site #' . $this->id . ' on server #' . $server->id);
 
         return $task->make(
             function() use ($server, $pckg) {
@@ -1059,7 +1171,7 @@ class Site extends Record
      */
     public function preparePlatformDirs(Server $server, $pckg)
     {
-        $task = Task::create('Preparing site #' . $this->id . ' directories');
+        $task = Task::create('Preparing site #' . $this->id . ' directories on server #' . $server->id);
 
         return $task->make(
             function() use ($server, $pckg) {
@@ -1085,32 +1197,35 @@ class Site extends Record
                     }
 
                     $hasOldDir = $connection->dirExists($htdocsOldPath . $storageDir);
-                    if ($hasOldDir) {
+                    if (!$hasOldDir) {
                         /**
-                         * Existing dirs are copied to storage server.
-                         * Recreation is skipped.
+                         * Create $storageDir directory in site's directory on storage server.
                          */
                         $connection->makeAndAllow($siteStoragePath . $storageDir);
-
-                        /**
-                         * Transfer contents.
-                         */
-                        $connection->exec(
-                            'rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath .
-                            $storageDir . '/ --stats'
-                        );
                         continue;
                     }
-
                     /**
-                     * Create $storageDir directory in site's directory on storage server.
+                     * Existing dirs are copied to storage server.
+                     * Recreation is skipped.
                      */
                     $connection->makeAndAllow($siteStoragePath . $storageDir);
+
+                    /**
+                     * Transfer contents.
+                     *
+                     * @T00D00 - check if this is needed at all times?
+                     */
+                    $connection->exec(
+                        'rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath .
+                        $storageDir . '/ --stats'
+                    );
                 }
 
                 /**
                  * Create symlink.
                  * Also, check if dir exists
+                 *
+                 * @T00D00 - check if this should be moved before previous loop?
                  */
                 foreach ($pckg['services']['web']['mount'] ?? [] as $linkPoint => $storageDir) {
                     /**
@@ -1118,7 +1233,8 @@ class Site extends Record
                      * If it was directory and it does
                      */
                     $originPoint = $this->replaceVars($storageDir);
-                    $connection->exec('ln -s ' . $originPoint . ' ' . $this->getHtdocsPath() . $linkPoint);
+                    $fullLinkPoint = $this->getHtdocsPath() . $linkPoint;
+                    $connection->exec('ln -s ' . $originPoint . ' ' . $fullLinkPoint);
                 }
             }
         );
@@ -1299,6 +1415,17 @@ return [
     public function getHashAttribute()
     {
         return sha1($this->id . Site::class);
+    }
+
+    public function getInfrastructure()
+    {
+        return [
+            'sitesServers'  => (new SitesServers())->where('site_id', $this->id)
+                                                   ->all(),
+            'serversMorphs' => (new ServersMorphs())->where('morph_id', Sites::class)
+                                                    ->where('poly_id', $this->id)
+                                                    ->all(),
+        ];
     }
 
 }

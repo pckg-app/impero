@@ -16,7 +16,7 @@ class Sites extends Provider
                     'controller' => SitesController::class,
                     'urlPrefix'  => '/site',
                     'namePrefix' => 'impero.site',
-                    'tags' => ['auth:in'],
+                    'tags'       => ['auth:in'],
                 ],
                 [
                     '.confirmDelete' => route('/[site]/confirm-delete', 'confirmDelete')
@@ -28,7 +28,7 @@ class Sites extends Provider
                     'controller' => SitesController::class,
                     'urlPrefix'  => '/api/site',
                     'namePrefix' => 'api.impero.site',
-                    'tags' => ['auth:in'],
+                    'tags'       => ['auth:in'],
                 ]
             ))->routes(
                 [
@@ -82,6 +82,12 @@ class Sites extends Provider
                             ]
                         ),
                     '.hasSiteFile'    => (new Route('/[site]/has-site-file', 'hasSiteFile'))
+                        ->resolvers(
+                            [
+                                'site' => Site::class,
+                            ]
+                        ),
+                    '.infrastructure' => (new Route('/[site]/infrastructure', 'infrastructure'))
                         ->resolvers(
                             [
                                 'site' => Site::class,

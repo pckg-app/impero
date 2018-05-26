@@ -288,6 +288,42 @@ automatically and permanently.</p>'
     }
 
     /**
+     * @param Site   $site
+     * @param Server $server
+     *
+     * @throws Exception
+     */
+    public function postWebWorkerAction(Site $site, Server $server)
+    {
+        $variables = post('vars', []);
+        $pckg = post('pckg', []);
+
+        $site->addWebWorker($server, $pckg, $variables);
+
+        return [
+            'success' => true,
+        ];
+    }
+
+    /**
+     * @param Site   $site
+     * @param Server $server
+     *
+     * @throws Exception
+     */
+    public function postCronWorkerAction(Site $site, Server $server)
+    {
+        $variables = post('vars', []);
+        $pckg = post('pckg', []);
+
+        $site->addCronWorker($server, $pckg, $variables);
+
+        return [
+            'success' => true,
+        ];
+    }
+
+    /**
      * Add site's databases to another slave.
      *
      * @param Site $site
@@ -320,14 +356,17 @@ automatically and permanently.</p>'
         $databases = (new Databases())->where('name', $databases)->all();
         $databases->each(
             function(Database $database) use ($server, $site) {
-                $sitesServer = SitesServer::getOrNew([
-                                                          'site_id'   => $site->id,
-                                                          'server_id' => $server->id,
-                                                          'type'      => 'database:slave',
-                                                      ]);
+                $sitesServer = SitesServer::getOrNew(
+                    [
+                        'site_id'   => $site->id,
+                        'server_id' => $server->id,
+                        'type'      => 'database:slave',
+                    ]
+                );
                 if (!$sitesServer->isNew()) {
                     /**
                      * Skip existing?
+                     *
                      * @T00D00 ... at some point site may have multiple different databases over different servers
                      *         ... link database with server instead
                      * @T00D00 ... implement connections
@@ -365,6 +404,14 @@ automatically and permanently.</p>'
         return [
             'success'   => true,
             'databases' => $databases->map('name'),
+        ];
+    }
+
+    public function getInfrastructureAction(Site $site)
+    {
+        return [
+            'success'        => true,
+            'infrastructure' => $site->getInfrastructure(),
         ];
     }
 
