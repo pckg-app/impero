@@ -918,6 +918,7 @@ class Site extends Record
          * Everything is ready, we may enable cronjobs.
          */
         $this->enableCronjobs($server, $pckg);
+        $this->restartApache();
     }
 
     /**
