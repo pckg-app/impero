@@ -1377,6 +1377,7 @@ return [
             \'db\'   => \'$dbname\',
         ],
         \'dynamic\' => [
+            \'db\'   => \'pckg_derive_basket\',
             \'user\' => \'$dbuser\',
             \'pass\' => \'$dbpass\',
         ],
