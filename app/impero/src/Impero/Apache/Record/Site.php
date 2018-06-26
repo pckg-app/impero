@@ -301,7 +301,7 @@ class Site extends Record
              * Already requested, skip - copy certificates.
              */
             // $this->restartApache();
-            return;
+            // return;
         }
 
         /**
