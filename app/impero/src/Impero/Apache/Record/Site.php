@@ -937,7 +937,7 @@ class Site extends Record
 
         return $task->make(
             function() use ($server, $pckg, $isAlias, $checkAlias, $migrate) {
-                $connection = $server->getConnection();
+                $connection = null;
                 $htdocsDir = $this->getHtdocsPath();
                 $blueGreen = ($pckg['checkout']['type'] ?? null) == 'ab';
 
@@ -965,6 +965,7 @@ class Site extends Record
                 }
 
                 if ($deployDir) {
+                    $connection = $connection ?? $server->getConnection();
                     foreach ($pckg['deploy'] ?? [] as $command) {
                         $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
                         $finalCommand .= $this->replaceVars($command);
@@ -975,9 +976,11 @@ class Site extends Record
                 /**
                  * Standalone and aliased platforms are migrated in their htdocs directory.
                  */
-                if (!$migrate) {
+                if (!$migrate || !($pckg['migrate'] ?? [])) {
                     return;
                 }
+
+                $connection = $connection ?? $server->getConnection();
                 $task = Task::create('Migrating site #' . $this->id);
                 $task->make(
                     function() use ($pckg, $deployDir, $connection) {
