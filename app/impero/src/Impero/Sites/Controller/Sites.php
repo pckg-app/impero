@@ -451,7 +451,8 @@ automatically and permanently.</p>'
          * The only service currently known is cronjob.
          * We will remove old cronjob and install new one.
          */
-        (new SitesServers())->where('type', 'cron')->where('site_id', $site)->all()->each->redeploy();
+        $crons = (new SitesServers())->where('type', 'cron')->where('site_id', $site->id)->all();
+        $crons->each->redeploy();
 
         /**
          * The other currently known change is config change.
@@ -462,8 +463,8 @@ automatically and permanently.</p>'
          * We need to delete old files (they should be logged somewhere) and recreate new ones.
          * When config file is removed from pckg.yaml we need to remove it.
          */
-        if (false)
-        (new SitesServers())->where('type', 'config')->where('site_id', $site)->all()->each->redeploy();
+        $configs = (new SitesServers())->where('type', 'config')->where('site_id', $site)->all();
+        $configs->each->redeploy();
 
         return [
             'success' => true,

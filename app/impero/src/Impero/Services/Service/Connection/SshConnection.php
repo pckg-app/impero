@@ -133,9 +133,10 @@ class SshConnection implements ConnectionInterface, Connectable
          * Throw exception on misconfiguration.
          */
         if (!$auth) {
-            $this->server->logCommand(
-                'Cannot authenticate: ' . $type . ' ' . $user . ' ' . $key . ' ' . $host . ' ' . $port, null, null, null
-            );
+            $this->server->logCommand('Cannot authenticate: ' . $type . ' ' . $user . ' ' . $key . ' ' . $host . ' ' . $port,
+                                      null,
+                                      null,
+                                      null);
             throw new Exception("Cannot authenticate with key");
         } else {
             $this->server->logCommand('Authenticated with SSH', null, null, null);
@@ -220,13 +221,11 @@ class SshConnection implements ConnectionInterface, Connectable
             $errorStreamContent = stream_get_contents($errorStream);
             $infoStreamContent = stream_get_contents($stream);
         } catch (Throwable $e) {
-            $serverCommand->setAndSave(
-                [
-                    'command' => 'Error executing command ' . $command,
-                    'info'    => $infoStreamContent,
-                    'error'   => $errorStreamContent,
-                ]
-            );
+            $serverCommand->setAndSave([
+                                           'command' => 'Error executing command ' . $command,
+                                           'info'    => $infoStreamContent,
+                                           'error'   => $errorStreamContent,
+                                       ]);
 
             return null;
         } finally {
@@ -235,14 +234,12 @@ class SshConnection implements ConnectionInterface, Connectable
 
             //d($command, $output, $error);
 
-            $serverCommand->setAndSave(
-                [
-                    'command' => 'Command executed ' . $command,
-                    'info'    => $infoStreamContent,
-                    'error'   => $errorStreamContent,
-                    'code'    => 1,
-                ]
-            );
+            $serverCommand->setAndSave([
+                                           'command' => 'Command executed ' . $command,
+                                           'info'    => $infoStreamContent,
+                                           'error'   => $errorStreamContent,
+                                           'code'    => 1,
+                                       ]);
         }
 
         return $infoStreamContent;
@@ -315,10 +312,26 @@ password = s0m3p4ssw0rd';*/
             throw new Exception('Cannot open stream');
         }
 
-        $content = fread($stream, filesize("ssh2.sftp://" . intval($sftp) . $file));
+        $tmp = '/tmp/' . sha1(microtime());
+        if (!$localStream = @fopen($tmp, 'w')) {
+            throw new Exception('Unable to open local file for writing: ' . $tmp);
+        }
 
-        @fclose($stream);
+        $read = 0;
+        $fileSize = filesize('ssh2.sftp://' . intval($sftp) . $file);
+        while ($read < $fileSize && ($buffer = fread($stream, $fileSize - $read))) {
+            $read += strlen($buffer);
 
+            if (fwrite($localStream, $buffer) === false) {
+                throw new Exception('Unable to write to local file: ' . $tmp);
+            }
+        }
+
+        fclose($localStream);
+        fclose($stream);
+
+        $content = file_get_contents($tmp);
+        unlink($tmp);
         return $content;
     }
 
@@ -348,9 +361,7 @@ password = s0m3p4ssw0rd';*/
              * -L localPort:ip:remotePort - local forwarding (-R - opposite, remote forwarding)
              */
             $this->tunnelPort = 3307; // @T00D00
-            $command = 'ssh -p ' . $this->port . ' -i ' . $this->key . ' -f -L ' . $this->tunnelPort .
-                ':127.0.0.1:3306 ' . $this->user . '@' . $this->host . ' sleep 10 >> /tmp/tunnel.' .
-                $this->host . '.' . $this->port . '.log';
+            $command = 'ssh -p ' . $this->port . ' -i ' . $this->key . ' -f -L ' . $this->tunnelPort . ':127.0.0.1:3306 ' . $this->user . '@' . $this->host . ' sleep 10 >> /tmp/tunnel.' . $this->host . '.' . $this->port . '.log';
             shell_exec($command);
         }
 
@@ -426,9 +437,7 @@ password = s0m3p4ssw0rd';*/
         if (!$to->getConnection()->dirExists($dir)) {
             $to->getConnection()->exec('mkdir -p ' . $dir);
         }
-        $this->exec(
-            'rsync -a ' . $file . ' impero@' . $to->privateIp . ':' . $file . ' -e \'ssh -p ' . $to->port . '\''
-        );
+        $this->exec('rsync -a ' . $file . ' impero@' . $to->privateIp . ':' . $file . ' -e \'ssh -p ' . $to->port . '\'');
     }
 
     /**
