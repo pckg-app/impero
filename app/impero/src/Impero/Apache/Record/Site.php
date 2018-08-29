@@ -1,6 +1,5 @@
 <?php namespace Impero\Apache\Record;
 
-use Defuse\Crypto\Key;
 use Impero\Apache\Console\DumpVirtualhosts;
 use Impero\Apache\Entity\Sites;
 use Impero\Apache\Entity\SitesServers;
@@ -12,6 +11,7 @@ use Impero\Servers\Record\Task;
 use Impero\Services\Service\Connection\SshConnection;
 use Impero\Services\Service\Rsync;
 use Pckg\Database\Record;
+use Pckg\Generic\Record\SettingsMorph;
 
 class Site extends Record
 {
@@ -294,17 +294,6 @@ class Site extends Record
     public function letsencrypt()
     {
         /**
-         * @T00D00 - when site already has a certificateand it does not need a refresh we simply copy certificates to new server
-         */
-        if ($this->ssl == 'letsencrypt') {
-            /**
-             * Already requested, skip - copy certificates.
-             */
-            // $this->restartApache();
-            // return;
-        }
-
-        /**
          * Generate certificate only, agree with tos, run in non interactive mode, set rsa key size,
          * set admin email, default webroot path, certificate name, domains, usage with apache
          * and auto expansion.
@@ -361,16 +350,31 @@ class Site extends Record
         $connection = $this->getServerConnection();
         $response = $connection->exec($command . ' ' . $params);
 
-        if (strpos($response, 'Congratulations! Your certificate and chain have been saved at:') === false
+        $congrats = 'Congratulations! Your certificate and chain have been saved at:';
+        if (strpos($response, $congrats) === false
             && strpos($response, 'Certificate not yet due for renewal') === false
         ) {
             return false;
         }
 
         /**
+         * @T00D00 - when certificate is re-issued we need to make backup of it and transfer it to all servers.
+         *         - we also need to update path, when needed
+         */
+        $startCongrats = strpos($response, $congrats);
+        $startDir = $startCongrats + strlen($congrats);
+        $endDir = strpos($response, '.pem', $startDir);
+        $fullPath = trim(substr($response, $startDir, $endDir - $startDir));
+        $dir = trim(substr($fullPath, 0, strrpos($fullPath, '/') + 1));
+
+        if (!$dir) {
+            return false;
+        }
+
+        /**
          * If command is successful update site, dump config and restart apache.
          */
-        $dir = '/etc/letsencrypt/live/' . $domain . '/';
+        // $dir = '/etc/letsencrypt/live/' . $domain . '/';
 
         /**
          * Create symlinks.
@@ -379,7 +383,7 @@ class Site extends Record
         $sslPath = $this->getSslPath();
         foreach ($files as $file) {
             if ($connection->symlinkExists($sslPath . $file)) {
-                continue;
+                $connection->deleteFile($sslPath . $file);
             }
 
             $connection->exec('ln -s ' . $dir . $file . ' ' . $sslPath . $file);
@@ -578,7 +582,7 @@ class Site extends Record
     {
         $this->vars = $vars;
 
-        $task = Task::create('Adding web worker for site #' . $this->id . ' on server #' . $server);
+        $task = Task::create('Adding web worker for site #' . $this->id . ' on server #' . $server->id);
 
         return $task->make(
             function() use ($server, $pckg) {
@@ -590,7 +594,7 @@ class Site extends Record
                 /**
                  * Checkout platform.
                  */
-                $this->checkoutPlatform($server, $pckg);
+                $this->executeCheckoutProcedure($server, $pckg);
 
                 /**
                  * We are extending site to another server.
@@ -599,7 +603,7 @@ class Site extends Record
                  * @T00D00 - check that volume is actually mounted
                  * @T00D00 - check that tmp directory is local, cache is shared
                  */
-                $this->preparePlatformDirs($server, $pckg);
+                $this->deployStorageService($server, $pckg);
 
                 /**
                  * Copy config.
@@ -634,53 +638,51 @@ class Site extends Record
      *
      * @throws \Exception
      */
-    public function checkout(Server $server, $pckg, $vars)
+    public function checkout(Server $server)
     {
-        $this->vars = $vars;
-
         $task = Task::create('Checking out site #' . $this->id . ' on server #' . $server->id);
 
         return $task->make(
-            function() use ($server, $pckg) {
+            function() use ($server) {
                 /**
                  * Create htdocs, logs and ssl directories on $server.
                  * If needed we enable https / letsencrypt (on loadbalancer?).
                  * Reload and restart apache on new server.
                  */
-                $this->prepareSite($server, $pckg);
+                $this->deployWebService($server);
 
                 /**
                  * We checkout and initialize standalone platforms or create directory structure and symlinks for linked ones.
                  */
-                $this->checkoutPlatform($server, $pckg);
+                $this->executeCheckoutProcedure($server);
 
                 /**
                  * Project is prepared on linked and standalone platforms.
                  * We need to apply storage service and execute 'prepare' commands.
                  * Here we create proper directories and symlinks.
                  */
-                $this->preparePlatformDirs($server, $pckg);
+                $this->deployStorageService($server);
 
                 /**
                  * Create database, privileges, enable backups and replication.
                  * Also imports clean database, creates admin user and writes configuration.
                  */
-                $this->prepareDatabase($server, $pckg);
+                $this->deployDatabaseService($server);
 
                 /**
                  * Dump config.
                  */
-                $this->copyConfig($server, $pckg);
+                $this->deployConfigService($server);
 
                 /**
                  * We probably need to import few things.
                  */
-                $this->preparePlatform($server, $pckg);
+                $this->executePrepareProcedure($server);
 
                 /**
                  * Everything is ready, we may enable cronjobs.
                  */
-                $this->enableCronjobs($server, $pckg);
+                $this->deployCronService($server);
             }
         );
     }
@@ -691,14 +693,15 @@ class Site extends Record
      *
      * @throws \Exception
      */
-    public function preparePlatform(Server $server, $pckg)
+    public function executePrepareProcedure(Server $server)
     {
         $task = Task::create('Preparing site #' . $this->id);
         return $task->make(
-            function() use ($server, $pckg) {
+            function() use ($server) {
                 /**
                  * Execute prepare commands.
                  */
+                $pckg = $this->getImperoPckgAttribute();
                 $commands = [];
                 foreach ($pckg['prepare'] ?? [] as $command) {
                     $commands[] = $this->replaceVars($command);
@@ -710,23 +713,14 @@ class Site extends Record
     }
 
     /**
-     * @param Server $server
-     * @param        $pckg
+     * @param $file
      *
+     * @return string
      * @throws \Exception
      */
-    public function copyConfig(Server $server, $pckg)
+    public function getConfigFileContent(SshConnection $connection, $file)
     {
-        $task = Task::create('Copying config for site #' . $this->id);
-
-        return $task->make(
-            function() use ($server, $pckg) {
-                $connection = $server->getConnection();
-                foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
-                    $connection->saveContent($this->getHtdocsPath() . $dest, $this->getConfigContent());
-                }
-            }
-        );
+        return $this->replaceVars($connection->sftpRead($this->getHtdocsPath() . $file));
     }
 
     /**
@@ -761,12 +755,12 @@ class Site extends Record
      * @return Site
      * @throws \Exception
      */
-    public function prepareSite(Server $server, $pckg)
+    public function deployWebService(Server $server)
     {
-        $task = Task::create('Preparing site #' . $this->id);
+        $task = Task::create('Deploying web service for site #' . $this->id . ' on server #' . $server->id);
 
         return $task->make(
-            function() use ($server, $pckg) {
+            function() use ($server) {
                 /**
                  * Link server and site's service.
                  */
@@ -792,11 +786,7 @@ class Site extends Record
                  * This will call letsencrypt and ask for new certificate.
                  * It will also add ssl virtualhost and restart apache.
                  */
-                if (isset($pckg['services']['web']['https'])) {
-                    $this->letsencrypt();
-                } else {
-                    $this->restartApache();
-                }
+                $this->letsencrypt();
             }
         );
     }
@@ -905,20 +895,28 @@ class Site extends Record
      *
      * @throws \Exception
      */
-    public function recheckout(Server $server, $pckg, $vars)
+    public function recheckout(Server $server)
     {
-        $this->vars = $vars;
-        $this->prepareSite($server, $pckg);
-        $this->createNewHtdocsPath($server);
-        $this->checkoutPlatform($server, $pckg);
-        $this->preparePlatformDirs($server, $pckg);
-        $this->copyOldConfig($server);
+        $task = Task::create('Re-checking out site #' . $this->id . ' on server #' . $server->id);
 
-        /**
-         * Everything is ready, we may enable cronjobs.
-         */
-        $this->enableCronjobs($server, $pckg);
-        $this->restartApache();
+        return $task->make(function() use ($server) {
+            $this->deployWebService($server);
+
+            $this->createNewHtdocsPath($server);
+
+            $this->executeCheckoutProcedure($server);
+
+            $this->deployStorageService($server);
+
+            $this->copyOldConfig($server);
+
+            /**
+             * Everything is ready, we may enable cronjobs.
+             */
+            $this->redeployCronService($server);
+
+            $this->restartApache();
+        });
     }
 
     /**
@@ -1018,25 +1016,112 @@ class Site extends Record
      * @param Server $server
      * @param        $pckg
      */
-    public function enableCronjobs(Server $server, $pckg)
+    public function deployCronService(Server $server)
     {
         $task = Task::create('Enabling cronjobs for site #' . $this->id);
 
         return $task->make(
-            function() use ($server, $pckg) {
+            function() use ($server) {
                 /**
-                 * Link database to site.
+                 * Link cron service to site and server.
                  */
-                SitesServer::getOrCreate(['site_id' => $this->id, 'server_id' => $server->id, 'type' => 'cron']);
+                $pckg = $this->getImperoPckgAttribute();
+                SitesServer::getOrCreate(['site_id'   => $this->id,
+                                                         'server_id' => $server->id,
+                                                         'type'      => 'cron',
+                                                        ]);
 
                 /**
                  * Add cronjob, we also perform uniqueness check.
                  */
                 foreach ($pckg['services']['cron']['commands'] ?? [] as $cron) {
-                    $server->addCronjob($this->replaceVars($cron['command']));
+                    $command = $this->replaceVars($cron['command']);
+                    $server->addCronjob($command);
                 }
             }
         );
+    }
+
+    public function undeployCronService(Server $server)
+    {
+        $task = Task::create('Un-deploying cron service for site #' . $this->id . ' on server ' . $server->id);
+
+        return $task->make(function() use ($server) {
+            $sitesServers =  (new SitesServers())->where('site_id', $this->id)
+                                ->where('server_id', $server->id)
+                                ->where('type', 'cron')
+                                ->all();
+
+            $sitesServers->each(function(SitesServer $sitesServer) {
+                $sitesServer->server->removeCronjob($this->getHtdocsPath());
+            });
+        });
+    }
+
+    public function undeployConfigService(Server $server)
+    {
+        $task = Task::create('Un-deploying config service for site #' . $this->id . ' on server ' . $server->id);
+
+        return $task->make(function() use ($server) {
+            $connection = $server->getConnection();
+            $pckg = $this->getImperoPckgAttribute();
+
+            foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
+                $connection->deleteFile($this->getHtdocsPath() . $dest);
+            }
+        });
+    }
+
+    /**
+     * @param Server $server
+     * @param        $pckg
+     *
+     * @throws \Exception
+     */
+    public function deployConfigService(Server $server)
+    {
+        $task = Task::create('Copying config for site #' . $this->id . ' on server #' . $server->id);
+
+        return $task->make(
+            function() use ($server) {
+                $connection = $server->getConnection();
+                $pckg = $this->getImperoPckgAttribute();
+
+                foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
+                    $connection->saveContent($this->getHtdocsPath() . $dest, $this->getConfigFileContent($connection, $copy));
+                }
+            }
+        );
+    }
+
+    /**
+     * @param Server $server
+     *
+     * @return mixed
+     */
+    public function redeployCronService(Server $server)
+    {
+        $task = Task::create('Re-deploying cron service for site #' . $this->id . ' on server ' . $server->id);
+
+        return $task->make(function() use ($server) {
+            $this->undeployCronService($server);
+            $this->deployCronService($server);
+        });
+    }
+
+    /**
+     * @param Server $server
+     *
+     * @return mixed
+     */
+    public function redeployConfigService(Server $server)
+    {
+        $task = Task::create('Removing config for site #' . $this->id . ' on server ' . $server->id);
+
+        return $task->make(function() use ($server) {
+            $this->undeployConfigService($server);
+            $this->deployConfigService($server);
+        });
     }
 
     /**
@@ -1096,17 +1181,18 @@ class Site extends Record
      *
      * @throws \Exception
      */
-    public function checkoutPlatform(Server $server, $pckg)
+    public function executeCheckoutProcedure(Server $server)
     {
         $task = Task::create('Checking out site #' . $this->id . ' on server #' . $server->id);
 
         return $task->make(
-            function() use ($server, $pckg) {
+            function() use ($server) {
                 /**
                  * All commands will be executed in platform's htdocs path.
                  */
                 $connection = $server->getConnection();
                 $commands = [];
+                $pckg = $this->getImperoPckgAttribute();
 
                 if ($pckg['checkout']['type'] == 'linked') {
                     /**
@@ -1173,15 +1259,16 @@ class Site extends Record
      *
      * @throws \Exception
      */
-    public function preparePlatformDirs(Server $server, $pckg)
+    public function deployStorageService(Server $server)
     {
         $task = Task::create('Preparing site #' . $this->id . ' directories on server #' . $server->id);
 
         return $task->make(
-            function() use ($server, $pckg) {
+            function() use ($server) {
                 $siteStoragePath = $this->getStorageDir();
                 $htdocsOldPath = $this->getHtdocsOldPath();
                 $connection = $server->getConnection();
+                $pckg = $this->getImperoPckgAttribute();
 
                 /**
                  * Create site dir.
@@ -1246,12 +1333,23 @@ class Site extends Record
 
     public function replaceVars($command, $vars = [])
     {
+        /**
+         * Default variables are needed for path definition for each service deployments.
+         */
         $defaults = [
             '$webDir'     => $this->getHtdocsPath(),
             '$logsDir'    => $this->getLogPath(),
             '$storageDir' => $this->getStorageDir(),
         ];
+
+        /**
+         * In most cases $vars is empty.
+         */
         $replaces = array_merge($defaults, $vars);
+
+        /**
+         * Default vars were set on initial deploy, and changed and added afterwards.
+         */
         $replaces = array_merge($replaces, $this->vars);
 
         $escaped = [];
@@ -1275,15 +1373,16 @@ class Site extends Record
      *
      * @throws \Exception
      */
-    public function prepareDatabase(Server $server, $pckg)
+    public function deployDatabaseService(Server $server)
     {
         $task = Task::create('Preparing database for site #' . $this->id);
 
         return $task->make(
-            function() use ($server, $pckg) {
+            function() use ($server) {
                 /**
                  * Link database to site.
                  */
+                $pckg = $this->getImperoPckgAttribute();
                 SitesServer::getOrCreate(['site_id' => $this->id, 'server_id' => $server->id, 'type' => 'database']);
 
                 /**
@@ -1342,8 +1441,10 @@ class Site extends Record
 
                     foreach ($config['user'] ?? [] as $user => $privilege) {
                         $dbuser = $this->replaceVars($user);
-                        if (!isset($this->vars['$dbuser'])) {
-                            $this->vars['$dbuser'] = $dbuser;
+                        $vars = $this->getImperoVarsAttribute();
+                        if (!isset($vars['$dbuser'])) {
+                            $vars['$dbuser'] = $dbuser;
+                            $this->setImperoVarsAttribute($vars);
                         }
                         DatabaseUser::createFromPost(
                             [
@@ -1357,56 +1458,6 @@ class Site extends Record
                     }
                 }
             }
-        );
-    }
-
-    public function getConfigContent()
-    {
-        /**
-         * Create new security key for passwords and hashes.
-         */
-        $this->vars['$securityKey'] = Key::createNewRandomKey()->saveToAsciiSafeString();
-
-        return $this->replaceVars(
-            '<?php
-
-return [
-    \'identifier\' => \'$identifier\',
-    \'domain\'     => \'$domain\',
-    \'database\'   => [
-        \'default\' => [
-            \'user\' => \'$dbuser\',
-            \'pass\' => \'$dbpass\',
-            \'db\'   => \'$dbname\',
-        ],
-        \'dynamic\' => [
-            \'db\'   => \'pckg_derive_basket\',
-            \'user\' => \'$dbuser\',
-            \'pass\' => \'$dbpass\',
-        ],
-    ],
-    \'security\'   => [
-        \'key\' => \'$securityKey\',
-    ],
-    \'pckg\'       => [
-        \'mailo\' => [
-            \'apiKey\' => \'$mailoApiKey\',
-        ],
-        \'pendo\' => [
-            \'apiKey\' => \'$pendoApiKey\',
-        ],
-    ],
-    \'router\'     => [
-        \'apps\' => [
-            \'$app\' => [
-                \'host\' => [
-                    \'(.*)\', // allow any host
-                ],
-            ],
-        ],
-    ],
-];
-'
         );
     }
 
@@ -1431,6 +1482,48 @@ return [
                                                     ->where('poly_id', $this->id)
                                                     ->all(),
         ];
+    }
+
+    public function getImperoPckgAttribute()
+    {
+        if ($this->hasKey('imperoPckg')) {
+            return $this->data('imperoPckg');
+        }
+
+        $setting = SettingsMorph::getSettingOrDefault('impero.pckg', Sites::class, $this->id, []);
+
+        $this->set('imperoPckg', $setting);
+
+        return $setting;
+    }
+
+    public function getImperoVarsAttribute()
+    {
+        if ($this->hasKey('imperoVars')) {
+            return $this->data('imperoVars');
+        }
+
+        $setting = SettingsMorph::getSettingOrDefault('impero.vars', Sites::class, $this->id, []);
+
+        $this->set('imperoVars', $setting);
+
+        return $setting;
+    }
+
+    public function setImperoVarsAttribute($vars)
+    {
+        $this->set('imperoVars', $vars);
+        SettingsMorph::makeItHappen('impero.vars', $vars, Sites::class, $this->id, 'array');
+
+        return $this;
+    }
+
+    public function setImperoPckgAttribute($pckg)
+    {
+        $this->set('imperoPckg', $pckg);
+        SettingsMorph::makeItHappen('impero.pckg', $pckg, Sites::class, $this->id, 'array');
+
+        return $this;
     }
 
 }

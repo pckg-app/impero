@@ -93,6 +93,30 @@ class Sites extends Provider
                                 'site' => Site::class,
                             ]
                         ),
+                    '.changeVariable' => (new Route('/[site]/change-variable', 'changeVariable'))
+                        ->resolvers(
+                            [
+                                'site' => Site::class,
+                            ]
+                        ),
+                    '.changePckg' => (new Route('/[site]/change-pckg', 'changePckg'))
+                        ->resolvers(
+                            [
+                                'site' => Site::class,
+                            ]
+                        ),
+                    '.vars' => (new Route('/[site]/vars', 'vars'))
+                        ->resolvers(
+                            [
+                                'site' => Site::class,
+                            ]
+                        ),
+                    '.fileContent' => (new Route('/[site]/file-content', 'fileContent'))
+                        ->resolvers(
+                            [
+                                'site' => Site::class,
+                            ]
+                        ),
                 ]
             ),
         ];

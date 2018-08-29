@@ -1,12 +1,14 @@
 <?php namespace Impero\Sites\Controller;
 
 use Exception;
+use Impero\Apache\Entity\SitesServers;
 use Impero\Apache\Record\Site;
 use Impero\Apache\Record\SitesServer;
 use Impero\Mysql\Entity\Databases;
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
 use Impero\Servers\Record\Task;
+use Pckg\Generic\Record\SettingsMorph;
 use Pckg\Mail\Service\Mail\Adapter\SimpleUser;
 
 class Sites
@@ -198,7 +200,9 @@ automatically and permanently.</p>'
         }
 
         $site->setAndSave(['server_name' => $domain, 'server_alias' => $domains]);
-        if (post('restart_apache')) {
+        if (post('letsencrypt')) {
+            $site->letsencrypt();
+        } else if (post('restart_apache')) {
             $site->restartApache();
         }
 
@@ -215,7 +219,18 @@ automatically and permanently.</p>'
      */
     public function postCheckoutAction(Site $site)
     {
-        $site->checkout($site->server, post('pckg', []), post('vars', []));
+        /**
+         * Pckg project definition and variables are stored on initial checkout.
+         * Settings can be changed and added afterwards.
+         */
+        SettingsMorph::makeItHappen('impero.pckg', json_encode(post('pckg', [])), \Impero\Apache\Entity\Sites::class, $site->id);
+        SettingsMorph::makeItHappen('impero.vars', json_encode(post('vars', [])), \Impero\Apache\Entity\Sites::class, $site->id);
+
+        /**
+         * Whole project (or site) is then initially checked out on server.
+         * User may choose multiple servers / targets for specific service.
+         */
+        $site->checkout($site->server);
 
         return [
             'site' => $site,
@@ -230,7 +245,13 @@ automatically and permanently.</p>'
      */
     public function postRecheckoutAction(Site $site)
     {
-        $site->recheckout($site->server, post('pckg', []), post('vars', []));
+        $vars = array_merge($site->getImperoVarsAttribute(), post('vars', []));
+        $pckg = post('pckg', $site->getImperoPckgAttribute());
+
+        $site->setImperoVarsAttribute($vars);
+        $site->setImperoPckgAttribute($pckg);
+
+        $site->recheckout($site->server);
 
         return [
             'site' => $site,
@@ -412,6 +433,70 @@ automatically and permanently.</p>'
         return [
             'success'        => true,
             'infrastructure' => $site->getInfrastructure(),
+        ];
+    }
+
+    public function postChangeVariableAction(Site $site)
+    {
+        $vars = post()->all();
+
+        /**
+         * First thing is to save new variables.
+         */
+        $currentVars = $site->getImperoVarsAttribute();
+        $site->setImperoVarsAttribute(array_merge($currentVars, $vars));
+
+        /**
+         * Now we need to find all services that are using variables.
+         * The only service currently known is cronjob.
+         * We will remove old cronjob and install new one.
+         */
+        (new SitesServers())->where('type', 'cron')->where('site_id', $site)->all()->each->redeploy();
+
+        /**
+         * The other currently known change is config change.
+         * Config files are defined in checkout.config section in pckg.yaml configuration file.
+         * Checkout variables are saved in impero.vars settings on site level.
+         * We need to retrieve them from config for existing platforms.
+         * If they're not available in settings, we need to manually set them (warning & import @ center?).
+         * We need to delete old files (they should be logged somewhere) and recreate new ones.
+         * When config file is removed from pckg.yaml we need to remove it.
+         */
+        if (false)
+        (new SitesServers())->where('type', 'config')->where('site_id', $site)->all()->each->redeploy();
+
+        return [
+            'success' => true,
+        ];
+    }
+
+    public function postChangePckgAction(Site $site)
+    {
+        $pckg = post('pckg');
+        $site->setImperoPckgAttribute($pckg);
+
+        return [
+            'success' => true,
+        ];
+    }
+
+    public function getVarsAction(Site $site)
+    {
+        return [
+            'vars' => $site->getImperoVarsAttribute(),
+        ];
+    }
+
+    public function postVarsAction(Site $site)
+    {
+        return [
+            'vars' => post('vars'),
+        ];
+    }
+
+    public function postFileContentAction(Site $site) {
+        return [
+            'content' => $site->getServerConnection()->sftpRead($site->getHtdocsPath() . post('file')),
         ];
     }
 

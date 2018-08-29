@@ -86,88 +86,94 @@ class Database extends Record implements Connectable
     public function backup()
     {
         /**
-         * Create task so we can track it's progress.
+         * Create task so we can track its progress.
          */
         $task = Task::create('Creating database #' . $this->id . ' cold backup');
 
         /**
-         * Execute backup tas.
+         * Execute backup task.
          */
-        $task->make(
-            function() {
-                /**
-                 * Establish connection to server and create mysql dump.
-                 */
-                $backupService = new Backup($this->getConnection());
-                $localBackupService = new Backup(context()->getOrCreate(ConnectionManager::class)->createConnection());
-                $backupFile = $backupService->createMysqlBackup($this);
+        $task->make(function() {
+            /**
+             * Establish connection to server and create mysql dump.
+             */
+            $backupService = new Backup($this->getConnection());
+            $localBackupService = new Backup(context()->getOrCreate(ConnectionManager::class)->createConnection());
+            $createdAt = date('Y-m-d H:i:s');
+            $backupFile = $backupService->createMysqlBackup($this);
 
-                if (!$backupFile) {
-                    throw new Exception('Backed up file not set?');
-                }
-
-                /**
-                 * Compress and encrypt backup on remote server.
-                 */
-                $crypto = new Crypto($this->server, null, $backupFile);
-                $encryptedFile = $crypto->compressAndEncrypt();
-
-                if (!$encryptedFile) {
-                    throw new Exception('Encrypted file not set?');
-                }
-
-                /**
-                 * Transfer encrypted backup, private key and certificate to safe / cold location.
-                 */
-                $coldFile = $backupService->toCold($crypto->getFile());
-                if (!$coldFile) {
-                    throw new Exception('Cold file not set?');
-                }
-                $keys = $crypto->getKeys();
-                /**
-                 * @T00D00
-                 */
-                $coldPrivate = $keys['private'];
-                $coldCert = $keys['cert'];
-                //$coldPrivate = $localBackupService->toCold($keys['private']);
-                //$coldCert = $localBackupService->toCold($keys['cert']);
-
-                $task = Task::create('Associating cold file with keys');
-                $task->make(
-                    function() use ($coldFile, $coldPrivate, $coldCert) {
-                        /**
-                         * @T00D00 - decrypt keys?
-                         * Associate key with cold path so we can decrypt it later.
-                         * If someone gets coldpath encrypted files he cannot decrypt them without keys.
-                         * If someone gets encryption keys he won't have access to cold storage.
-                         * If someone gets encrypted files and keys he need mapper between them.
-                         * If someone gets mapper between coldpath and keys he would need keys and storage.
-                         * .......
-                         * We also want to associate backup with database and server maybe? So we can actually know right context. :)
-                         * So, when we want to restore db backup or storage backup, we go to database or mount point and see list of
-                         * available backups. User selects backup to restore, and target server, system checks for secret links,
-                         * transfers, encrypts and imports file; or download encrypted file + private key package, both repackaged and
-                         * encrypted with per-download-set password.
-                         * .......
-                         * Maybe we should store secret keys in different database for better security?
-                         *         When decrypting we need to know which private key unlocks with file and which cert cancels private key.
-                         *         Additionally we'll encrypt private key with password file.
-                         */
-                        Secret::create(
-                            [
-                                'file' => $coldFile,
-                                'keys' => json_encode(
-                                    [
-                                        'private' => $coldPrivate,
-                                        'cert'    => $coldCert,
-                                    ]
-                                ),
-                            ]
-                        );
-                    }
-                );
+            if (!$backupFile) {
+                throw new Exception('Backed up file not set?');
             }
-        );
+
+            /**
+             * Compress and encrypt backup on remote server.
+             */
+            $crypto = new Crypto($this->server, null, $backupFile);
+            $encryptedFile = $crypto->compressAndEncrypt();
+
+            if (!$encryptedFile) {
+                throw new Exception('Encrypted file not set?');
+            }
+
+            /**
+             * Transfer encrypted backup, private key and certificate to safe / cold location.
+             */
+            $coldFile = $backupService->toCold($crypto->getFile());
+            if (!$coldFile) {
+                throw new Exception('Cold file not set?');
+            }
+            $keys = $crypto->getKeys();
+            /**
+             * @T00D00
+             */
+            $coldPrivate = $keys['private'];
+            $coldCert = $keys['cert'];
+            //$coldPrivate = $localBackupService->toCold($keys['private']);
+            //$coldCert = $localBackupService->toCold($keys['cert']);
+
+            $task = Task::create('Associating cold file with keys');
+            $task->make(function() use ($coldFile, $coldPrivate, $coldCert, $createdAt) {
+                /**
+                 * @T00D00 - decrypt keys?
+                 * Associate key with cold path so we can decrypt it later.
+                 * If someone gets coldpath encrypted files he cannot decrypt them without keys.
+                 * If someone gets encryption keys he won't have access to cold storage.
+                 * If someone gets encrypted files and keys he need mapper between them.
+                 * If someone gets mapper between coldpath and keys he would need keys and storage.
+                 * .......
+                 * We also want to associate backup with database and server maybe? So we can actually know right context. :)
+                 * So, when we want to restore db backup or storage backup, we go to database or mount point and see list of
+                 * available backups. User selects backup to restore, and target server, system checks for secret links,
+                 * transfers, encrypts and imports file; or download encrypted file + private key package, both repackaged and
+                 * encrypted with per-download-set password.
+                 * .......
+                 * Maybe we should store secret keys in different database for better security?
+                 *         When decrypting we need to know which private key unlocks with file and which cert cancels private key.
+                 *         Additionally we'll encrypt private key with password file.
+                 */
+                $secret = Secret::create([
+                                             'file' => $coldFile,
+                                             'keys' => json_encode([
+                                                                       'private' => $coldPrivate,
+                                                                       'cert'    => $coldCert,
+                                                                   ]),
+                                         ]);
+
+                /**
+                 * Now tell system that this file is backup of specific database?
+                 */
+                $backupData = [
+                    'morph_id'   => Databases::class,
+                    'poly_id'    => $this->id,
+                    'created_at' => $createdAt,
+                    'type'       => 'dump',
+                    'data'       => json_encode([
+                                                    'secret_id' => $secret->id,
+                                                ]),
+                ];
+            });
+        });
 
         return true;
     }
@@ -268,87 +274,85 @@ class Database extends Record implements Connectable
     {
         $task = Task::create('Replicating #' . $this->id . ' to ' . $slaveServer->ip);
 
-        $task->make(
-            function() use ($slaveServer) {
-                /**
-                 * Generate new passphrase for backup service: private/mysql/backup/keys/$hash.
-                 * This key will be transfered from impero to master and from impero to slave.
-                 * It will be deleted immediately after we don't need it anymore.
-                 */
-                $mysqlSlaveService = (new Mysql($slaveServer->getConnection()));
-                $backupMasterService = new Backup($this->getConnection());
-                $mysqlSlaveService->getConnection()->exec('mkdir -p /home/impero/impero/service/random');
+        $task->make(function() use ($slaveServer) {
+            /**
+             * Generate new passphrase for backup service: private/mysql/backup/keys/$hash.
+             * This key will be transfered from impero to master and from impero to slave.
+             * It will be deleted immediately after we don't need it anymore.
+             */
+            $mysqlSlaveService = (new Mysql($slaveServer->getConnection()));
+            $backupMasterService = new Backup($this->getConnection());
+            $mysqlSlaveService->getConnection()->exec('mkdir -p /home/impero/impero/service/random');
 
-                /**
-                 * Check if database is alredy replicated.
-                 */
-                if ($mysqlSlaveService->isReplicatedOnSlave($this)) {
-                    throw new Exception('Database is already replicated on slave.');
-                }
-
-                /**
-                 * Put slave out of cluster and wait few seconds for all connections to be closed and configuration to take in effect.
-                 *
-                 * @T00D00 - configure HAProxy for mysql loadbalancing
-                 */
-
-                /**
-                 * Stop slave down so it won't sync with master.
-                 *
-                 * @T00D00 - take down only $database, then sync only $database from binlog.
-                 */
-                $mysqlSlaveService->stopSlave();
-
-                /**
-                 * Create backup.
-                 */
-                $backupFile = $backupMasterService->createMysqlBackup($this);
-
-                if (!$backupFile) {
-                    throw new Exception('No backup file?');
-                }
-
-                /**
-                 * Resume slave until backup.
-                 */
-                $this->syncSlaveUntilBackup($backupFile, $slaveServer);
-
-                /**
-                 * Let backup service take care of full transfer.
-                 */
-                $crypto = new Crypto($this->server, $slaveServer, $backupFile);
-                $crypto->processFullTransfer();
-
-                /**
-                 * Create database?
-                 * Import backup.
-                 */
-                $this->importBackup($backupFile, $slaveServer);
-
-                /**
-                 * Stop slave.
-                 */
-                $mysqlSlaveService->stopSlave();
-
-                /**
-                 * Update binlog update.
-                 * Dump new mysql config.
-                 */
-                $databasesOnSlave = $slaveServer->slaveDatabases;
-                $mysqlSlaveService->refreshSlaveReplicationFilter($databasesOnSlave);
-                $mysqlSlaveService->dumpSlaveReplicationFilter($databasesOnSlave);
-
-                /**
-                 * Start slave.
-                 */
-                $mysqlSlaveService->startSlave();
-
-                /**
-                 * Wait few seconds for slave to get in sync.
-                 * Then refresh cluster configuration.
-                 */
+            /**
+             * Check if database is alredy replicated.
+             */
+            if ($mysqlSlaveService->isReplicatedOnSlave($this)) {
+                throw new Exception('Database is already replicated on slave.');
             }
-        );
+
+            /**
+             * Put slave out of cluster and wait few seconds for all connections to be closed and configuration to take in effect.
+             *
+             * @T00D00 - configure HAProxy for mysql loadbalancing
+             */
+
+            /**
+             * Stop slave down so it won't sync with master.
+             *
+             * @T00D00 - take down only $database, then sync only $database from binlog.
+             */
+            $mysqlSlaveService->stopSlave();
+
+            /**
+             * Create backup.
+             */
+            $backupFile = $backupMasterService->createMysqlBackup($this);
+
+            if (!$backupFile) {
+                throw new Exception('No backup file?');
+            }
+
+            /**
+             * Resume slave until backup.
+             */
+            $this->syncSlaveUntilBackup($backupFile, $slaveServer);
+
+            /**
+             * Let backup service take care of full transfer.
+             */
+            $crypto = new Crypto($this->server, $slaveServer, $backupFile);
+            $crypto->processFullTransfer();
+
+            /**
+             * Create database?
+             * Import backup.
+             */
+            $this->importBackup($backupFile, $slaveServer);
+
+            /**
+             * Stop slave.
+             */
+            $mysqlSlaveService->stopSlave();
+
+            /**
+             * Update binlog update.
+             * Dump new mysql config.
+             */
+            $databasesOnSlave = $slaveServer->slaveDatabases;
+            $mysqlSlaveService->refreshSlaveReplicationFilter($databasesOnSlave);
+            $mysqlSlaveService->dumpSlaveReplicationFilter($databasesOnSlave);
+
+            /**
+             * Start slave.
+             */
+            $mysqlSlaveService->startSlave();
+
+            /**
+             * Wait few seconds for slave to get in sync.
+             * Then refresh cluster configuration.
+             */
+        });
     }
 
     /**
@@ -360,54 +364,52 @@ class Database extends Record implements Connectable
     {
         $task = Task::create('Syncing slave server ' . $slaveServer->ip . ' until backup point');
 
-        return $task->make(
-            function() use ($backupPath, $slaveServer) {
-                /**
-                 * Read binlog position and resume slave sync.
-                 * -- CHANGE MASTER TO MASTER_LOG_FILE='mysql-bin.002142', MASTER_LOG_POS=752877;
-                 */
-                $positionLine = explode("\n", $this->server->exec('head ' . $backupPath))[0] ?? null;
-                if (!$positionLine) {
-                    throw new Exception('Cannot parse binlog position from backup.');
-                }
-
-                /**
-                 * Validate
-                 */
-
-                if (!strpos($positionLine, 'MASTER_LOG_FILE=') || !strpos($positionLine, 'MASTER_LOG_POS=')) {
-                    throw new Exception('No data provider for binlog position.');
-                }
-
-                /**
-                 * Parse.
-                 */
-                $start = strpos($positionLine, 'MASTER_LOG_FILE') + strlen('MASTER_LOG_FILE=') + 1;
-                $logFile = substr($positionLine, $start, strpos($positionLine, ',', $start + 1) - $start - 1);
-                $start = strpos($positionLine, 'MASTER_LOG_POS') + strlen('MASTER_LOG_POS=');
-                $logPosition = substr($positionLine, $start, -1);
-
-                /**
-                 * Validate.
-                 */
-                if (strpos($logFile, 'mysql-bin.') !== 0 || !$logPosition || (int)$logPosition != $logPosition) {
-                    throw new Exception('Cannot parse binlog position');
-                }
-
-                /**
-                 * Build commands.
-                 */
-                $syncSql = 'START SLAVE UNTIL MASTER_LOG_FILE = \'' . $logFile . '\', MASTER_LOG_POS = ' . $logPosition;
-                $waitSql = 'SELECT MASTER_POS_WAIT(\'' . $logFile . '\', ' . $logPosition . ');';
-
-                /**
-                 * First execute slave sync command:
-                 * Then execute command that waits for slave to catch up with master. :)
-                 */
-                $slaveServer->execSql($syncSql);
-                $slaveServer->execSql($waitSql);
+        return $task->make(function() use ($backupPath, $slaveServer) {
+            /**
+             * Read binlog position and resume slave sync.
+             * -- CHANGE MASTER TO MASTER_LOG_FILE='mysql-bin.002142', MASTER_LOG_POS=752877;
+             */
+            $positionLine = explode("\n", $this->server->exec('head ' . $backupPath))[0] ?? null;
+            if (!$positionLine) {
+                throw new Exception('Cannot parse binlog position from backup.');
             }
-        );
+
+            /**
+             * Validate
+             */
+
+            if (!strpos($positionLine, 'MASTER_LOG_FILE=') || !strpos($positionLine, 'MASTER_LOG_POS=')) {
+                throw new Exception('No data provider for binlog position.');
+            }
+
+            /**
+             * Parse.
+             */
+            $start = strpos($positionLine, 'MASTER_LOG_FILE') + strlen('MASTER_LOG_FILE=') + 1;
+            $logFile = substr($positionLine, $start, strpos($positionLine, ',', $start + 1) - $start - 1);
+            $start = strpos($positionLine, 'MASTER_LOG_POS') + strlen('MASTER_LOG_POS=');
+            $logPosition = substr($positionLine, $start, -1);
+
+            /**
+             * Validate.
+             */
+            if (strpos($logFile, 'mysql-bin.') !== 0 || !$logPosition || (int)$logPosition != $logPosition) {
+                throw new Exception('Cannot parse binlog position');
+            }
+
+            /**
+             * Build commands.
+             */
+            $syncSql = 'START SLAVE UNTIL MASTER_LOG_FILE = \'' . $logFile . '\', MASTER_LOG_POS = ' . $logPosition;
+            $waitSql = 'SELECT MASTER_POS_WAIT(\'' . $logFile . '\', ' . $logPosition . ');';
+
+            /**
+             * First execute slave sync command:
+             * Then execute command that waits for slave to catch up with master. :)
+             */
+            $slaveServer->execSql($syncSql);
+            $slaveServer->execSql($waitSql);
+        });
     }
 
     /**

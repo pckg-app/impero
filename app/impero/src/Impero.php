@@ -75,6 +75,7 @@ class Impero extends Provider
             'vue' => [
                 '/dist/build/js/backend.js',
             ],
+            'less/impero.less',
         ];
     }
 

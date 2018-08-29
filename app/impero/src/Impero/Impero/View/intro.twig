@@ -1,11 +1,13 @@
 <h2>Nightly writing</h2>
 <p>There're many tools that make app deployment simpler, but we made it crazy simple.</p>
+<p>Impero is a service which which simplifies deployments and management of multi service-platforms. It combines
+    automatic configuration changes and service reloads on entrypoint and top level services with composing docker
+    configuration files and container scaling managed from web interface and project configuration file.</p>
 
 <div class="row">
     <div class="col-xs-4">
         <p>First, create new <b>server</b> and connect it to - server. If you don't have one you can simply create new
-            droplet
-            on selected cloud provider.</p>
+            droplet on supported cloud provider.</p>
     </div>
     <div class="col-xs-4">
         <p>Then, create new <b>site</b> - all you need to define is domain and source, for example impero.foobar.si and
@@ -13,7 +15,7 @@
     </div>
     <div class="col-xs-4">
         <p>
-            Deploy your site and reconfigure services in /.pckg/pckg.yaml file.
+            Deploy your site's services and reconfigure services in /.pckg/pckg.yaml file.
         </p>
     </div>
 </div>

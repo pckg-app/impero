@@ -387,7 +387,7 @@ password = s0m3p4ssw0rd';*/
     {
         $sftp = $this->openSftp();
 
-        //return ssh2_sftp_unlink($sftp, $file);
+        // return ssh2_sftp_unlink($sftp, $file);
     }
 
     /**

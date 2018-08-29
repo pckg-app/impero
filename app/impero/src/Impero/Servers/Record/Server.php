@@ -171,18 +171,35 @@ class Server extends Record implements Connectable
          */
         $cronjobFile = '/backup/run-cronjobs.sh';
         $connection = $this->getConnection();
+
+        /**
+         * Add to file if nonexistent.
+         */
+        $connection->exec('sudo echo "' . $command . '" >> ' . $cronjobFile);
+    }
+
+    public function removeCronjob($path)
+    {
+        /**
+         * Get current cronjob configuration.
+         */
+        $cronjobFile = '/backup/run-cronjobs.sh';
+        $connection = $this->getConnection();
         $currentCronjob = $connection->sftpRead($cronjobFile);
         $cronjobs = explode("\n", $currentCronjob);
 
-        /**
-         * Check for existance.
-         */
-        if (!in_array($command, $cronjobs) && !in_array('#' . $command, $cronjobs)) {
-            /**
-             * Add to file if nonexistent.
-             */
-            $connection->exec('sudo echo "' . $command . '" >> ' . $cronjobFile);
+        $newCronjobs = [];
+        foreach ($cronjobs as $cronjob) {
+            if (!$cronjob || strpos($cronjob, $path)) {
+                /**
+                 * Remove empty or matching cronjobs.
+                 */
+                continue;
+            }
+            $newCronjobs[] = $cronjob;
         }
+
+        $connection->saveContent($cronjobFile, implode("\n", $newCronjobs) . "\n");
     }
 
     public function getName()
@@ -337,16 +354,22 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
         # https://mozilla.github.io/server-side-tls/ssl-config-generator/?hsts=no
         # haproxy 1.6.3
         # openssl 1.1.0g
-        ssl-default-bind-ciphers ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
-    ssl-default-bind-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
-    ssl-default-server-ciphers ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
-    ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+        
+        #ssl-default-bind-ciphers ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
+    #ssl-default-bind-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+    #ssl-default-server-ciphers ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
+    #ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+
+tune.ssl.default-dh-param       2048
+ssl-default-bind-options no-sslv3 no-tls-tickets
+ssl-default-bind-ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA
 
 defaults
         log     global
         mode    tcp
         option  tcplog
         option  dontlognull
+        option  forwardfor
         timeout connect 5000
         timeout client  50000
         timeout server  50000
@@ -374,8 +397,15 @@ defaults
 frontend all_https
     # Https listens only on https port and forwards requests to backends
     bind *:' . $httpsPort . '
+    # alpn h2,http/1.1
+    
     mode tcp
     #option tcplog
+    
+    # send tcp keep alive?
+    #option tcpka
+    
+    option forwardfor
     
     # This is needed for proper ssl handshake
     tcp-request inspect-delay 5s
