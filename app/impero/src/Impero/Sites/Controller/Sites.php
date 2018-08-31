@@ -10,6 +10,7 @@ use Impero\Servers\Record\Server;
 use Impero\Servers\Record\Task;
 use Pckg\Generic\Record\SettingsMorph;
 use Pckg\Mail\Service\Mail\Adapter\SimpleUser;
+use Throwable;
 
 class Sites
 {
@@ -499,6 +500,59 @@ automatically and permanently.</p>'
         return [
             'content' => $site->getServerConnection()->sftpRead($site->getHtdocsPath() . post('file')),
         ];
+    }
+
+    public function postRedeployCronServiceAction(Site $site)
+    {
+        (new SitesServers())->where('site_id', $site->id)->where('type', 'cron')
+            ->allAndEach(function(SitesServer $sitesServer){
+                $sitesServer->redeploy();
+            });
+
+        return [
+            'site' => $site,
+        ];
+    }
+
+    public function postRedeploySslServiceAction(Site $site)
+    {
+        $site->letsencrypt();
+
+        return [
+            'site' => $site,
+        ];
+    }
+
+    public function postRedeployConfigServiceAction(Site $site)
+    {
+        $task = Task::create('Config service redeploy - site #' . $site->id);
+
+        /**
+         * Task may take long to execute, respond with success and continue with execution.
+         *
+         * @T00D00 - how will we communicate possible errors?
+         */
+        response()->respondAndContinue([
+                                           'success' => true,
+                                           'site'    => $site,
+                                           'task'    => $task,
+                                       ]);
+
+        $task->make(function() use ($site) {
+            (new SitesServers())->where('site_id', $site->id)->where('type', 'config')->allAndEach(function(
+                SitesServer $sitesServer
+            ) {
+                $sitesServer->redeploy();
+            });
+        },
+            function(Task $task, Throwable $e) {
+                /**
+                 * Exception was thrown, task is already marked as error.
+                 * Can we log exception to rollbar?
+                 * Can we notify admin about exception?
+                 */
+                throw $e;
+            });
     }
 
 }

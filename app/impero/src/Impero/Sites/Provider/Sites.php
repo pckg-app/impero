@@ -117,6 +117,24 @@ class Sites extends Provider
                                 'site' => Site::class,
                             ]
                         ),
+                    '.redeployCronService' => (new Route('/[site]/redeploy-cron-service', 'redeployCronService'))
+                        ->resolvers(
+                            [
+                                'site' => Site::class,
+                            ]
+                        ),
+                    '.redeploySslService' => (new Route('/[site]/redeploy-ssl-service', 'redeploySslService'))
+                        ->resolvers(
+                            [
+                                'site' => Site::class,
+                            ]
+                        ),
+                    '.redeployConfigService' => (new Route('/[site]/redeploy-config-service', 'redeployConfigService'))
+                        ->resolvers(
+                            [
+                                'site' => Site::class,
+                            ]
+                        ),
                 ]
             ),
         ];

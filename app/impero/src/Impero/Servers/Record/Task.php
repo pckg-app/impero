@@ -74,7 +74,7 @@ class Task extends Record
             $this->set(['status' => 'error']);
             $this->end();
             if ($exception) {
-                return $exception($this);
+                return $exception($this, $e);
             }
 
             throw $e;

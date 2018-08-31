@@ -350,10 +350,12 @@ class Site extends Record
         $connection = $this->getServerConnection();
         $response = $connection->exec($command . ' ' . $params);
 
+        if (strpos($response, 'Certificate not yet due for renewal')) {
+            return false;
+        }
+
         $congrats = 'Congratulations! Your certificate and chain have been saved at:';
-        if (strpos($response, $congrats) === false
-            && strpos($response, 'Certificate not yet due for renewal') === false
-        ) {
+        if (strpos($response, $congrats) === false) {
             return false;
         }
 
