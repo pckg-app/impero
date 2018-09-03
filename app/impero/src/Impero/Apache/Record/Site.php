@@ -1069,7 +1069,11 @@ class Site extends Record
             $pckg = $this->getImperoPckgAttribute();
 
             foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
-                $connection->deleteFile($this->getHtdocsPath() . $dest);
+                /**
+                 * This is kinda not okay until we have a backup of config history.
+                 */
+
+                //$connection->deleteFile($this->getHtdocsPath() . $dest);
             }
         });
     }
