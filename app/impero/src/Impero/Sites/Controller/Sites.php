@@ -224,8 +224,8 @@ automatically and permanently.</p>'
          * Pckg project definition and variables are stored on initial checkout.
          * Settings can be changed and added afterwards.
          */
-        SettingsMorph::makeItHappen('impero.pckg', json_encode(post('pckg', [])), \Impero\Apache\Entity\Sites::class, $site->id);
-        SettingsMorph::makeItHappen('impero.vars', json_encode(post('vars', [])), \Impero\Apache\Entity\Sites::class, $site->id);
+        $site->setImperoPckgAttribute(post('pckg', []));
+        $site->setImperoVarsAttribute(post('vars', []));
 
         /**
          * Whole project (or site) is then initially checked out on server.
@@ -279,11 +279,11 @@ automatically and permanently.</p>'
                 $migrate = true;
                 $site->sitesServers->filter('type', 'web')->each(
                     function(SitesServer $sitesServer) use ($site, &$migrate) {
+                        $site->setImperoPckgAttribute(post('pckg'));
+                        $site->mergeImperoVarsAttribute(post('vars'));
 
                         $site->deploy(
                             $sitesServer->server,
-                            post('pckg', []),
-                            post('vars', []),
                             post('isAlias', false),
                             post('checkAlias', false),
                             $migrate
@@ -446,14 +446,14 @@ automatically and permanently.</p>'
          */
         $currentVars = $site->getImperoVarsAttribute();
         $site->setImperoVarsAttribute(array_merge($currentVars, $vars));
-
+return;
         /**
          * Now we need to find all services that are using variables.
          * The only service currently known is cronjob.
          * We will remove old cronjob and install new one.
          */
         $crons = (new SitesServers())->where('type', 'cron')->where('site_id', $site->id)->all();
-        $crons->each->redeploy();
+        //$crons->each->redeploy();
 
         /**
          * The other currently known change is config change.
@@ -464,8 +464,8 @@ automatically and permanently.</p>'
          * We need to delete old files (they should be logged somewhere) and recreate new ones.
          * When config file is removed from pckg.yaml we need to remove it.
          */
-        $configs = (new SitesServers())->where('type', 'config')->where('site_id', $site)->all();
-        $configs->each->redeploy();
+        $configs = (new SitesServers())->where('type', 'config')->where('site_id', $site->id)->all();
+        //$configs->each->redeploy();
 
         return [
             'success' => true,

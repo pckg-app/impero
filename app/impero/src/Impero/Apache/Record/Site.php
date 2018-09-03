@@ -569,12 +569,10 @@ class Site extends Record
 
     public function addCronWorker(Server $server, $pckg, $vars)
     {
-        $this->vars = $vars;
-
         $task = Task::create('Adding cron worker for site #' . $this->id . ' on server #' . $server->id);
 
         return $task->make(
-            function() use ($server, $pckg) {
+            function() use ($server, $pckg, $vars) {
 
             }
         );
@@ -930,13 +928,13 @@ class Site extends Record
      *
      * @throws \Exception
      */
-    public function deploy(Server $server, $pckg, $vars, $isAlias = false, $checkAlias = false, $migrate = true)
+    public function deploy(Server $server, $isAlias = false, $checkAlias = false, $migrate = true)
     {
         $task = Task::create('Deploying site #' . $this->id . ' to server #' . $server->id);
-        $this->vars = $vars;
 
         return $task->make(
-            function() use ($server, $pckg, $isAlias, $checkAlias, $migrate) {
+            function() use ($server, $isAlias, $checkAlias, $migrate) {
+                $pckg = $this->getImperoPckgAttribute();
                 $connection = null;
                 $htdocsDir = $this->getHtdocsPath();
                 $blueGreen = ($pckg['checkout']['type'] ?? null) == 'ab';
@@ -1353,11 +1351,6 @@ class Site extends Record
          */
         $replaces = array_merge($defaults, $vars);
 
-        /**
-         * Default vars were set on initial deploy, and changed and added afterwards.
-         */
-        $replaces = array_merge($replaces, $this->vars);
-
         $escaped = [];
         foreach ($replaces as $key => $value) {
             $escaped[] = $key != '$password'
@@ -1401,9 +1394,10 @@ class Site extends Record
                  */
                 foreach ($pckg['services']['db']['mysql']['database'] as $key => $config) {
                     $database = null;
+                    $dbname = $this->replaceVars($config['name']);
+                    $dbuser = $this->replaceVars(array_keys($config['user'])[0]);
 
                     if ($config['type'] == 'searchOrCreate') {
-                        $dbname = $this->replaceVars($config['name']);
 
                         /**
                          * Create mysql database, user and set privileges.
@@ -1417,18 +1411,10 @@ class Site extends Record
 
                         /**
                          * Manually call backup and replication.
+                         * Temporary, until we do not automate backups triggered from impero
                          */
-                        $database->requireScriptBackup(
-                        ); // temporarly, until we do not automate backups triggered from impero
+                        $database->requireScriptBackup();
                         $database->requireMysqlMasterReplication();
-
-                        /**
-                         * For configuration.
-                         */
-                        $this->vars = array_merge(
-                            $this->vars,
-                            ['$dbname' => $dbname, '$dbpass' => $dbpass]
-                        );
                     } elseif ($config['type'] == 'search') {
                         $database = Database::gets(
                             [
@@ -1439,6 +1425,15 @@ class Site extends Record
                     }
 
                     /**
+                     * For configuration.
+                     */
+                    $this->mergeImperoVarsAttribute([
+                                                        '$db' . ucfirst($key) . 'Name' => $dbname,
+                                                        '$db' . ucfirst($key) . 'User' => $dbuser,
+                                                        '$db' . ucfirst($key) . 'Pass' => $dbpass,
+                                                    ]);
+
+                    /**
                      * Check for access.
                      */
                     if (!$database) {
@@ -1446,12 +1441,6 @@ class Site extends Record
                     }
 
                     foreach ($config['user'] ?? [] as $user => $privilege) {
-                        $dbuser = $this->replaceVars($user);
-                        $vars = $this->getImperoVarsAttribute();
-                        if (!isset($vars['$dbuser'])) {
-                            $vars['$dbuser'] = $dbuser;
-                            $this->setImperoVarsAttribute($vars);
-                        }
                         DatabaseUser::createFromPost(
                             [
                                 'username'  => $dbuser,
@@ -1522,6 +1511,11 @@ class Site extends Record
         SettingsMorph::makeItHappen('impero.vars', $vars, Sites::class, $this->id, 'array');
 
         return $this;
+    }
+
+    public function mergeImperoVarsAttribute($vars)
+    {
+        return $this->setImperoVarsAttribute(array_merge($this->getImperoVarsAttribute(), $vars));
     }
 
     public function setImperoPckgAttribute($pckg)
