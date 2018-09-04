@@ -2389,12 +2389,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/framework.git",
-                "reference": "9b6f2044db354dc5c1ef4f6108d2e8093b33d9bc"
+                "reference": "b3457080e6a6ba27e71918c9fe8a789e84d53aff"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/framework/zipball/9b6f2044db354dc5c1ef4f6108d2e8093b33d9bc",
-                "reference": "9b6f2044db354dc5c1ef4f6108d2e8093b33d9bc",
+                "url": "https://api.github.com/repos/pckg/framework/zipball/b3457080e6a6ba27e71918c9fe8a789e84d53aff",
+                "reference": "b3457080e6a6ba27e71918c9fe8a789e84d53aff",
                 "shasum": ""
             },
             "require": {
@@ -2431,7 +2431,7 @@
             ],
             "description": "Fully featured lightweight php framework with multilingual support, twig templating engine, and tons of other features.",
             "homepage": "https://github.com/pckg/framework",
-            "time": "2018-08-31T12:11:21+00:00"
+            "time": "2018-09-03T17:12:08+00:00"
         },
         {
             "name": "pckg/generic",
@@ -5229,6 +5229,66 @@
             "time": "2018-09-02T17:11:59+00:00"
         },
         {
+            "name": "symfony/contracts",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/contracts.git",
+                "reference": "88efd4adc7ce3e5de778b99a8a9ba50b9bcc1782"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/contracts/zipball/88efd4adc7ce3e5de778b99a8a9ba50b9bcc1782",
+                "reference": "88efd4adc7ce3e5de778b99a8a9ba50b9bcc1782",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.1.3"
+            },
+            "suggest": {
+                "psr/cache": "When using the Cache contract"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Contracts\\": ""
+                },
+                "exclude-from-classmap": [
+                    "**/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "A set of abstractions extracted out of the Symfony components",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "abstractions",
+                "contracts",
+                "decoupling",
+                "interfaces",
+                "interoperability",
+                "standards"
+            ],
+            "time": "2018-09-04T07:16:03+00:00"
+        },
+        {
             "name": "symfony/css-selector",
             "version": "3.4.x-dev",
             "source": {
@@ -5854,22 +5914,26 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/translation.git",
-                "reference": "6355b766584f5174e3f17d847503b3939797ba0c"
+                "reference": "1c54193a56603a3c7aaca67111907b9ba1c0d73c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/translation/zipball/6355b766584f5174e3f17d847503b3939797ba0c",
-                "reference": "6355b766584f5174e3f17d847503b3939797ba0c",
+                "url": "https://api.github.com/repos/symfony/translation/zipball/1c54193a56603a3c7aaca67111907b9ba1c0d73c",
+                "reference": "1c54193a56603a3c7aaca67111907b9ba1c0d73c",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.1.3",
+                "symfony/contracts": "^1.0",
                 "symfony/polyfill-mbstring": "~1.0"
             },
             "conflict": {
                 "symfony/config": "<3.4",
                 "symfony/dependency-injection": "<3.4",
                 "symfony/yaml": "<3.4"
+            },
+            "provide": {
+                "symfony/translation-contracts": "1.0"
             },
             "require-dev": {
                 "psr/log": "~1.0",
@@ -5915,7 +5979,7 @@
             ],
             "description": "Symfony Translation Component",
             "homepage": "https://symfony.com",
-            "time": "2018-09-02T17:48:09+00:00"
+            "time": "2018-09-04T07:24:06+00:00"
         },
         {
             "name": "symfony/var-dumper",
@@ -5923,12 +5987,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-dumper.git",
-                "reference": "aef1a9ada2bf3d53edfba27d733c3a14bb518991"
+                "reference": "46434a6d67dfe8cc795179d447d85218eddaa756"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/aef1a9ada2bf3d53edfba27d733c3a14bb518991",
-                "reference": "aef1a9ada2bf3d53edfba27d733c3a14bb518991",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/46434a6d67dfe8cc795179d447d85218eddaa756",
+                "reference": "46434a6d67dfe8cc795179d447d85218eddaa756",
                 "shasum": ""
             },
             "require": {
@@ -5990,7 +6054,7 @@
                 "debug",
                 "dump"
             ],
-            "time": "2018-09-01T16:47:25+00:00"
+            "time": "2018-09-04T09:14:51+00:00"
         },
         {
             "name": "symfony/yaml",
