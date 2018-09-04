@@ -527,6 +527,28 @@ return;
     {
         $task = Task::create('Config service redeploy - site #' . $site->id);
 
+        $task->make(function() use ($site) {
+            $sitesServers = (new SitesServers())->where('site_id', $site->id)->where('type', 'config')->all();
+
+            if ($sitesServers->count() == 0) {
+                $site->deployConfigService($site->server);
+            } else {
+                $sitesServers->each(function(
+                    SitesServer $sitesServer
+                ) {
+                    $sitesServer->redeploy();
+                });
+            }
+        },
+            function(Task $task, Throwable $e) {
+                /**
+                 * Exception was thrown, task is already marked as error.
+                 * Can we log exception to rollbar?
+                 * Can we notify admin about exception?
+                 */
+                throw $e;
+            });
+
         /**
          * Task may take long to execute, respond with success and continue with execution.
          *
@@ -538,21 +560,8 @@ return;
                                            'task'    => $task,
                                        ]);
 
-        $task->make(function() use ($site) {
-            (new SitesServers())->where('site_id', $site->id)->where('type', 'config')->allAndEach(function(
-                SitesServer $sitesServer
-            ) {
-                $sitesServer->redeploy();
-            });
-        },
-            function(Task $task, Throwable $e) {
-                /**
-                 * Exception was thrown, task is already marked as error.
-                 * Can we log exception to rollbar?
-                 * Can we notify admin about exception?
-                 */
-                throw $e;
-            });
+        return ['success' => true];
+
     }
 
 }

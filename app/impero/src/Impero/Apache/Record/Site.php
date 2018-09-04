@@ -1071,6 +1071,7 @@ class Site extends Record
                  * This is kinda not okay until we have a backup of config history.
                  */
 
+                d('removing ' .$this->getHtdocsPath() . $dest);
                 //$connection->deleteFile($this->getHtdocsPath() . $dest);
             }
         });
@@ -1123,6 +1124,9 @@ class Site extends Record
         $task = Task::create('Removing config for site #' . $this->id . ' on server ' . $server->id);
 
         return $task->make(function() use ($server) {
+            /**
+             * @T00D00 - what if deploy fails? can we get previous config?
+             */
             $this->undeployConfigService($server);
             $this->deployConfigService($server);
         });
@@ -1350,6 +1354,11 @@ class Site extends Record
          * In most cases $vars is empty.
          */
         $replaces = array_merge($defaults, $vars);
+
+        /**
+         * Default vars.
+         */
+        $replaces = array_merge($this->getImperoVarsAttribute(), $replaces);
 
         $escaped = [];
         foreach ($replaces as $key => $value) {
