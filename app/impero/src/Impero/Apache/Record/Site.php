@@ -1437,6 +1437,7 @@ class Site extends Record
                      * For configuration.
                      */
                     $this->mergeImperoVarsAttribute([
+                                                        '$db' . ucfirst($key) . 'Host' => '127.0.0.1',
                                                         '$db' . ucfirst($key) . 'Name' => $dbname,
                                                         '$db' . ucfirst($key) . 'User' => $dbuser,
                                                         '$db' . ucfirst($key) . 'Pass' => $dbpass,
