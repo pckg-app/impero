@@ -30,9 +30,9 @@ class Sites
             [
                 'subject' => 'Confirm /impero site #' . $site->id . ' (' . $site->server_name . ') removal',
                 'content' => '<p>Hey Bojan,</p>'
-                    . '<p>someone requested removal of site ' . $site->id . ' (' . $site->server_name . ').</p>'
+                    . '<p>someone requested removal of site #' . $site->id . ' (' . $site->server_name . ').</p>'
                     . '<p>This action will create a backup of database, storage and config, remove app from all 
-servers and services, delete all related backups (except final one :)). Backup will still be available for 14 days
+servers and services, delete all related backups (except final one :)). Backup will still be available for 30 days
 for manual reuse.</p>'
                     . '<p>If you really want to delete site and all it\'s contents, please login to /impero and click '
                     . '<a href="' . $deleteUrl . '">here</a>.'
