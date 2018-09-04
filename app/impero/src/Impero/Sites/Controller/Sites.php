@@ -200,6 +200,12 @@ automatically and permanently.</p>'
             throw new Exception('Domain is required');
         }
 
+        response()->respondAndContinue([
+            'success' => true,
+            'task' => true,
+            'site' => $site,
+                                       ]);
+
         $site->setAndSave(['server_name' => $domain, 'server_alias' => $domains]);
         if (post('letsencrypt')) {
             $site->letsencrypt();
