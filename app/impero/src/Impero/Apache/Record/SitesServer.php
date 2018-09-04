@@ -30,7 +30,7 @@ class SitesServer extends Record
     {
         if ($this->type == 'cron') {
             $this->site->redeployCronService($this->server);
-        } else if ($this->type == 'config') {
+        } else if ($this->type == 'web') {
             $this->site->redeployConfigService($this->server);
         }
     }

@@ -452,14 +452,14 @@ automatically and permanently.</p>'
          */
         $currentVars = $site->getImperoVarsAttribute();
         $site->setImperoVarsAttribute(array_merge($currentVars, $vars));
-return;
+
         /**
          * Now we need to find all services that are using variables.
          * The only service currently known is cronjob.
          * We will remove old cronjob and install new one.
          */
         $crons = (new SitesServers())->where('type', 'cron')->where('site_id', $site->id)->all();
-        //$crons->each->redeploy();
+        $crons->each->redeploy();
 
         /**
          * The other currently known change is config change.
@@ -470,8 +470,8 @@ return;
          * We need to delete old files (they should be logged somewhere) and recreate new ones.
          * When config file is removed from pckg.yaml we need to remove it.
          */
-        $configs = (new SitesServers())->where('type', 'config')->where('site_id', $site->id)->all();
-        //$configs->each->redeploy();
+        $configs = (new SitesServers())->where('type', 'web')->where('site_id', $site->id)->all();
+        $configs->each->redeploy();
 
         return [
             'success' => true,
