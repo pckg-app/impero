@@ -152,7 +152,7 @@ class DumpVirtualhosts extends Command
         $sshConnection->sftpSend($local, $remote);
         unlink($local);
 
-        (new HAProxy($sshConnection))->restart();
+        (new HAProxy($sshConnection))->reload();
     }
 
 }

@@ -67,7 +67,7 @@ for manual reuse.</p>'
                     'content' => '<p>Hey Bojan,</p>'
                         . '<p>site ' . $site->id . ' (' . $site->server_name . ') was deleted on you request.</p>'
                         . '<p>Before we deleted *everything* we made storage, database and config backup which will be 
-available for another 14 days in /impero dashboard in case of missdelete. After 14 days backup files will be deleted 
+available for another 14 days in /impero dashboard in case of missdelete. After 30 days backup files will be deleted 
 automatically and permanently.</p>'
                         . '<p>Best regards, /impero team</p>',
                 ],
