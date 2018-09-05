@@ -40,7 +40,7 @@ class Tasks
             'tasks' => (new \Impero\Servers\Entity\Tasks())->withServerCommands()
                                                            ->where('started_at',
                                                                    date('Y-m-d H:i',
-                                                                        strtotime('36hours')),
+                                                                        strtotime('-36hours')),
                                                                    '>')
                                                            ->orderBy('id DESC')
                                                            ->all()
