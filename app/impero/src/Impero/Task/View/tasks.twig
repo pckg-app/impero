@@ -1,0 +1,37 @@
+<script type="text/x-template" id="impero-tasks-template">
+    <div class="impero-tasks">
+        <div class="--task" v-for="task in allTasks" style="width: 100%; padding-left: 2rem;">
+            <h4>${ task.started_at | datetime } - ${ task.title }</h4>
+            <impero-tasks v-if="task.tasks && task.tasks.length > 0" :tasks="task.tasks"></impero-tasks>
+        </div>
+    </div>
+</script>
+
+<script>
+    Vue.component('impero-tasks', {
+        name: 'impero-tasks',
+        template: '#impero-tasks-template',
+        mixins: [pckgDelimiters],
+        props: {
+            tasks: {}
+        },
+        data: function () {
+            return {
+                allTasks: this.tasks || []
+            };
+        },
+        methods: {
+            initialFetch: function () {
+                http.getJSON('/api/tasks', function (data) {
+                    this.allTasks = data.tasks;
+                }.bind(this));
+            }
+        },
+        created: function () {
+            if (this.allTasks.length > 0) {
+                return;
+            }
+            this.initialFetch();
+        }
+    });
+</script>

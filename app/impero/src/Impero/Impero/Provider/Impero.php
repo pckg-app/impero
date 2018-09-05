@@ -10,6 +10,7 @@ use Impero\Mysql\Provider\Mysql as MysqlProvider;
 use Impero\Servers\Provider\Servers;
 use Impero\Services\Provider\Services;
 use Impero\Sites\Provider\Sites;
+use Impero\Task\Provider\Task;
 use Impero\User\Provider\Users;
 use Pckg\Auth\Provider\Auth as AuthProvider;
 use Pckg\Framework\Provider;
@@ -38,6 +39,7 @@ class Impero extends Provider
             // new generation
             Servers::class,
             Frontend::class,
+            Task::class,
         ];
     }
 

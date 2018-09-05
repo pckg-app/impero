@@ -127,7 +127,7 @@ class CreateServersTables extends Migration
 
         $apiRequests = $this->table('api_requests');
         $apiRequests->datetime('created_at');
-        $apiRequests->text('data');
+        $apiRequests->longtext('data');
         $apiRequests->varchar('ip');
         $apiRequests->varchar('url');
 
