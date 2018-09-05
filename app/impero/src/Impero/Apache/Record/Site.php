@@ -12,6 +12,7 @@ use Impero\Services\Service\Connection\SshConnection;
 use Impero\Services\Service\Rsync;
 use Pckg\Database\Record;
 use Pckg\Generic\Record\SettingsMorph;
+use Throwable;
 
 class Site extends Record
 {
@@ -66,15 +67,13 @@ class Site extends Record
     {
         $task = Task::create('Creating site #' . $this->id . ' on filesystem on server #' . $server->id);
 
-        return $task->make(
-            function() use ($server) {
-                $connection = $server->getConnection();
+        return $task->make(function() use ($server) {
+            $connection = $server->getConnection();
 
-                $connection->exec('mkdir -p ' . $this->getHtdocsPath());
-                $connection->exec('mkdir -p ' . $this->getLogPath());
-                $connection->exec('mkdir -p ' . $this->getSslPath());
-            }
-        );
+            $connection->exec('mkdir -p ' . $this->getHtdocsPath());
+            $connection->exec('mkdir -p ' . $this->getLogPath());
+            $connection->exec('mkdir -p ' . $this->getSslPath());
+        });
     }
 
     public function getMountpoint()
@@ -291,7 +290,7 @@ class Site extends Record
         return collect([$this->server_name])->pushArray(explode(' ', $this->server_alias))->unique()->removeEmpty();
     }
 
-    public function letsencrypt()
+    public function redeploySslService()
     {
         /**
          * Generate certificate only, agree with tos, run in non interactive mode, set rsa key size,
@@ -326,23 +325,21 @@ class Site extends Record
         }
 
         if ($skipped) {
-            $this->server->logCommand(
-                'Skipping obtaining certificate(s) for domains ' .
-                collect($skipped)->implode(', ') . ' on ip ' . $ip, null, null, null
-            );
+            $this->server->logCommand('Skipping obtaining certificate(s) for domains ' . collect($skipped)->implode(', ') . ' on ip ' . $ip,
+                                      null,
+                                      null,
+                                      null);
         }
 
         if ($realDomains) {
-            $this->server->logCommand(
-                'Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') .
-                ' on ip ' . $ip, null, null, null
-            );
+            $this->server->logCommand('Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') . ' on ip ' . $ip,
+                                      null,
+                                      null,
+                                      null);
         }
 
         $realDomains = implode(',', $realDomains);
-        $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email
-            . ' --webroot-path ' . $webroot . ' --cert-name ' . $domain . ' --domains "'
-            . $realDomains . '" --webroot --expand';
+        $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email . ' --webroot-path ' . $webroot . ' --cert-name ' . $domain . ' --domains "' . $realDomains . '" --webroot --expand';
 
         /**
          * Execute command.
@@ -394,15 +391,13 @@ class Site extends Record
         /**
          * Update site in impero.
          */
-        $this->setAndSave(
-            [
-                'ssl'                        => 'letsencrypt',
-                'ssl_certificate_file'       => 'cert.pem',
-                'ssl_certificate_key_file'   => 'privkey.pem',
-                'ssl_certificate_chain_file' => 'fullchain.pem',
-                'ssl_letsencrypt_autorenew'  => true,
-            ]
-        );
+        $this->setAndSave([
+                              'ssl'                        => 'letsencrypt',
+                              'ssl_certificate_file'       => 'cert.pem',
+                              'ssl_certificate_key_file'   => 'privkey.pem',
+                              'ssl_certificate_chain_file' => 'fullchain.pem',
+                              'ssl_letsencrypt_autorenew'  => true,
+                          ]);
 
         /**
          * Dump virtualhosts and restart apache.
@@ -456,10 +451,16 @@ class Site extends Record
     {
         /**
          * Storage
+         *  - htdocs
+         *  - logs
          * Mysql
+         *  - project databases
          * Config
-         * Certificate
-         * Upload everything to space.
+         *  - config/env.php
+         *  - .env
+         * Certificates
+         *  - /etc/letsencrypt/
+         * Upload everything to DO spaces.
          */
     }
 
@@ -515,54 +516,56 @@ class Site extends Record
      *  - backups associated only with site (storage, mysql, config)
      *  - inactivate pendo, mailo, condo, ... api keys
      */
-    public function undeploy($pckg, $vars)
+    public function undeploy()
     {
         /**
-         * - backup
+         * Create full backup of all services, resources and configuration.
          */
         $this->createFullBackup();
 
         /**
-         * - system
-         *   - remove cronjobs
-         *   - remove letsencrypt
+         * Undeploy all cronjobs from all servers.
          */
-        $this->sitesServers->filter('type', 'cron')->each->undeploy();
+        (new SitesServers())->where('site_id', $this->id)->where('type', 'cron')->all()->each->undeploy();
+
+        /**
+         * Remove Letsencrypt certificates and https entrypoint.
+         */
         $this->removeLetsencrypt();
 
-        /** - storage
-         *   - delete git checkout (whole htdocs?)
-         *   - delete htdocs path
-         *   - delete logs path
-         *   - delete ssl path
-         *   - delete services.storage.dir dirs
-         *   - unmount services.web.mount dirs and files
+        /**
+         * Delete htdocs, logs and ssl directories, as well as parent site directory.
          */
-        $this->sitesServers->filter('type', 'web')->each->undeploy();
+        (new SitesServers())->where('site_id', $this->id)->where('type', 'web')->all()->each->undeploy();
+
+        /**
+         * Delete all volume directories.
+         */
         $this->removeFromStorage();
 
-        /** - database
-         *   - disable master and slave replication
-         *   - remove users
-         *   - remove databases
+        /**
+         * Disable master and slave replication.
+         * Delete databases from all replicas.
+         * Remove users from all servers.
          */
-        $this->sitesServers->filter('type', 'database')->each->undeploy();
+        (new SitesServers())->where('site_id', $this->id)->where('type', 'database')->all()->each->undeploy();
         $this->removeFromDatabase();
 
-        /** - backups
-         *   - remove storage, database and config backups
+        /**
+         * Delete storage, database and config backups.
          */
         $this->removeFromBackups();
 
-        /** - project
-         *   - invalidate api keys (center, pendo, mailo, ...)
+        /**
+         * Invalidate all api keys created during checkout (center, pendo, mailo, ...).
          */
         $this->invalidateApiKeys();
 
-        /** - services
-         *   - apache
-         *   - nginx
-         *   - haproxy
+        /**
+         * Reload all system services:
+         *   - apache for dynamic requests
+         *   - nginx for static requests
+         *   - haproxy for routing
          */
         $this->restartAllServices();
     }
@@ -571,11 +574,9 @@ class Site extends Record
     {
         $task = Task::create('Adding cron worker for site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(
-            function() use ($server, $pckg, $vars) {
+        return $task->make(function() use ($server, $pckg, $vars) {
 
-            }
-        );
+        });
     }
 
     public function addWebWorker(Server $server, $pckg, $vars)
@@ -584,51 +585,49 @@ class Site extends Record
 
         $task = Task::create('Adding web worker for site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(
-            function() use ($server, $pckg) {
-                /**
-                 * Create webserver directories.
-                 */
-                $this->createOnFilesystem($server);
+        return $task->make(function() use ($server, $pckg) {
+            /**
+             * Create webserver directories.
+             */
+            $this->createOnFilesystem($server);
 
-                /**
-                 * Checkout platform.
-                 */
-                $this->executeCheckoutProcedure($server, $pckg);
+            /**
+             * Checkout platform.
+             */
+            $this->executeCheckoutProcedure($server, $pckg);
 
-                /**
-                 * We are extending site to another server.
-                 * All directories are existent.
-                 *
-                 * @T00D00 - check that volume is actually mounted
-                 * @T00D00 - check that tmp directory is local, cache is shared
-                 */
-                $this->deployStorageService($server, $pckg);
+            /**
+             * We are extending site to another server.
+             * All directories are existent.
+             *
+             * @T00D00 - check that volume is actually mounted
+             * @T00D00 - check that tmp directory is local, cache is shared
+             */
+            $this->deployStorageService($server, $pckg);
 
-                /**
-                 * Copy config.
-                 *
-                 * @T00D00 - allow different "configurations"
-                 */
-                $this->copyConfigFromWorker($server, $pckg);
+            /**
+             * Copy config.
+             *
+             * @T00D00 - allow different "configurations"
+             */
+            $this->copyConfigFromWorker($server, $pckg);
 
-                /**
-                 * Database don't need to be changed
-                 * Platform was already prepared.
-                 * Cronjobs should be extended manually as service.
-                 */
+            /**
+             * Database don't need to be changed
+             * Platform was already prepared.
+             * Cronjobs should be extended manually as service.
+             */
 
-                /**
-                 * Check for letsencrypt.
-                 * Restart apache and haproxy.
-                 */
-                if (isset($pckg['services']['web']['https'])) {
-                    $this->letsencrypt();
-                } else {
-                    $this->restartApache();
-                }
+            /**
+             * Check for letsencrypt.
+             * Restart apache and haproxy.
+             */
+            if (isset($pckg['services']['web']['https'])) {
+                $this->redeploySslService();
+            } else {
+                $this->restartApache();
             }
-        );
+        });
     }
 
     /**
@@ -642,49 +641,47 @@ class Site extends Record
     {
         $task = Task::create('Checking out site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(
-            function() use ($server) {
-                /**
-                 * Create htdocs, logs and ssl directories on $server.
-                 * If needed we enable https / letsencrypt (on loadbalancer?).
-                 * Reload and restart apache on new server.
-                 */
-                $this->deployWebService($server);
+        return $task->make(function() use ($server) {
+            /**
+             * Create htdocs, logs and ssl directories on $server.
+             * If needed we enable https / letsencrypt (on loadbalancer?).
+             * Reload and restart apache on new server.
+             */
+            $this->deployWebService($server);
 
-                /**
-                 * We checkout and initialize standalone platforms or create directory structure and symlinks for linked ones.
-                 */
-                $this->executeCheckoutProcedure($server);
+            /**
+             * We checkout and initialize standalone platforms or create directory structure and symlinks for linked ones.
+             */
+            $this->executeCheckoutProcedure($server);
 
-                /**
-                 * Project is prepared on linked and standalone platforms.
-                 * We need to apply storage service and execute 'prepare' commands.
-                 * Here we create proper directories and symlinks.
-                 */
-                $this->deployStorageService($server);
+            /**
+             * Project is prepared on linked and standalone platforms.
+             * We need to apply storage service and execute 'prepare' commands.
+             * Here we create proper directories and symlinks.
+             */
+            $this->deployStorageService($server);
 
-                /**
-                 * Create database, privileges, enable backups and replication.
-                 * Also imports clean database, creates admin user and writes configuration.
-                 */
-                $this->deployDatabaseService($server);
+            /**
+             * Create database, privileges, enable backups and replication.
+             * Also imports clean database, creates admin user and writes configuration.
+             */
+            $this->deployDatabaseService($server);
 
-                /**
-                 * Dump config.
-                 */
-                $this->deployConfigService($server);
+            /**
+             * Dump config.
+             */
+            $this->deployConfigService($server);
 
-                /**
-                 * We probably need to import few things.
-                 */
-                $this->executePrepareProcedure($server);
+            /**
+             * We probably need to import few things.
+             */
+            $this->executePrepareProcedure($server);
 
-                /**
-                 * Everything is ready, we may enable cronjobs.
-                 */
-                $this->deployCronService($server);
-            }
-        );
+            /**
+             * Everything is ready, we may enable cronjobs.
+             */
+            $this->deployCronService($server);
+        });
     }
 
     /**
@@ -696,20 +693,19 @@ class Site extends Record
     public function executePrepareProcedure(Server $server)
     {
         $task = Task::create('Preparing site #' . $this->id);
-        return $task->make(
-            function() use ($server) {
-                /**
-                 * Execute prepare commands.
-                 */
-                $pckg = $this->getImperoPckgAttribute();
-                $commands = [];
-                foreach ($pckg['prepare'] ?? [] as $command) {
-                    $commands[] = $this->replaceVars($command);
-                }
-                $connection = $server->getConnection();
-                $connection->execMultiple($commands);
+
+        return $task->make(function() use ($server) {
+            /**
+             * Execute prepare commands.
+             */
+            $pckg = $this->getImperoPckgAttribute();
+            $commands = [];
+            foreach ($pckg['prepare'] ?? [] as $command) {
+                $commands[] = $this->replaceVars($command);
             }
-        );
+            $connection = $server->getConnection();
+            $connection->execMultiple($commands);
+        });
     }
 
     /**
@@ -733,20 +729,18 @@ class Site extends Record
     {
         $task = Task::create('Copying config for site #' . $this->id . ' to server #' . $server->id);
 
-        return $task->make(
-            function() use ($server, $pckg) {
-                $otherWorker = (new ServersMorphs())->where('type', 'web')
-                                                    ->where('server_id', $server->id, '!=')
-                                                    ->where('morph_id', Sites::class)
-                                                    ->where('poly_id', $this->id)
-                                                    ->one();
+        return $task->make(function() use ($server, $pckg) {
+            $otherWorker = (new ServersMorphs())->where('type', 'web')
+                                                ->where('server_id', $server->id, '!=')
+                                                ->where('morph_id', Sites::class)
+                                                ->where('poly_id', $this->id)
+                                                ->one();
 
-                $connection = $server->getConnection();
-                foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
-                    (new Rsync($server->getConnection()))->copyTo($otherWorker, $this->getHtdocsPath() . $dest);
-                }
+            $connection = $server->getConnection();
+            foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
+                (new Rsync($server->getConnection()))->copyTo($otherWorker, $this->getHtdocsPath() . $dest);
             }
-        );
+        });
     }
 
     /**
@@ -759,64 +753,60 @@ class Site extends Record
     {
         $task = Task::create('Deploying web service for site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(
-            function() use ($server) {
-                /**
-                 * Link server and site's service.
-                 */
-                SitesServer::getOrCreate(['server_id' => $server->id, 'site_id' => $this->id, 'type' => 'web']);
+        return $task->make(function() use ($server) {
+            /**
+             * Link server and site's service.
+             */
+            SitesServer::getOrCreate(['server_id' => $server->id, 'site_id' => $this->id, 'type' => 'web']);
 
-                /**
-                 * Web service, log service and https service.
-                 * Impero is web management service, so we create those by default.
-                 * However, server_id is only primary server, services may be expanded to other servers.
-                 *
-                 * @T00D00 - collect all service servers and initial configuration:
-                 *         - is loadbalanced? (default: no)
-                 *         - web workers? (default: 1; additional: x)
-                 *         - mysql master and slave configuration (default: master only; additional: master-slave)
-                 *         - storages (default: root; additional: volume)
-                 *         Impero should now which services live on which server and how is network connected.
-                 *         We need to know about entrypoint (floating ip, server)
-                 */
-                $this->createOnFilesystem($server);
+            /**
+             * Web service, log service and https service.
+             * Impero is web management service, so we create those by default.
+             * However, server_id is only primary server, services may be expanded to other servers.
+             *
+             * @T00D00 - collect all service servers and initial configuration:
+             *         - is loadbalanced? (default: no)
+             *         - web workers? (default: 1; additional: x)
+             *         - mysql master and slave configuration (default: master only; additional: master-slave)
+             *         - storages (default: root; additional: volume)
+             *         Impero should now which services live on which server and how is network connected.
+             *         We need to know about entrypoint (floating ip, server)
+             */
+            $this->createOnFilesystem($server);
 
-                /**
-                 * Enable https on website.
-                 * This will call letsencrypt and ask for new certificate.
-                 * It will also add ssl virtualhost and restart apache.
-                 */
-                $this->letsencrypt();
-            }
-        );
+            /**
+             * Enable https on website.
+             * This will call letsencrypt and ask for new certificate.
+             * It will also add ssl virtualhost and restart apache.
+             */
+            $this->redeploySslService();
+        });
     }
 
     public function createNewHtdocsPath(Server $server)
     {
         $task = Task::create('Creating new htdocs path');
 
-        return $task->make(
-            function() use ($server) {
-                $connection = $server->getConnection();
+        return $task->make(function() use ($server) {
+            $connection = $server->getConnection();
 
-                /**
-                 * Move existent htdocs-old to htdocs-old-$datetime
-                 */
-                if ($connection->dirExists($this->getHtdocsOldPath())) {
-                    $connection->exec('mv ' . $this->getHtdocsOldPath() . ' ' . $this->getHtdocsOlderPath());
-                }
-
-                /**
-                 * Move existent htdocs to htdocs-old
-                 */
-                $connection->exec('mv ' . $this->getHtdocsPath() . ' ' . $this->getHtdocsOldPath());
-
-                /**
-                 * Create new htdocs path
-                 */
-                $connection->exec('mkdir ' . $this->getHtdocsPath());
+            /**
+             * Move existent htdocs-old to htdocs-old-$datetime
+             */
+            if ($connection->dirExists($this->getHtdocsOldPath())) {
+                $connection->exec('mv ' . $this->getHtdocsOldPath() . ' ' . $this->getHtdocsOlderPath());
             }
-        );
+
+            /**
+             * Move existent htdocs to htdocs-old
+             */
+            $connection->exec('mv ' . $this->getHtdocsPath() . ' ' . $this->getHtdocsOldPath());
+
+            /**
+             * Create new htdocs path
+             */
+            $connection->exec('mkdir ' . $this->getHtdocsPath());
+        });
     }
 
     public function check($pckg, $fix = false)
@@ -837,52 +827,22 @@ class Site extends Record
 
         foreach ($pckg['checkout']['create']['dir'] ?? [] as $dir) {
             $parsed = $this->replaceVars($htdocsDir . $dir);
-            $checks['dirs'][$storageDir . $dir] = $connection->dirExists($parsed)
-                ? 'ok:dir'
-                : ($connection->symlinkExists($parsed)
-                    ? 'symlink'
-                    : $connection->fileExists($parsed)
-                        ? 'file'
-                        : null);
+            $checks['dirs'][$storageDir . $dir] = $connection->dirExists($parsed) ? 'ok:dir' : ($connection->symlinkExists($parsed) ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
         }
         foreach ($pckg['checkout']['symlink']['dir'] ?? [] as $dir) {
             $parsed = $this->replaceVars($htdocsDir . $dir);
-            $checks['dirs'][$parsed] = $connection->symlinkExists($parsed)
-                ? 'ok:symlink'
-                : ($connection->dirExists($parsed)
-                    ? 'dir'
-                    : $connection->fileExists($parsed)
-                        ? 'file'
-                        : null);
+            $checks['dirs'][$parsed] = $connection->symlinkExists($parsed) ? 'ok:symlink' : ($connection->dirExists($parsed) ? 'dir' : $connection->fileExists($parsed) ? 'file' : null);
         }
         foreach ($pckg['checkout']['symlink']['file'] ?? [] as $dir) {
             $parsed = $this->replaceVars($htdocsDir . $dir);
-            $checks['dirs'][$parsed] = $connection->fileExists($parsed)
-                ? 'ok:file'
-                : ($connection->dirExists($parsed)
-                    ? 'dir'
-                    : $connection->symlinkExists($parsed)
-                        ? 'symlink'
-                        : null);
+            $checks['dirs'][$parsed] = $connection->fileExists($parsed) ? 'ok:file' : ($connection->dirExists($parsed) ? 'dir' : $connection->symlinkExists($parsed) ? 'symlink' : null);
         }
         foreach ($pckg['services']['storage']['dir'] ?? [] as $dir) {
             $parsed = $this->replaceVars($storageDir . $dir);
-            $checks['dirs'][$parsed] = $connection->dirExists($parsed)
-                ? 'ok:dir'
-                : ($connection->symlinkExists($parsed)
-                    ? 'symlink'
-                    : $connection->fileExists($parsed)
-                        ? 'file'
-                        : null);
+            $checks['dirs'][$parsed] = $connection->dirExists($parsed) ? 'ok:dir' : ($connection->symlinkExists($parsed) ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
         }
         foreach ($pckg['services']['web']['mount'] ?? [] as $link => $dir) {
-            $checks['dirs'][$storageDir . $link] = $connection->symlinkExists($htdocsDir . $link)
-                ? 'ok:symlink'
-                : ($connection->dirExists($htdocsDir . $link)
-                    ? 'dir'
-                    : $connection->fileExists($htdocsDir . $link)
-                        ? 'file'
-                        : null);
+            $checks['dirs'][$storageDir . $link] = $connection->symlinkExists($htdocsDir . $link) ? 'ok:symlink' : ($connection->dirExists($htdocsDir . $link) ? 'dir' : $connection->fileExists($htdocsDir . $link) ? 'file' : null);
         }
 
         return $checks;
@@ -900,20 +860,35 @@ class Site extends Record
         $task = Task::create('Re-checking out site #' . $this->id . ' on server #' . $server->id);
 
         return $task->make(function() use ($server) {
-            $this->deployWebService($server);
+            /**
+             * Make sure that htdocs, logs and ssl directories are created.
+             * Also check that https is active.
+             * Shouldn't this already be done on checkout?
+             */
+            // $this->deployWebService($server);
 
+            /**
+             * Move old htdocs path and create a new one.
+             */
             $this->createNewHtdocsPath($server);
 
+            /**
+             * Make sure that git is checked out, files and directories are linked.
+             */
             $this->executeCheckoutProcedure($server);
 
             $this->deployStorageService($server);
 
-            $this->copyOldConfig($server);
+            /**
+             * This is not needed since we're able to re-dump config.
+             */
+            // $this->copyOldConfig($server);
+            $this->deployConfigService($server);
 
             /**
              * Everything is ready, we may enable cronjobs.
              */
-            $this->redeployCronService($server);
+            $this->redeployCronService();
 
             $this->restartApache();
         });
@@ -932,65 +907,61 @@ class Site extends Record
     {
         $task = Task::create('Deploying site #' . $this->id . ' to server #' . $server->id);
 
-        return $task->make(
-            function() use ($server, $isAlias, $checkAlias, $migrate) {
-                $pckg = $this->getImperoPckgAttribute();
-                $connection = null;
-                $htdocsDir = $this->getHtdocsPath();
-                $blueGreen = ($pckg['checkout']['type'] ?? null) == 'ab';
+        return $task->make(function() use ($server, $isAlias, $checkAlias, $migrate) {
+            $pckg = $this->getImperoPckgAttribute();
+            $connection = null;
+            $htdocsDir = $this->getHtdocsPath();
+            $blueGreen = ($pckg['checkout']['type'] ?? null) == 'ab';
 
-                $errorStream = null;
-                $deployDir = null;
-                if ($blueGreen) {
-                    /**
-                     * We should also support blue-green (or a-b deployments).
-                     * This would mean that we checkout code in new directory (/www/_ab/[repository]/[branch]/[a|b|gitCommit].
-                     * And then change symlink of /www/_abc/[repository]/[branch] to /www/_ab/[repository]/[branch]/[a|b|gitCommit].
-                     * ln -sfn /www/_ab/[repository]/[branch]/[a|b|gitCommit] /www/_abc/[repository]/[branch]
-                     * Sites are still linked to /www/_abc/[repository]/[branch] and gets updated immediately after symlink change.
-                     */
-                    $deployDir = $this->getBlueGreenDir($pckg);
-                } elseif ($checkAlias) {
-                    /**
-                     * Aliased platforms are checkout in _linked directory.
-                     */
-                    $deployDir = $this->getLinkedDir($pckg);
-                } elseif (!$isAlias) {
-                    /**
-                     * Standalone platforms are checkout in site's htdocs dir.
-                     */
-                    $deployDir = $htdocsDir;
-                }
-
-                if ($deployDir) {
-                    $connection = $connection ?? $server->getConnection();
-                    foreach ($pckg['deploy'] ?? [] as $command) {
-                        $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
-                        $finalCommand .= $this->replaceVars($command);
-                        $connection->exec($finalCommand);
-                    }
-                }
-
+            $errorStream = null;
+            $deployDir = null;
+            if ($blueGreen) {
                 /**
-                 * Standalone and aliased platforms are migrated in their htdocs directory.
+                 * We should also support blue-green (or a-b deployments).
+                 * This would mean that we checkout code in new directory (/www/_ab/[repository]/[branch]/[a|b|gitCommit].
+                 * And then change symlink of /www/_abc/[repository]/[branch] to /www/_ab/[repository]/[branch]/[a|b|gitCommit].
+                 * ln -sfn /www/_ab/[repository]/[branch]/[a|b|gitCommit] /www/_abc/[repository]/[branch]
+                 * Sites are still linked to /www/_abc/[repository]/[branch] and gets updated immediately after symlink change.
                  */
-                if (!$migrate || !($pckg['migrate'] ?? [])) {
-                    return;
-                }
-
-                $connection = $connection ?? $server->getConnection();
-                $task = Task::create('Migrating site #' . $this->id);
-                $task->make(
-                    function() use ($pckg, $deployDir, $connection) {
-                        foreach ($pckg['migrate'] ?? [] as $command) {
-                            $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
-                            $finalCommand .= $this->replaceVars($command);
-                            $connection->exec($finalCommand);
-                        }
-                    }
-                );
+                $deployDir = $this->getBlueGreenDir($pckg);
+            } elseif ($checkAlias) {
+                /**
+                 * Aliased platforms are checkout in _linked directory.
+                 */
+                $deployDir = $this->getLinkedDir($pckg);
+            } elseif (!$isAlias) {
+                /**
+                 * Standalone platforms are checkout in site's htdocs dir.
+                 */
+                $deployDir = $htdocsDir;
             }
-        );
+
+            if ($deployDir) {
+                $connection = $connection ?? $server->getConnection();
+                foreach ($pckg['deploy'] ?? [] as $command) {
+                    $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
+                    $finalCommand .= $this->replaceVars($command);
+                    $connection->exec($finalCommand);
+                }
+            }
+
+            /**
+             * Standalone and aliased platforms are migrated in their htdocs directory.
+             */
+            if (!$migrate || !($pckg['migrate'] ?? [])) {
+                return;
+            }
+
+            $connection = $connection ?? $server->getConnection();
+            $task = Task::create('Migrating site #' . $this->id);
+            $task->make(function() use ($pckg, $deployDir, $connection) {
+                foreach ($pckg['migrate'] ?? [] as $command) {
+                    $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
+                    $finalCommand .= $this->replaceVars($command);
+                    $connection->exec($finalCommand);
+                }
+            });
+        });
     }
 
     /**
@@ -1002,14 +973,10 @@ class Site extends Record
     {
         $task = Task::create('Copying old config');
 
-        return $task->make(
-            function() use ($server) {
-                $server->getConnection()->exec(
-                    'cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
-                    $this->getHtdocsPath() . 'config/env.php'
-                );
-            }
-        );
+        return $task->make(function() use ($server) {
+            $server->getConnection()
+                   ->exec('cp ' . $this->getHtdocsOldPath() . 'config/env.php ' . $this->getHtdocsPath() . 'config/env.php');
+        });
     }
 
     /**
@@ -1020,41 +987,40 @@ class Site extends Record
     {
         $task = Task::create('Enabling cronjobs for site #' . $this->id);
 
-        return $task->make(
-            function() use ($server) {
-                /**
-                 * Link cron service to site and server.
-                 */
-                $pckg = $this->getImperoPckgAttribute();
-                SitesServer::getOrCreate(['site_id'   => $this->id,
-                                                         'server_id' => $server->id,
-                                                         'type'      => 'cron',
-                                                        ]);
+        return $task->make(function() use ($server) {
+            /**
+             * Link cron service to site and server.
+             */
+            $pckg = $this->getImperoPckgAttribute();
+            SitesServer::getOrCreate([
+                                         'site_id'   => $this->id,
+                                         'server_id' => $server->id,
+                                         'type'      => 'cron',
+                                     ]);
 
-                /**
-                 * Add cronjob, we also perform uniqueness check.
-                 */
-                foreach ($pckg['services']['cron']['commands'] ?? [] as $cron) {
-                    $command = $this->replaceVars($cron['command']);
-                    $server->addCronjob($command);
-                }
+            /**
+             * Add cronjob, we also perform uniqueness check.
+             */
+            foreach ($pckg['services']['cron']['commands'] ?? [] as $cron) {
+                $command = $this->replaceVars($cron['command']);
+                $server->addCronjob($command);
             }
-        );
+        });
     }
 
-    public function undeployCronService(Server $server)
+    /**
+     * Undeploy cron service from all servers.
+     *
+     * @return mixed
+     */
+    public function undeployCronService()
     {
-        $task = Task::create('Un-deploying cron service for site #' . $this->id . ' on server ' . $server->id);
+        $task = Task::create('Un-deploying cron service for site #' . $this->id);
 
-        return $task->make(function() use ($server) {
-            $sitesServers =  (new SitesServers())->where('site_id', $this->id)
-                                ->where('server_id', $server->id)
-                                ->where('type', 'cron')
-                                ->all();
+        return $task->make(function() {
+            $sitesServers = (new SitesServers())->where('site_id', $this->id)->where('type', 'cron')->all();
 
-            $sitesServers->each(function(SitesServer $sitesServer) {
-                $sitesServer->server->removeCronjob($this->getHtdocsPath());
-            });
+            $sitesServers->each->undeploy();
         });
     }
 
@@ -1070,9 +1036,7 @@ class Site extends Record
                 /**
                  * This is kinda not okay until we have a backup of config history.
                  */
-
-                d('removing ' .$this->getHtdocsPath() . $dest);
-                //$connection->deleteFile($this->getHtdocsPath() . $dest);
+                // $connection->deleteFile($this->getHtdocsPath() . $dest);
             }
         });
     }
@@ -1087,30 +1051,15 @@ class Site extends Record
     {
         $task = Task::create('Copying config for site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(
-            function() use ($server) {
-                $connection = $server->getConnection();
-                $pckg = $this->getImperoPckgAttribute();
+        return $task->make(function() use ($server) {
+            $connection = $server->getConnection();
+            $pckg = $this->getImperoPckgAttribute();
+            SitesServer::getOrCreate(['type' => 'config', 'site_id' => $this->id, 'server_id' => $server->id]);
 
-                foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
-                    $connection->saveContent($this->getHtdocsPath() . $dest, $this->getConfigFileContent($connection, $copy));
-                }
+            foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
+                $connection->saveContent($this->getHtdocsPath() . $dest,
+                                         $this->getConfigFileContent($connection, $copy));
             }
-        );
-    }
-
-    /**
-     * @param Server $server
-     *
-     * @return mixed
-     */
-    public function redeployCronService(Server $server)
-    {
-        $task = Task::create('Re-deploying cron service for site #' . $this->id . ' on server ' . $server->id);
-
-        return $task->make(function() use ($server) {
-            $this->undeployCronService($server);
-            $this->deployCronService($server);
         });
     }
 
@@ -1119,17 +1068,58 @@ class Site extends Record
      *
      * @return mixed
      */
-    public function redeployConfigService(Server $server)
+    public function redeployCronService()
     {
-        $task = Task::create('Removing config for site #' . $this->id . ' on server ' . $server->id);
+        $task = Task::create('Re-deploying cron service for site #' . $this->id);
 
-        return $task->make(function() use ($server) {
+        return $task->make(function() {
+            (new SitesServers())->where('site_id', $this->id)->where('type', 'cron')->allAndEach(function(
+                SitesServer $sitesServer
+            ) {
+                $sitesServer->redeploy();
+            });
+        });
+    }
+
+    /**
+     * @return Task
+     */
+    public function redeployConfigService($immediately = true)
+    {
+        $task = Task::create('Redeploy config service for site #' . $this->id);
+
+        $action = function() {
+            $sitesServers = (new SitesServers())->where('site_id', $this->id)->where('type', 'config')->all();
+
+            if ($sitesServers->count() == 0) {
+                /**
+                 * Deploy to all web workers.
+                 */
+                (new SitesServers())->where('site_id', $this->id)->where('type', 'web')->all()->each(function(
+                    SitesServer $sitesServer
+                ) {
+                    $this->deployConfigService($sitesServer->server);
+                });
+            } else {
+                $sitesServers->each(function(SitesServer $sitesServer) {
+                    $sitesServer->redeploy();
+                });
+            }
+        };
+        $exception = function(Task $task, Throwable $e) {
             /**
-             * @T00D00 - what if deploy fails? can we get previous config?
+             * Exception was thrown, task is already marked as error.
+             * Can we log exception to rollbar?
+             * Can we notify admin about exception?
              */
-            $this->undeployConfigService($server);
-            $this->deployConfigService($server);
-        });
+            throw $e;
+        };
+
+        if ($immediately) {
+            return $task->make($action, $exception);
+        }
+
+        return $task->prepare($action);
     }
 
     /**
@@ -1158,12 +1148,13 @@ class Site extends Record
         /**
          * Checkout platform.
          */
-        $connection->execMultiple(
-            [
-                'git clone ' . $pckg['repository'] . ' .',
-                'git checkout ' . $pckg['branch'],
-            ], $output, $error, $aliasDir
-        );
+        $connection->execMultiple([
+                                      'git clone ' . $pckg['repository'] . ' .',
+                                      'git checkout ' . $pckg['branch'],
+                                  ],
+                                  $output,
+                                  $error,
+                                  $aliasDir);
 
         /**
          * Init platform.
@@ -1173,14 +1164,16 @@ class Site extends Record
 
     public function getLinkedDir($pckg)
     {
-        return '/www/_linked/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' .
-            $pckg['branch'] . '/';
+        return '/www/_linked/' . str_replace(['.', '@', '/', ':'],
+                                             '-',
+                                             $pckg['repository']) . '/' . $pckg['branch'] . '/';
     }
 
     public function getBlueGreenDir($pckg)
     {
-        return '/www/_ab/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' .
-            $pckg['branch'] . '/a|b|giTcommit' . '/';
+        return '/www/_ab/' . str_replace(['.', '@', '/', ':'],
+                                         '-',
+                                         $pckg['repository']) . '/' . $pckg['branch'] . '/a|b|giTcommit' . '/';
     }
 
     /**
@@ -1193,63 +1186,61 @@ class Site extends Record
     {
         $task = Task::create('Checking out site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(
-            function() use ($server) {
+        return $task->make(function() use ($server) {
+            /**
+             * All commands will be executed in platform's htdocs path.
+             */
+            $connection = $server->getConnection();
+            $commands = [];
+            $pckg = $this->getImperoPckgAttribute();
+
+            if ($pckg['checkout']['type'] == 'linked') {
                 /**
-                 * All commands will be executed in platform's htdocs path.
+                 * We need to make sure that repository and branch are already checked-out on filesystem.
                  */
-                $connection = $server->getConnection();
-                $commands = [];
-                $pckg = $this->getImperoPckgAttribute();
+                $aliasDir = $this->getLinkedDir($pckg);
+                $this->prepareLinkedCheckout($server, $pckg, $aliasDir);
 
-                if ($pckg['checkout']['type'] == 'linked') {
-                    /**
-                     * We need to make sure that repository and branch are already checked-out on filesystem.
-                     */
-                    $aliasDir = $this->getLinkedDir($pckg);
-                    $this->prepareLinkedCheckout($server, $pckg, $aliasDir);
-
-                    /**
-                     * Create some dirs, such as www and cache in which we will probably mount some files.
-                     * We won't store any data in those directories.
-                     */
-                    foreach ($pckg['checkout']['create']['dir'] as $dir) {
-                        $commands[] = 'mkdir ' . $this->getHtdocsPath() . $dir;
-                    }
-
-                    /**
-                     * Create dir and file symlinks for shared stuff.
-                     */
-                    foreach ($pckg['checkout']['symlink']['dir'] as $dir) {
-                        $commands[] = 'ln -s ' . $aliasDir . $dir . ' ' . $this->getHtdocsPath() . $dir;
-                    }
-                    foreach ($pckg['checkout']['symlink']['file'] as $file) {
-                        $commands[] = 'ln -s ' . $aliasDir . $file . ' ' . $this->getHtdocsPath() . $file;
-                    }
-
-                    $connection->execMultiple($commands);
-                } else { // default type = multiple
-                    /**
-                     * Standalone platforms clones git repository and checkouts branch
-                     */
-                    $commands = [
-                        'git clone ' . $pckg['repository'] . ' .',
-                        'git checkout ' . $pckg['branch'],
-                    ];
-
-                    /**
-                     * We also execute project defined commands for initialization like dependency install.
-                     */
-                    foreach ($pckg['init'] as $initCommand) {
-                        $commands[] = $initCommand;
-                    }
-
-                    $errorStream = null;
-                    $outputStream = null;
-                    $connection->execMultiple($commands, $outputStream, $errorStream, $this->getHtdocsPath());
+                /**
+                 * Create some dirs, such as www and cache in which we will probably mount some files.
+                 * We won't store any data in those directories.
+                 */
+                foreach ($pckg['checkout']['create']['dir'] as $dir) {
+                    $commands[] = 'mkdir ' . $this->getHtdocsPath() . $dir;
                 }
+
+                /**
+                 * Create dir and file symlinks for shared stuff.
+                 */
+                foreach ($pckg['checkout']['symlink']['dir'] as $dir) {
+                    $commands[] = 'ln -s ' . $aliasDir . $dir . ' ' . $this->getHtdocsPath() . $dir;
+                }
+                foreach ($pckg['checkout']['symlink']['file'] as $file) {
+                    $commands[] = 'ln -s ' . $aliasDir . $file . ' ' . $this->getHtdocsPath() . $file;
+                }
+
+                $connection->execMultiple($commands);
+            } else { // default type = multiple
+                /**
+                 * Standalone platforms clones git repository and checkouts branch
+                 */
+                $commands = [
+                    'git clone ' . $pckg['repository'] . ' .',
+                    'git checkout ' . $pckg['branch'],
+                ];
+
+                /**
+                 * We also execute project defined commands for initialization like dependency install.
+                 */
+                foreach ($pckg['init'] as $initCommand) {
+                    $commands[] = $initCommand;
+                }
+
+                $errorStream = null;
+                $outputStream = null;
+                $connection->execMultiple($commands, $outputStream, $errorStream, $this->getHtdocsPath());
             }
-        );
+        });
     }
 
     public function getStorageDir()
@@ -1271,72 +1262,67 @@ class Site extends Record
     {
         $task = Task::create('Preparing site #' . $this->id . ' directories on server #' . $server->id);
 
-        return $task->make(
-            function() use ($server) {
-                $siteStoragePath = $this->getStorageDir();
-                $htdocsOldPath = $this->getHtdocsOldPath();
-                $connection = $server->getConnection();
-                $pckg = $this->getImperoPckgAttribute();
+        return $task->make(function() use ($server) {
+            $siteStoragePath = $this->getStorageDir();
+            $htdocsOldPath = $this->getHtdocsOldPath();
+            $connection = $server->getConnection();
+            $pckg = $this->getImperoPckgAttribute();
 
-                /**
-                 * Create site dir.
-                 */
-                $hasSiteDir = $connection->dirExists($siteStoragePath);
-                if (!$hasSiteDir) {
-                    $connection->makeAndAllow($siteStoragePath);
+            /**
+             * Create site dir.
+             */
+            $hasSiteDir = $connection->dirExists($siteStoragePath);
+            if (!$hasSiteDir) {
+                $connection->makeAndAllow($siteStoragePath);
+            }
+
+            foreach ($pckg['services']['storage']['dir'] ?? [] as $storageDir) {
+                $hasStorageDir = $connection->dirExists($siteStoragePath . $storageDir);
+                if ($hasStorageDir) {
+                    /**
+                     * Storage already exists and will be mounted.
+                     */
+                    continue;
                 }
 
-                foreach ($pckg['services']['storage']['dir'] ?? [] as $storageDir) {
-                    $hasStorageDir = $connection->dirExists($siteStoragePath . $storageDir);
-                    if ($hasStorageDir) {
-                        /**
-                         * Storage already exists and will be mounted.
-                         */
-                        continue;
-                    }
-
-                    $hasOldDir = $connection->dirExists($htdocsOldPath . $storageDir);
-                    if (!$hasOldDir) {
-                        /**
-                         * Create $storageDir directory in site's directory on storage server.
-                         */
-                        $connection->makeAndAllow($siteStoragePath . $storageDir);
-                        continue;
-                    }
+                $hasOldDir = $connection->dirExists($htdocsOldPath . $storageDir);
+                if (!$hasOldDir) {
                     /**
-                     * Existing dirs are copied to storage server.
-                     * Recreation is skipped.
+                     * Create $storageDir directory in site's directory on storage server.
                      */
                     $connection->makeAndAllow($siteStoragePath . $storageDir);
-
-                    /**
-                     * Transfer contents.
-                     *
-                     * @T00D00 - check if this is needed at all times?
-                     */
-                    $connection->exec(
-                        'rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath .
-                        $storageDir . '/ --stats'
-                    );
+                    continue;
                 }
+                /**
+                 * Existing dirs are copied to storage server.
+                 * Recreation is skipped.
+                 */
+                $connection->makeAndAllow($siteStoragePath . $storageDir);
 
                 /**
-                 * Create symlink.
-                 * Also, check if dir exists
+                 * Transfer contents.
                  *
-                 * @T00D00 - check if this should be moved before previous loop?
+                 * @T00D00 - check if this is needed at all times?
                  */
-                foreach ($pckg['services']['web']['mount'] ?? [] as $linkPoint => $storageDir) {
-                    /**
-                     * If mount point was previously created, it will be recreated.
-                     * If it was directory and it does
-                     */
-                    $originPoint = $this->replaceVars($storageDir);
-                    $fullLinkPoint = $this->getHtdocsPath() . $linkPoint;
-                    $connection->exec('ln -s ' . $originPoint . ' ' . $fullLinkPoint);
-                }
+                $connection->exec('rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath . $storageDir . '/ --stats');
             }
-        );
+
+            /**
+             * Create symlink.
+             * Also, check if dir exists
+             *
+             * @T00D00 - check if this should be moved before previous loop?
+             */
+            foreach ($pckg['services']['web']['mount'] ?? [] as $linkPoint => $storageDir) {
+                /**
+                 * If mount point was previously created, it will be recreated.
+                 * If it was directory and it does
+                 */
+                $originPoint = $this->replaceVars($storageDir);
+                $fullLinkPoint = $this->getHtdocsPath() . $linkPoint;
+                $connection->exec('ln -s ' . $originPoint . ' ' . $fullLinkPoint);
+            }
+        });
     }
 
     public function replaceVars($command, $vars = [])
@@ -1362,9 +1348,7 @@ class Site extends Record
 
         $escaped = [];
         foreach ($replaces as $key => $value) {
-            $escaped[] = $key != '$password'
-                ? $value
-                : escapeshellarg($value);
+            $escaped[] = $key != '$password' ? $value : escapeshellarg($value);
         }
 
         return str_replace(array_keys($replaces), $escaped, $command);
@@ -1385,85 +1369,77 @@ class Site extends Record
     {
         $task = Task::create('Preparing database for site #' . $this->id);
 
-        return $task->make(
-            function() use ($server) {
-                /**
-                 * Link database to site.
-                 */
-                $pckg = $this->getImperoPckgAttribute();
-                SitesServer::getOrCreate(['site_id' => $this->id, 'server_id' => $server->id, 'type' => 'database']);
+        return $task->make(function() use ($server) {
+            /**
+             * Link database to site.
+             */
+            $pckg = $this->getImperoPckgAttribute();
+            SitesServer::getOrCreate(['site_id' => $this->id, 'server_id' => $server->id, 'type' => 'database']);
 
-                /**
-                 * Some defaults.
-                 */
-                $dbpass = auth()->createPassword(20);
+            /**
+             * Some defaults.
+             */
+            $dbpass = auth()->createPassword(20);
 
-                /**
-                 * Create listed mysql databases.
-                 */
-                foreach ($pckg['services']['db']['mysql']['database'] as $key => $config) {
-                    $database = null;
-                    $dbname = $this->replaceVars($config['name']);
-                    $dbuser = $this->replaceVars(array_keys($config['user'])[0]);
+            /**
+             * Create listed mysql databases.
+             */
+            foreach ($pckg['services']['db']['mysql']['database'] as $key => $config) {
+                $database = null;
+                $dbname = $this->replaceVars($config['name']);
+                $dbuser = $this->replaceVars(array_keys($config['user'])[0]);
 
-                    if ($config['type'] == 'searchOrCreate') {
-
-                        /**
-                         * Create mysql database, user and set privileges.
-                         */
-                        $database = Database::createFromPost(
-                            [
-                                'name'      => $dbname,
-                                'server_id' => $server->id,
-                            ]
-                        );
-
-                        /**
-                         * Manually call backup and replication.
-                         * Temporary, until we do not automate backups triggered from impero
-                         */
-                        $database->requireScriptBackup();
-                        $database->requireMysqlMasterReplication();
-                    } elseif ($config['type'] == 'search') {
-                        $database = Database::gets(
-                            [
-                                'server_id' => $server->id,
-                                'name'      => $config['name'],
-                            ]
-                        );
-                    }
+                if ($config['type'] == 'searchOrCreate') {
 
                     /**
-                     * For configuration.
+                     * Create mysql database, user and set privileges.
                      */
-                    $this->mergeImperoVarsAttribute([
-                                                        '$db' . ucfirst($key) . 'Host' => '127.0.0.1',
-                                                        '$db' . ucfirst($key) . 'Name' => $dbname,
-                                                        '$db' . ucfirst($key) . 'User' => $dbuser,
-                                                        '$db' . ucfirst($key) . 'Pass' => $dbpass,
-                                                    ]);
+                    $database = Database::createFromPost([
+                                                             'name'      => $dbname,
+                                                             'server_id' => $server->id,
+                                                         ]);
 
                     /**
-                     * Check for access.
+                     * Manually call backup and replication.
+                     * Temporary, until we do not automate backups triggered from impero
                      */
-                    if (!$database) {
-                        continue; // skip?
-                    }
+                    $database->requireScriptBackup();
+                    $database->requireMysqlMasterReplication();
+                } elseif ($config['type'] == 'search') {
+                    $database = Database::gets([
+                                                   'server_id' => $server->id,
+                                                   'name'      => $config['name'],
+                                               ]);
+                }
 
-                    foreach ($config['user'] ?? [] as $user => $privilege) {
-                        DatabaseUser::createFromPost(
-                            [
-                                'username'  => $dbuser,
-                                'password'  => $dbpass,
-                                'server_id' => 2,
-                                'database'  => $database->id,
-                                'privilege' => $privilege,
-                            ]
-                        );
-                    }
+                /**
+                 * For configuration.
+                 */
+                $this->mergeImperoVarsAttribute([
+                                                    '$db' . ucfirst($key) . 'Host' => '127.0.0.1',
+                                                    '$db' . ucfirst($key) . 'Name' => $dbname,
+                                                    '$db' . ucfirst($key) . 'User' => $dbuser,
+                                                    '$db' . ucfirst($key) . 'Pass' => $dbpass,
+                                                ]);
+
+                /**
+                 * Check for access.
+                 */
+                if (!$database) {
+                    continue; // skip?
+                }
+
+                foreach ($config['user'] ?? [] as $user => $privilege) {
+                    DatabaseUser::createFromPost([
+                                                     'username'  => $dbuser,
+                                                     'password'  => $dbpass,
+                                                     'server_id' => 2,
+                                                     'database'  => $database->id,
+                                                     'privilege' => $privilege,
+                                                 ]);
                 }
             }
-        );
+        });
     }
 
     public function hasServiceOnServer(Server $server, $service)
@@ -1481,8 +1457,7 @@ class Site extends Record
     public function getInfrastructure()
     {
         return [
-            'sitesServers'  => (new SitesServers())->where('site_id', $this->id)
-                                                   ->all(),
+            'sitesServers'  => (new SitesServers())->where('site_id', $this->id)->all(),
             'serversMorphs' => (new ServersMorphs())->where('morph_id', Sites::class)
                                                     ->where('poly_id', $this->id)
                                                     ->all(),

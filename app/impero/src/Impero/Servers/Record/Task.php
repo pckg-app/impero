@@ -10,6 +10,11 @@ class Task extends Record
 
     protected $entity = Tasks::class;
 
+    /**
+     * @var callable
+     */
+    protected $make;
+
     public static function create($data = [], Entity $entity = null)
     {
         /**
@@ -27,15 +32,12 @@ class Task extends Record
         /**
          * Create task in database.
          */
-        $task = parent::create(
-            array_merge(
-                $data, [
-                         'parent_id' => $parentTask->id ?? null,
-                         'status'    => 'created',
-                     ]
-            ),
-            $entity
-        );
+        $task = parent::create(array_merge($data,
+                                           [
+                                               'parent_id' => $parentTask->id ?? null,
+                                               'status'    => 'created',
+                                           ]),
+                               $entity);
 
         /**
          * Bind it as current.
@@ -58,14 +60,33 @@ class Task extends Record
      */
     public function make(callable $make, callable $exception = null)
     {
+        $this->prepare($make);
+
+        return $this->execute($exception);
+    }
+
+    public function prepare(callable $make)
+    {
+        $this->make = $make;
+
+        return $this;
+    }
+
+    public function execute(callable $exception = null)
+    {
         try {
             /**
              * Try to execute task.
              */
+            $make = $this->make;
+            if (!$make) {
+                throw new \Exception('Task body should be defined');
+            }
             $this->setAndSave(['status' => 'started', 'started_at' => date('Y-m-d H:i:s')]);
             $result = $make();
             $this->set(['status' => 'ended']);
             $this->end();
+
             return $result;
         } catch (Throwable $e) {
             /**

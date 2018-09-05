@@ -8,7 +8,6 @@ use Impero\Mysql\Entity\Databases;
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
 use Impero\Servers\Record\Task;
-use Pckg\Generic\Record\SettingsMorph;
 use Pckg\Mail\Service\Mail\Adapter\SimpleUser;
 use Throwable;
 
@@ -26,21 +25,13 @@ class Sites
     {
         $deleteUrl = url('impero.site.confirmDelete', ['site' => $site], true) . '?hash=' . $site->hash;
 
-        email(
-            [
-                'subject' => 'Confirm /impero site #' . $site->id . ' (' . $site->server_name . ') removal',
-                'content' => '<p>Hey Bojan,</p>'
-                    . '<p>someone requested removal of site #' . $site->id . ' (' . $site->server_name . ').</p>'
-                    . '<p>This action will create a backup of database, storage and config, remove app from all 
+        email([
+                  'subject' => 'Confirm /impero site #' . $site->id . ' (' . $site->server_name . ') removal',
+                  'content' => '<p>Hey Bojan,</p>' . '<p>someone requested removal of site #' . $site->id . ' (' . $site->server_name . ').</p>' . '<p>This action will create a backup of database, storage and config, remove app from all 
 servers and services, delete all related backups (except final one :)). Backup will still be available for 30 days
-for manual reuse.</p>'
-                    . '<p>If you really want to delete site and all it\'s contents, please login to /impero and click '
-                    . '<a href="' . $deleteUrl . '">here</a>.'
-                    . '</p>'
-                    . '<p>Best regards, /impero team</p>',
-            ],
-            new SimpleUser('schtr4jh@schtr4jh.net')
-        );
+for manual reuse.</p>' . '<p>If you really want to delete site and all it\'s contents, please login to /impero and click ' . '<a href="' . $deleteUrl . '">here</a>.' . '</p>' . '<p>Best regards, /impero team</p>',
+              ],
+              new SimpleUser('schtr4jh@schtr4jh.net'));
 
         return [
             'success' => true,
@@ -61,20 +52,27 @@ for manual reuse.</p>'
         }
 
         if (false) {
-            email(
-                [
-                    'subject' => 'Confirmation of /impero site #' . $site->id . ' (' . $site->server_name . ') removal',
-                    'content' => '<p>Hey Bojan,</p>'
-                        . '<p>site ' . $site->id . ' (' . $site->server_name . ') was deleted on you request.</p>'
-                        . '<p>Before we deleted *everything* we made storage, database and config backup which will be 
-available for another 14 days in /impero dashboard in case of missdelete. After 30 days backup files will be deleted 
-automatically and permanently.</p>'
-                        . '<p>Best regards, /impero team</p>',
-                ],
-                new SimpleUser('schtr4jh@schtr4jh.net')
-            );
+            $content = '<p>Hey Bojan,</p>' . '<p>site ' . $site->id . ' (' . $site->server_name . ') was deleted on you request.</p>' . '<p>Before we deleted *everything* we made storage, database and config backup which will be 
+available for another 30 days in /impero dashboard in case of missdelete. After 30 days backup files will be deleted 
+automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
 
-            $site->undeploy([], []);
+            $content .= '<br />';
+            $content .= '<p>Please execute tasks manually:</p>';
+            $content .= '<p>Disable site and reload apache and haproxy configuration:</p>';
+            $content .= '<p>Delete site directory:</p>';
+            $content .= '<p>Delete storage directory:</p>';
+            $content .= '<p>Delete database and database user:</p>';
+            $content .= '<p>Delete site servers, databases, sites:</p>';
+            $content .= '<p>Delete backups:</p>';
+
+            email([
+                      'subject' => 'Confirmation of /impero site #' . $site->id . ' (' . $site->server_name . ') removal',
+                      'content' => $content,
+                  ],
+                  new SimpleUser('schtr4jh@schtr4jh.net'));
+
+            /*$site->undeploy();
+            $site->delete();*/
         }
 
         return [
@@ -91,18 +89,16 @@ automatically and permanently.</p>'
          * Site is only created, it is not deployed in any way.
          * Services are enabled manually.
          */
-        $site = Site::create(
-            [
-                'server_name'   => $data['name'],
-                'server_alias'  => $data['aliases'],
-                'user_id'       => $data['user_id'],
-                'error_log'     => 1,
-                'access_log'    => 1,
-                'created_at'    => date('Y-m-d H:i:s'),
-                'document_root' => $data['name'],
-                'server_id'     => $data['server_id'],
-            ]
-        );
+        $site = Site::create([
+                                 'server_name'   => $data['name'],
+                                 'server_alias'  => $data['aliases'],
+                                 'user_id'       => $data['user_id'],
+                                 'error_log'     => 1,
+                                 'access_log'    => 1,
+                                 'created_at'    => date('Y-m-d H:i:s'),
+                                 'document_root' => $data['name'],
+                                 'server_id'     => $data['server_id'],
+                             ]);
 
         return [
             'site' => $site,
@@ -143,7 +139,7 @@ automatically and permanently.</p>'
 
     public function postLetsencryptAction(Site $site)
     {
-        $site->letsencrypt();
+        $site->redeploySslService();
 
         return [
             'success' => true,
@@ -201,15 +197,15 @@ automatically and permanently.</p>'
         }
 
         response()->respondAndContinue([
-            'success' => true,
-            'task' => true,
-            'site' => $site,
+                                           'success' => true,
+                                           'task'    => true,
+                                           'site'    => $site,
                                        ]);
 
         $site->setAndSave(['server_name' => $domain, 'server_alias' => $domains]);
         if (post('letsencrypt')) {
-            $site->letsencrypt();
-        } else if (post('restart_apache')) {
+            $site->redeploySslService();
+        } elseif (post('restart_apache')) {
             $site->restartApache();
         }
 
@@ -280,25 +276,19 @@ automatically and permanently.</p>'
          */
         $task = Task::create('Deploying site #' . $site->id);
 
-        $task->make(
-            function() use ($site) {
-                $migrate = true;
-                $site->sitesServers->filter('type', 'web')->each(
-                    function(SitesServer $sitesServer) use ($site, &$migrate) {
-                        $site->setImperoPckgAttribute(post('pckg'));
-                        $site->mergeImperoVarsAttribute(post('vars'));
+        $task->make(function() use ($site) {
+            $migrate = true;
+            $site->sitesServers->filter('type', 'web')->each(function(SitesServer $sitesServer) use ($site, &$migrate) {
+                $site->setImperoPckgAttribute(post('pckg'));
+                $site->mergeImperoVarsAttribute(post('vars'));
 
-                        $site->deploy(
-                            $sitesServer->server,
-                            post('isAlias', false),
-                            post('checkAlias', false),
-                            $migrate
-                        );
-                        $migrate = false;
-                    }
-                );
-            }
-        );
+                $site->deploy($sitesServer->server,
+                              post('isAlias', false),
+                              post('checkAlias', false),
+                              $migrate);
+                $migrate = false;
+            });
+        });
 
         return [
             'site' => $site,
@@ -382,52 +372,48 @@ automatically and permanently.</p>'
         }
 
         $databases = (new Databases())->where('name', $databases)->all();
-        $databases->each(
-            function(Database $database) use ($server, $site) {
-                $sitesServer = SitesServer::getOrNew(
-                    [
-                        'site_id'   => $site->id,
-                        'server_id' => $server->id,
-                        'type'      => 'database:slave',
-                    ]
-                );
-                if (!$sitesServer->isNew()) {
-                    /**
-                     * Skip existing?
-                     *
-                     * @T00D00 ... at some point site may have multiple different databases over different servers
-                     *         ... link database with server instead
-                     * @T00D00 ... implement connections
-                     *         ... serve with server: zero@eth1 - one@eth1
-                     *         ... database with site
-                     *         ... database with server
-                     */
-                    return;
-                }
-
+        $databases->each(function(Database $database) use ($server, $site) {
+            $sitesServer = SitesServer::getOrNew([
+                                                     'site_id'   => $site->id,
+                                                     'server_id' => $server->id,
+                                                     'type'      => 'database:slave',
+                                                 ]);
+            if (!$sitesServer->isNew()) {
                 /**
-                 * Check that master is configured as master.
+                 * Skip existing?
+                 *
+                 * @T00D00 ... at some point site may have multiple different databases over different servers
+                 *         ... link database with server instead
+                 * @T00D00 ... implement connections
+                 *         ... serve with server: zero@eth1 - one@eth1
+                 *         ... database with site
+                 *         ... database with server
                  */
-                $database->requireMysqlMasterReplication();
-
-                /**
-                 * Check that binlog is actually created for database.
-                 */
-                $database->replicateOnMaster();
-
-                /**
-                 * Make backup and enable replication on slae.
-                 */
-                $database->replicateTo($server);
-
-                /**
-                 * When successfuly, link database:slave service to it.
-                 */
-                if ($sitesServer->isNew()) {
-                    $sitesServer->save();
-                }
+                return;
             }
-        );
+
+            /**
+             * Check that master is configured as master.
+             */
+            $database->requireMysqlMasterReplication();
+
+            /**
+             * Check that binlog is actually created for database.
+             */
+            $database->replicateOnMaster();
+
+            /**
+             * Make backup and enable replication on slae.
+             */
+            $database->replicateTo($server);
+
+            /**
+             * When successfuly, link database:slave service to it.
+             */
+            if ($sitesServer->isNew()) {
+                $sitesServer->save();
+            }
+        });
 
         return [
             'success'   => true,
@@ -502,7 +488,8 @@ automatically and permanently.</p>'
         ];
     }
 
-    public function postFileContentAction(Site $site) {
+    public function postFileContentAction(Site $site)
+    {
         return [
             'content' => $site->getServerConnection()->sftpRead($site->getHtdocsPath() . post('file')),
         ];
@@ -510,10 +497,7 @@ automatically and permanently.</p>'
 
     public function postRedeployCronServiceAction(Site $site)
     {
-        (new SitesServers())->where('site_id', $site->id)->where('type', 'cron')
-            ->allAndEach(function(SitesServer $sitesServer){
-                $sitesServer->redeploy();
-            });
+        $site->redeployCronService();
 
         return [
             'site' => $site,
@@ -522,49 +506,39 @@ automatically and permanently.</p>'
 
     public function postRedeploySslServiceAction(Site $site)
     {
-        $site->letsencrypt();
+        $site->redeploySslService();
 
         return [
             'site' => $site,
         ];
     }
 
+    /**
+     * @param Site $site
+     *
+     * @return array
+     * @throws Throwable
+     */
     public function postRedeployConfigServiceAction(Site $site)
     {
-        $task = Task::create('Config service redeploy - site #' . $site->id);
-
-        $task->make(function() use ($site) {
-            $sitesServers = (new SitesServers())->where('site_id', $site->id)->where('type', 'config')->all();
-
-            if ($sitesServers->count() == 0) {
-                $site->deployConfigService($site->server);
-            } else {
-                $sitesServers->each(function(
-                    SitesServer $sitesServer
-                ) {
-                    $sitesServer->redeploy();
-                });
-            }
-        },
-            function(Task $task, Throwable $e) {
-                /**
-                 * Exception was thrown, task is already marked as error.
-                 * Can we log exception to rollbar?
-                 * Can we notify admin about exception?
-                 */
-                throw $e;
-            });
+        $task = $site->redeployConfigService(false);
 
         /**
          * Task may take long to execute, respond with success and continue with execution.
          *
-         * @T00D00 - how will we communicate possible errors?
+         * @T00D00 - possible errors will be communicated to dashboard.
+         *         - task progress can be sent over webhook to listeners defined in header('X-Impero-Listeners')
          */
         response()->respondAndContinue([
                                            'success' => true,
                                            'site'    => $site,
                                            'task'    => $task,
                                        ]);
+
+        /**
+         * Task is then executed.
+         */
+        $task->execute();
 
         return ['success' => true];
 

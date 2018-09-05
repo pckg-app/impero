@@ -2,6 +2,7 @@
 
 use Impero\Apache\Entity\SitesServers;
 use Impero\Servers\Record\Server;
+use Impero\Servers\Record\Task;
 use Pckg\Database\Record;
 
 /**
@@ -18,21 +19,34 @@ class SitesServer extends Record
 
     public function undeploy()
     {
-        /**
-         * web, database, cron, lb
-         */
-        if ($this->type == 'cron') {
-            $this->site->undeployCronService($this->server);
-        }
+        $task = Task::create('Un-deploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' . $this->server_id);
+
+        return $task->make(function() {
+            if ($this->type == 'cron') {
+                $this->server->removeCronjob($this->site->getHtdocsPath());
+            }
+        });
     }
 
     public function redeploy()
     {
-        if ($this->type == 'cron') {
-            $this->site->redeployCronService($this->server);
-        } else if ($this->type == 'web') {
-            $this->site->redeployConfigService($this->server);
-        }
+        $task = Task::create('Redeploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' . $this->server_id);
+
+        return $task->make(function() {
+            $this->undeploy();
+            $this->deploy();
+        });
+    }
+
+    public function deploy()
+    {
+        $task = Task::create('Deploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' . $this->server_id);
+
+        return $task->make(function() {
+            if ($this->type == 'cron') {
+                $this->site->deployCronService($this->server);
+            }
+        });
     }
 
 }
