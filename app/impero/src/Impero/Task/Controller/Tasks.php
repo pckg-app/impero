@@ -42,9 +42,12 @@ class Tasks
                                                                    date('Y-m-d H:i',
                                                                         strtotime('-36hours')),
                                                                    '>')
-                                                           ->orderBy('id DESC')
+                                                           ->orderBy('id ASC')
                                                            ->all()
                                                            ->tree('parent_id', 'id', 'tasks')
+                ->sortBy(function(Task $task){
+                    return -$task->id;
+                })
                                                            ->map(function(Task $item) use ($transform) {
                                                                return $transform($item, $transform);
                                                            })
