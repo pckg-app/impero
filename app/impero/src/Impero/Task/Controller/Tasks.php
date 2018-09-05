@@ -1,5 +1,6 @@
 <?php namespace Impero\Task\Controller;
 
+use Impero\Servers\Record\ServerCommand;
 use Impero\Servers\Record\Task;
 
 class Tasks
@@ -24,12 +25,22 @@ class Tasks
                 'tasks'      => collect($task->tasks)->map(function(Task $task) use ($transform) {
                     return $transform($task, $transform);
                 }),
+                'commands'   => $task->serverCommands->map(function(ServerCommand $serverCommand) {
+                    return [
+                        'command'     => $serverCommand->command,
+                        'info'        => $serverCommand->info,
+                        'error'       => $serverCommand->error,
+                        'executed_at' => $serverCommand->executed_at,
+                    ];
+                }),
             ];
         };
 
         return [
-            'tasks' => (new \Impero\Servers\Entity\Tasks())->where('started_at',
-                                                                   date('Y-m-d', strtotime('-3days')),
+            'tasks' => (new \Impero\Servers\Entity\Tasks())->withServerCommands()
+                                                           ->where('started_at',
+                                                                   date('Y-m-d H:i',
+                                                                        strtotime('36hours')),
                                                                    '>')
                                                            ->orderBy('id DESC')
                                                            ->all()

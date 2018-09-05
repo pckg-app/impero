@@ -10,8 +10,12 @@ class Tasks extends Entity
 
     public function parent()
     {
-        return $this->belongsTo(Tasks::class)
-                    ->foreignKey('parent_id');
+        return $this->belongsTo(Tasks::class)->foreignKey('parent_id');
+    }
+
+    public function serverCommands()
+    {
+        return $this->hasMany(ServerCommands::class)->foreignKey('task_id');
     }
 
 }

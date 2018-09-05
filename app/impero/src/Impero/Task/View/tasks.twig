@@ -2,6 +2,11 @@
     <div class="impero-tasks">
         <div class="--task" v-for="task in allTasks" style="width: 100%; padding-left: 2rem;">
             <h4>${ task.started_at | datetime } - ${ task.title }</h4>
+            <div v-for="command in task.commands" class="row">
+                <div class="col-xs-12">${ command.executed_at | datetime } - ${ command.command }</div>
+                <div class="col-md-6" v-if="command.info || command.error"><pre>${ command.info }</pre></div>
+                <div class="col-md-6" v-if="command.error"><pre class="bg-warning">${ command.error }</pre></div>
+            </div>
             <impero-tasks v-if="task.tasks && task.tasks.length > 0" :tasks="task.tasks"></impero-tasks>
         </div>
     </div>
