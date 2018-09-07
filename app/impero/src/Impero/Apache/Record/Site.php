@@ -145,6 +145,14 @@ class Site extends Record
 
     public function getVirtualhostNginx()
     {
+        /**
+         * @T00D00 - nginx servers static files over single domain ($id.cdn.startcomms.com)
+         *         - static domain is removed from apache and accessible only in nginx
+         *         - additional haproxy backends are created
+         *         - it is defined in settings_morphs for each site in impero.domains.static setting
+         *         - for now we can remove *.cdn.startcomms.com from apache and add it to nginx
+         *         - https certificates are normally acquired
+         */
         $allHttpToHttps = 'server {
     listen 80 default_server;
     listen [::]:80 default_server;

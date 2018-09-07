@@ -33,4 +33,9 @@ class Nginx extends AbstractService implements ServiceInterface
         return substr($response, $start, $length);
     }
 
+    public function reload()
+    {
+        $this->exec('sudo service nginx reload');
+    }
+
 }
