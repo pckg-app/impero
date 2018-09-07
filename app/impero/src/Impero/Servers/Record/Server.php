@@ -319,8 +319,7 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
             'site_id', (new SitesServers())->select('sites_servers.site_id')
                                            ->where('server_id', $this->id)
                                            ->where('type', 'web')
-        )->where('type', 'web')->limit(10)
-                                            ->all()
+        )->where('type', 'web')->all()
                                             ->groupBy('site_id');
 
         $httpPort = $this->getSettingValue('service.nginx.httpPort', 8083);
@@ -361,10 +360,16 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
     # Document root
     root ' . $site->getHtdocsPath() . ';
     
-    # SSL config
+    ';
+
+            if ($site->ssl) {
+                $config .= '# SSL config
     ssl_certificate     ' . $site->getSslPath() . $site->ssl_certificate_file . ';
     ssl_certificate_key ' . $site->getSslPath() . $site->ssl_certificate_key_file . ';
-
+    
+    ';
+            }
+            $config .= '
     # Cookie-less static domain
     fastcgi_hide_header Set-Cookie;
 
