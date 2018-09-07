@@ -319,7 +319,7 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
             'site_id', (new SitesServers())->select('sites_servers.site_id')
                                            ->where('server_id', $this->id)
                                            ->where('type', 'web')
-        )->where('type', 'web')
+        )->where('type', 'web')->limit(1)
                                             ->all()
                                             ->groupBy('site_id');
 
