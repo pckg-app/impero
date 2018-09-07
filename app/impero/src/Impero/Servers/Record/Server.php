@@ -530,17 +530,35 @@ frontend all_https
     # We do not allow downgrading to https
     http-response set-header Strict-Transport-Security max-age=15768000';
 
+        $split = [];
         foreach ($sitesServers as $sitesServersGrouped) {
             $site = collect($sitesServersGrouped)->first()->site;
             $domains = $site->getUniqueDomains();
-            //$replaced = str_replace(['.', '-'], ['\.', '\-'], implode('|', $domains));
-            //$config .= "\n" . '    acl bcknd-' . $site->id . ' hdr_reg(host) -i ^(' . $replaced . ')$';
+            $imploded = implode(' ', $domains->all());
+            $cdn = implode(' ', $domains->filter(function($domain){
+                return strpos($domain, '.cdn.startcomms.com') !== false;
+            })->all());
+            $nonCdn = implode(' ', $domains->filter(function($domain){
+                return strpos($domain, '.cdn.startcomms.com') === false;
+            })->all());
+            $split[$site->id] = [
+                'all'    => $imploded,
+                'cdn'    => $cdn,
+                'nonCdn' => $nonCdn,
+            ];
+
             /**
              * Match requests by SNI.
              */
-            $config .= "\n" . '    acl bcknd' . $site->id . ' req.ssl_sni -i ' . implode(
-                    ' ', $domains->all()
-                );
+            if ($split[$site->id]['cdn']) {
+                $config .= "\n" . '    acl bcknd-dynamic-' . $site->id . ' req.ssl_sni -i '
+                    . $nonCdn;
+                $config .= "\n" . '    acl bcknd-static-' . $site->id . ' req.ssl_sni -i '
+                    . $cdn;
+            } else {
+                $config .= "\n" . '    acl bcknd-dynamic-' . $site->id . ' req.ssl_sni -i '
+                    . $imploded;
+            }
         }
 
         foreach ($sitesServers as $sitesServersGrouped) {
@@ -548,7 +566,12 @@ frontend all_https
             /**
              * Forward requests to backend.
              */
-            $config .= "\n" . '    use_backend backend' . $site->id . ' if bcknd' . $site->id;
+            if ($split[$site->id]['cdn']) {
+                $config .= "\n" . '    use_backend backend-dynamic-' . $site->id . ' if bcknd-dynamic-' . $site->id;
+                $config .= "\n" . '    use_backend backend-static-' . $site->id . ' if bcknd-static-' . $site->id;
+            } else {
+                $config .= "\n" . '    use_backend backend-dynamic' . $site->id . ' if bcknd-dynamic-' . $site->id;
+            }
         }
         /**
          * We need to define fallback backend.
@@ -565,7 +588,7 @@ frontend all_https
              */
             $workers = collect($sitesServersGrouped)->map('server');
 
-            $config .= "\n" . 'backend backend' . $site->id;
+            $config .= "\n" . 'backend backend-dynamic-' . $site->id;
             $config .= "\n" . '    balance roundrobin';
             $config .= "\n" . '    mode tcp';
             //$config .= "\n" . '    cookie PHPSESSID prefix nocache';
@@ -587,6 +610,24 @@ frontend all_https
                     . ' ' . $worker->privateIp . ':' . $workerHttpsPort . ' check weight '
                     . $worker->getSettingValue('service.haproxy.weight', 1);
                 // 'cookie ' . $site->server_name . '-' . $worker->name; // ssl verify none
+            }
+
+            if (!$site[$site->id]['cdn']) {
+                continue;
+            }
+
+            $config .= "\n" . 'backend backend-static-' . $site->id;
+            $config .= "\n" . '    balance roundrobin';
+            $config .= "\n" . '    mode tcp';
+
+            $config .= "\n" . 'option ssl-hello-chk';
+
+            foreach ($workers as $worker) {
+                $allWorkers[$worker->id] = $worker;
+                $workerHttpsPort = $worker->getSettingValue('service.nginx.httpsPort', 8084);
+                $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name
+                    . ' ' . $worker->privateIp . ':' . $workerHttpsPort . ' check weight '
+                    . $worker->getSettingValue('service.haproxy.weight', 1);
             }
         }
 
