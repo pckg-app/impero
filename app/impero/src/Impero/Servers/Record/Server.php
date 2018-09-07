@@ -612,7 +612,7 @@ frontend all_https
                 // 'cookie ' . $site->server_name . '-' . $worker->name; // ssl verify none
             }
 
-            if (!$site[$site->id]['cdn']) {
+            if (!$split[$site->id]['cdn']) {
                 continue;
             }
 
