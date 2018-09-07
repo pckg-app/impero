@@ -362,7 +362,7 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
     
     ';
 
-            if ($site->ssl) {
+            if ($site->ssl && $site->ssl_certificate_file) {
                 $config .= '# SSL config
     ssl_certificate     ' . $site->getSslPath() . $site->ssl_certificate_file . ';
     ssl_certificate_key ' . $site->getSslPath() . $site->ssl_certificate_key_file . ';
