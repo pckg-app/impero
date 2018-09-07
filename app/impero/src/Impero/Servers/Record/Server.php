@@ -521,14 +521,14 @@ frontend all_https
     # send tcp keep alive?
     #option tcpka
     
-    option forwardfor
+    # option forwardfor # only on http mode
     
     # This is needed for proper ssl handshake
     tcp-request inspect-delay 5s
     tcp-request content accept if { req_ssl_hello_type 1 }
     
     # We do not allow downgrading to https
-    http-response set-header Strict-Transport-Security max-age=15768000';
+    # http-response set-header Strict-Transport-Security max-age=15768000 # only http mode';
 
         $split = [];
         foreach ($sitesServers as $sitesServersGrouped) {
@@ -570,7 +570,7 @@ frontend all_https
                 $config .= "\n" . '    use_backend backend-dynamic-' . $site->id . ' if bcknd-dynamic-' . $site->id;
                 $config .= "\n" . '    use_backend backend-static-' . $site->id . ' if bcknd-static-' . $site->id;
             } else {
-                $config .= "\n" . '    use_backend backend-dynamic' . $site->id . ' if bcknd-dynamic-' . $site->id;
+                $config .= "\n" . '    use_backend backend-dynamic-' . $site->id . ' if bcknd-dynamic-' . $site->id;
             }
         }
         /**

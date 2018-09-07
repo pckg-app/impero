@@ -11,7 +11,7 @@ class Nginx extends AbstractService implements ServiceInterface
     /**
      * @var string
      */
-    protected $service = 'ngingx';
+    protected $service = 'nginx';
 
     /**
      * @var string
