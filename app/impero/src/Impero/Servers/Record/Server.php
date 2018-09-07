@@ -362,8 +362,8 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
     root ' . $site->getHtdocsPath() . ';
     
     # SSL config
-    ssl_certificate     ' . $site->getSslPath() . $this->ssl_certificate_file . ';
-    ssl_certificate_key ' . $site->getSslPath() . $this->ssl_certificate_key_file . ';
+    ssl_certificate     ' . $site->getSslPath() . $site->ssl_certificate_file . ';
+    ssl_certificate_key ' . $site->getSslPath() . $site->ssl_certificate_key_file . ';
 
     # Cookie-less static domain
     fastcgi_hide_header Set-Cookie;
