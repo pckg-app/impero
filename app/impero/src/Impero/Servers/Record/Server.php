@@ -395,6 +395,12 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
     location / {
         deny all;
     }
+    
+    # Healthcheck?
+    location /robots.txt {
+        return 200 \'User-Agent: *\nDisallow: \';
+        add_header Content-Type text/plain;
+    }
 
     # Nginx will serve only files from ./htdocs/storage/ directory.
     # We deny all by default and allow only static files.
