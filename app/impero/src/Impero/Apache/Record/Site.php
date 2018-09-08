@@ -318,7 +318,7 @@ class Site extends Record
             $i = gethostbyname($d);
             if (!$ip) {
                 /**
-                 * First ip is real ip.
+                 * First ip is real ip?
                  */
                 $ip = $i;
             } elseif ($i != $ip) {
@@ -356,11 +356,17 @@ class Site extends Record
         $response = $connection->exec($command . ' ' . $params);
 
         if (strpos($response, 'Certificate not yet due for renewal')) {
+            /**
+             * Check if correct certificate is linked?
+             */
             return false;
         }
 
         $congrats = 'Congratulations! Your certificate and chain have been saved at:';
         if (strpos($response, $congrats) === false) {
+            /**
+             * What happened? Another instance is running?
+             */
             return false;
         }
 
