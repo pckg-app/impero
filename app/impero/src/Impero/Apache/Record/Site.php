@@ -1071,7 +1071,11 @@ class Site extends Record
             SitesServer::getOrCreate(['type' => 'config', 'site_id' => $this->id, 'server_id' => $server->id]);
 
             foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
-                $connection->saveContent($this->getHtdocsPath() . $dest,
+                $destination = $this->getHtdocsPath() . $dest;
+                if ($connection->fileExists($destination)) {
+                    $connection->deleteFile($destination);
+                }
+                $connection->saveContent($destination,
                                          $this->getConfigFileContent($connection, $copy));
             }
         });
