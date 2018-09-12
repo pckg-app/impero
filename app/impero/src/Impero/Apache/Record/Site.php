@@ -399,7 +399,7 @@ class Site extends Record
                 $connection->deleteFile($sslPath . $file);
             }
 
-            $connection->exec('ln -s ' . $dir . $file . ' ' . $sslPath . $file);
+            $connection->exec('sudo ln -s ' . $dir . $file . ' ' . $sslPath . $file);
         }
 
         /**
