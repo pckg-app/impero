@@ -62,6 +62,7 @@ class Server extends Record implements Connectable
     public function readFile($file)
     {
         $connection = $this->server->getConnection();
+
         return $connection->sftpRead($file);
     }
 
@@ -128,17 +129,13 @@ class Server extends Record implements Connectable
                 $command = implode(' ', array_slice(explode(' ', $line), 5));
                 $frequency = substr($line, 0, strlen($line) - strlen($command));
 
-                Job::create(
-                    [
-                        'server_id' => $this->id,
-                        'name'      => '',
-                        'status'    => $inactive
-                            ? 'inactive'
-                            : 'active',
-                        'command'   => $command,
-                        'frequency' => $frequency,
-                    ]
-                );
+                Job::create([
+                                'server_id' => $this->id,
+                                'name'      => '',
+                                'status'    => $inactive ? 'inactive' : 'active',
+                                'command'   => $command,
+                                'frequency' => $frequency,
+                            ]);
             }
         }
 
@@ -149,19 +146,15 @@ class Server extends Record implements Connectable
     {
         $task = context()->getOrDefault(Task::class);
 
-        return ServerCommand::create(
-            [
-                'server_id'   => $this->id,
-                'task_id'     => $task->id ?? null,
-                'command'     => $command,
-                'info'        => $info,
-                'error'       => ($e
-                        ? 'EXCEPTION: ' . exception($e) . "\n"
-                        : null) . $error,
-                'executed_at' => date('Y-m-d H:i:s'),
-                'code'        => null,
-            ]
-        );
+        return ServerCommand::create([
+                                         'server_id'   => $this->id,
+                                         'task_id'     => $task->id ?? null,
+                                         'command'     => $command,
+                                         'info'        => $info,
+                                         'error'       => ($e ? 'EXCEPTION: ' . exception($e) . "\n" : null) . $error,
+                                         'executed_at' => date('Y-m-d H:i:s'),
+                                         'code'        => null,
+                                     ]);
     }
 
     public function addCronjob($command)
@@ -232,20 +225,19 @@ class Server extends Record implements Connectable
 
     public function getSettingValue($slug, $default = null)
     {
-        return (new SettingsMorphs())
-                ->joinSetting()
-                ->where('morph_id', Servers::class)
-                ->where('poly_id', $this->id)
-                ->where('settings.slug', $slug)
-                ->one()->value ?? $default;
+        return (new SettingsMorphs())->joinSetting()
+                                     ->where('morph_id', Servers::class)
+                                     ->where('poly_id', $this->id)
+                                     ->where('settings.slug', $slug)
+                                     ->one()->value ?? $default;
     }
 
     public function getMysqlConfig()
     {
         return [];
+
         /**
          * @T00D00 ...
-         *
          */
         return [
             '/etc/mysql/conf.d/replication.cnf' => '',
@@ -284,26 +276,23 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
         /**
          * Get all sites for web service on this server.
          */
-        $sitesServers = (new SitesServers())->where('server_id', $this->id)
-                                            ->where('type', 'web')
-                                            ->all();
+        $sitesServers = (new SitesServers())->where('server_id', $this->id)->where('type', 'web')->all();
 
         $server = $this;
-        $sitesServers->each(
-            function(SitesServer $sitesServer) use (&$virtualhosts, $server) {
-                /**
-                 * Apache: apache port
-                 * Nginx: nginx port
-                 * Haproxy: haproxy port
-                 */
-                $virtualhosts[] = $sitesServer->site->getVirtualhost($server);
-            }
-        );
+        $sitesServers->each(function(SitesServer $sitesServer) use (&$virtualhosts, $server) {
+            /**
+             * Apache: apache port
+             * Nginx: nginx port
+             * Haproxy: haproxy port
+             */
+            $virtualhosts[] = $sitesServer->site->getVirtualhost($server);
+        });
 
         return implode("\n\n", $virtualhosts);
     }
 
-    public function getNginxConfig() {
+    public function getNginxConfig()
+    {
         /**
          * First, check that nginx is active on server.
          */
@@ -315,11 +304,12 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
         /**
          * Get all sites that are routed to this server and proxied to workers.
          */
-        $sitesServers = (new SitesServers())->where(
-            'site_id', (new SitesServers())->select('sites_servers.site_id')
-                                           ->where('server_id', $this->id)
-                                           ->where('type', 'web')
-        )->where('type', 'web')->all()
+        $sitesServers = (new SitesServers())->where('site_id',
+                                                    (new SitesServers())->select('sites_servers.site_id')
+                                                                        ->where('server_id', $this->id)
+                                                                        ->where('type', 'web'))
+                                            ->where('type', 'web')
+                                            ->all()
                                             ->groupBy('site_id');
 
         $httpPort = $this->getSettingValue('service.nginx.httpPort', 8083);
@@ -328,7 +318,12 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
         $config = '# auto generated by /impero. all changes will be lost.' . "\n";
 
         /**
-         * First, make sure that http requests are redirected to https.
+         * @T00D00 - settings on load balancer (haproxy):
+         *           - http: forward / redirect
+         *           - https: forward / offload
+         *         - settings on worker (apache, nginx)
+         *           - http: accept /redirect
+         *           - https: accept / none
          */
         $config .= 'server {
     listen ' . $httpPort . ' default_server;
@@ -351,6 +346,8 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
             $domains = $site->getUniqueDomains();
 
             $config .= 'server {
+    listen ' . $httpPort . ';
+    listen [::]:' . $httpPort . ';
     listen ' . $httpsPort . ' ssl;
     listen [::]:' . $httpsPort . ' ssl;
     
@@ -425,6 +422,57 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
         return $config;
     }
 
+    public function getHaproxyCrtListConfig()
+    {
+        /**
+         * First, check that apache is active on server.
+         */
+        $active = $this->getSettingValue('service.haproxy.active');
+        if (false && !$active) {
+            return null;
+        }
+
+        $httpsMode = $this->getSettingValue('service.haproxy.httpsMode', 'tcp');
+
+        /**
+         * Get all sites that are routed to this server and proxied to workers.
+         */
+        $sitesServers = (new SitesServers())->where('site_id',
+                                                    (new SitesServers())->select('sites_servers.site_id')
+                                                                        ->where('server_id', $this->id)
+                                                                        ->where('type', 'web'))
+                                            ->where('type', 'web')
+                                            ->all()
+                                            ->groupBy('site_id');
+
+        /**
+         * Haproxy requires concatenated chain and private key files.
+         */
+        $config = [];
+        $merge = [];
+        foreach ($sitesServers as $sitesServer) {
+            $site = $sitesServer->site();
+            if (!$site->ssl_certificate_file) {
+                continue;
+            }
+            # Concatenate new cert files, with less output (avoiding the use tee and its output to stdout)
+            $sslPath = $site->getSslPath();
+            if ($httpsMode == 'http') {
+                $merge[] = 'bash -c "cat ' . $sslPath . 'fullchain.pem ' . $sslPath . 'privkey.pem > ' . $sslPath . 'merged.pem"';
+            }
+            $config[] = $sslPath . 'merged.pem ' . $site->getUniqueDomains()->implode(' ');
+        }
+
+        /**
+         * Merge all those certificates.
+         */
+        if ($httpsMode == 'http') {
+            $this->getConnection()->execMultiple($merge);
+        }
+
+        return implode("\n", $config);
+    }
+
     public function getHaproxyConfig()
     {
         /**
@@ -436,13 +484,22 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
         }
 
         /**
+         * Http mode is only http.
+         * Https mode:
+         *  - tcp - ssl forwarding
+         *  - http - ssl offloading
+         */
+        $httpMode = 'http';
+        $httpsMode = $this->getSettingValue('service.haproxy.httpsMode', 'tcp');
+
+        /**
          * Get all sites that are routed to this server and proxied to workers.
          */
-        $sitesServers = (new SitesServers())->where(
-            'site_id', (new SitesServers())->select('sites_servers.site_id')
-                                           ->where('server_id', $this->id)
-                                           ->where('type', 'web')
-        )->where('type', 'web')
+        $sitesServers = (new SitesServers())->where('site_id',
+                                                    (new SitesServers())->select('sites_servers.site_id')
+                                                                        ->where('server_id', $this->id)
+                                                                        ->where('type', 'web'))
+                                            ->where('type', 'web')
                                             ->all()
                                             ->groupBy('site_id');
 
@@ -505,10 +562,13 @@ defaults
 
         $config .= "\n\n";
 
+        /**
+         * Build config.
+         */
         $config .= 'frontend http2https
     # Http listens on on http port and redirects all requests to https
     bind *:' . $httpPort . '
-    mode http
+    mode ' . $httpMode . '
     
     # Change http to https port
     http-request replace-header Host ^(.*?)(:[0-9]+)?$ \1:443
@@ -518,35 +578,49 @@ defaults
     
 frontend all_https
     # Https listens only on https port and forwards requests to backends
-    bind *:' . $httpsPort . '
+    bind *:' . $httpsPort . ($httpsMode == 'tcp' ? '' : ' ssl crt-list /etc/haproxy/crt-list.txt') . '
     # alpn h2,http/1.1
     
-    mode tcp
-    #option tcplog
-    
+';
+
+        /**
+         * Set mode config and option log.
+         */
+        $config .= '
+    mode ' . $httpsMode . '
+    option ' . $httpsMode . 'log
+    ';
+        if ($httpsMode == 'tcp') {
+            $config .= '
     # send tcp keep alive?
-    #option tcpka
-    
-    # option forwardfor # only on http mode
-    
+    #option tcpka';
+        } elseif ($httpsMode == 'http') {
+            $config .= '
+    # We do not allow downgrading to http
+    http-response set-header Strict-Transport-Security max-age=15768000
+    ';
+
+        }
+
+        $config .= '
     # This is needed for proper ssl handshake
     tcp-request inspect-delay 5s
     tcp-request content accept if { req_ssl_hello_type 1 }
-    
-    # We do not allow downgrading to https
-    # http-response set-header Strict-Transport-Security max-age=15768000 # only http mode';
+    ';
 
         $split = [];
         foreach ($sitesServers as $sitesServersGrouped) {
             $site = collect($sitesServersGrouped)->first()->site;
             $domains = $site->getUniqueDomains();
             $imploded = implode(' ', $domains->all());
-            $cdn = implode(' ', $domains->filter(function($domain){
-                return strpos($domain, '.cdn.startcomms.com') !== false;
-            })->all());
-            $nonCdn = implode(' ', $domains->filter(function($domain){
-                return strpos($domain, '.cdn.startcomms.com') === false;
-            })->all());
+            $cdn = implode(' ',
+                           $domains->filter(function($domain) {
+                               return strpos($domain, '.cdn.startcomms.com') !== false;
+                           })->all());
+            $nonCdn = implode(' ',
+                              $domains->filter(function($domain) {
+                                  return strpos($domain, '.cdn.startcomms.com') === false;
+                              })->all());
             $split[$site->id] = [
                 'all'    => $imploded,
                 'cdn'    => $cdn,
@@ -557,13 +631,10 @@ frontend all_https
              * Match requests by SNI.
              */
             if ($split[$site->id]['cdn']) {
-                $config .= "\n" . '    acl bcknd-dynamic-' . $site->id . ' req.ssl_sni -i '
-                    . $nonCdn;
-                $config .= "\n" . '    acl bcknd-static-' . $site->id . ' req.ssl_sni -i '
-                    . $cdn;
+                $config .= "\n" . '    acl bcknd-dynamic-' . $site->id . ' req.ssl_sni -i ' . $nonCdn;
+                $config .= "\n" . '    acl bcknd-static-' . $site->id . ' req.ssl_sni -i ' . $cdn;
             } else {
-                $config .= "\n" . '    acl bcknd-dynamic-' . $site->id . ' req.ssl_sni -i '
-                    . $imploded;
+                $config .= "\n" . '    acl bcknd-dynamic-' . $site->id . ' req.ssl_sni -i ' . $imploded;
             }
         }
 
@@ -590,13 +661,24 @@ frontend all_https
         foreach ($sitesServers as $sitesServersGrouped) {
             $site = collect($sitesServersGrouped)->first()->site;
             /**
-             * Receive list of all server that site is deployed to.
+             * Receive list of all servers that site is deployed to.
              */
             $workers = collect($sitesServersGrouped)->map('server');
 
             $config .= "\n" . 'backend backend-dynamic-' . $site->id;
             $config .= "\n" . '    balance roundrobin';
-            $config .= "\n" . '    mode tcp';
+            $config .= "\n" . '    mode ' . $httpsMode;
+            $config .= "\n" . '    option ' . $httpsMode . 'log';
+            if ($httpsMode == 'http') {
+                $config .= '
+    # only on http mode
+    option forwardfor
+    option http-server-close
+    option httpclose
+    
+    http-request add-header X-Forwarded-Proto https if { ssl_fc }
+    ';
+            }
             //$config .= "\n" . '    cookie PHPSESSID prefix nocache';
             //$config .= "\n" . '    option forwardfor';
 
@@ -611,10 +693,11 @@ frontend all_https
 
             foreach ($workers as $worker) {
                 $allWorkers[$worker->id] = $worker;
-                $workerHttpsPort = $worker->getSettingValue('service.apache2.httpsPort', 443);
-                $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name
-                    . ' ' . $worker->privateIp . ':' . $workerHttpsPort . ' check weight '
-                    . $worker->getSettingValue('service.haproxy.weight', 1);
+                $workerPort = $httpsMode == 'tcp' ? $worker->getSettingValue('service.apache2.httpsPort',
+                                                                             443) : $worker->getSettingValue('service.apache2.httpPort',
+                                                                                                             80);
+                $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name . ' ' . $worker->privateIp . ':' . $workerPort . ' check weight ' . $worker->getSettingValue('service.haproxy.weight',
+                                                                                                                                                                                        1);
                 // 'cookie ' . $site->server_name . '-' . $worker->name; // ssl verify none
             }
 
@@ -624,16 +707,27 @@ frontend all_https
 
             $config .= "\n" . 'backend backend-static-' . $site->id;
             $config .= "\n" . '    balance roundrobin';
-            $config .= "\n" . '    mode tcp';
-
-            $config .= "\n" . 'option ssl-hello-chk';
+            $config .= "\n" . '    mode ' . $httpsMode;
+            $config .= "\n" . '    option ' . $httpsMode . 'log';
+            if ($httpsMode == 'http') {
+                $config .= '
+    # only on http mode
+    option forwardfor
+    option http-server-close
+    option httpclose
+    
+    http-request add-header X-Forwarded-Proto https if { ssl_fc }
+    ';
+            }
+            $config .= "\n" . '    option ssl-hello-chk';
 
             foreach ($workers as $worker) {
                 $allWorkers[$worker->id] = $worker;
-                $workerHttpsPort = $worker->getSettingValue('service.nginx.httpsPort', 8084);
-                $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name
-                    . ' ' . $worker->privateIp . ':' . $workerHttpsPort . ' check weight '
-                    . $worker->getSettingValue('service.haproxy.weight', 1);
+                $workerPort = $httpsMode == 'tcp' ? $worker->getSettingValue('service.nginx.httpsPort',
+                                                                             8084) : $worker->getSettingValue('service.nginx.httpPort',
+                                                                                                              8083);
+                $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name . ' ' . $worker->privateIp . ':' . $workerPort . ' check weight ' . $worker->getSettingValue('service.haproxy.weight',
+                                                                                                                                                                                        1);
             }
         }
 
@@ -642,11 +736,11 @@ frontend all_https
             $config .= '
         backend fallback
             balance roundrobin
-            mode tcp
+            mode ' . $httpsMode . '
+            option ' . $httpsMode . 'log
             option ssl-hello-chk
-            server fallback-' . $firstWorker->name . ' ' . $worker->privateIp . ':'
-                . $worker->getSettingValue('service.apache2.httpsPort', 443)
-                . ' check weight 1
+            server fallback-' . $firstWorker->name . ' ' . $worker->privateIp . ':' . $worker->getSettingValue('service.apache2.httpsPort',
+                                                                                                               443) . ' check weight 1
         ';
         }
 
@@ -718,11 +812,9 @@ frontend all_https
         $task = Task::create('Rsyncing file');
         $command = 'rsync -a ' . $file . ' impero@' . $toServer->ip . ':' . $destination . ' -e \'ssh -p ' . $toServer->port . '\'';
 
-        return $task->make(
-            function() use ($command) {
-                return $this->exec($command);
-            }
-        );
+        return $task->make(function() use ($command) {
+            return $this->exec($command);
+        });
     }
 
     /**

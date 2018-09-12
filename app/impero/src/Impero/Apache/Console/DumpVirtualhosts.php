@@ -58,6 +58,7 @@ class DumpVirtualhosts extends Command
         $virtualhosts = $server->getApacheConfig();
 
         $this->output('Building haproxy');
+        $crtListHaproxy = $server->getHaproxyCrtListConfig();
         $virtualhostsHaproxy = $server->getHaproxyConfig();
 
         $this->output('Building nginx');
@@ -68,7 +69,7 @@ class DumpVirtualhosts extends Command
 
         if ($server->getSettingValue('service.haproxy.active')) {
             $this->output('Dumping haproxy');
-            $this->storeVirtualhostsHaproxy($server, $virtualhostsHaproxy);
+            $this->storeVirtualhostsHaproxy($server, $crtListHaproxy, $virtualhostsHaproxy);
         }
 
         if ($server->getSettingValue('service.nginx.active')) {
@@ -109,7 +110,7 @@ class DumpVirtualhosts extends Command
             return;
         }
 
-        $this->outputDated('Dumping and restarting (apache)');
+        $this->outputDated('Dumping apache ports and virtualhost and graceful reload apache');
         $sshConnection = $server->getConnection();
         $sshConnection->sftpSend($local, $remote);
         $sshConnection->sftpSend($localPorts, $remotePorts);
@@ -119,7 +120,7 @@ class DumpVirtualhosts extends Command
         /**
          * @T00D00 - check if apache is offline and apply previous configuration.
          */
-        (new Apache($sshConnection))->restart();
+        (new Apache($sshConnection))->graceful();
     }
 
     /**
@@ -142,7 +143,7 @@ class DumpVirtualhosts extends Command
             return;
         }
 
-        $this->outputDated('Dumping and restarting (nginx)');
+        $this->outputDated('Dumping nginx virtualhosts and reloading nginx');
         $sshConnection = $server->getConnection();
         $sshConnection->sftpSend($local, $remote);
         unlink($local);
@@ -156,16 +157,23 @@ class DumpVirtualhosts extends Command
      *
      * @throws \Exception
      */
-    protected function storeVirtualhostsHaproxy(Server $server, $virtualhosts)
+    protected function storeVirtualhostsHaproxy(Server $server, $crtListHaproxy, $virtualhosts)
     {
+        $localList = '/tmp/server.' . $server->id . '.haproxy.crt-list';
+        $remoteList = '/etc/haproxy/crt-list.txt';
+        file_put_contents($localList, $crtListHaproxy);
+
         $local = '/tmp/server.' . $server->id . '.haproxy';
         $remote = '/etc/haproxy/haproxy.cfg';
         file_put_contents($local, $virtualhosts);
+
         if ($this->option('dry')) {
             return;
         }
-        $this->outputDated('Dumping and restarting (haproxy)');
+
+        $this->outputDated('Dumping certificate list, haproxy config and reloading haproxy');
         $sshConnection = $server->getConnection();
+        $sshConnection->sftpSend($localList, $remoteList);
         $sshConnection->sftpSend($local, $remote);
         unlink($local);
 
