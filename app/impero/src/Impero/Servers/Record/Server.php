@@ -511,10 +511,14 @@ defaults
     mode http
     
     # Change http to https port
-    http-request replace-header Host ^(.*?)(:[0-9]+)?$ \1:443
+    #http-request replace-header Host ^(.*?)(:[0-9]+)?$ \1:443
     
     # Change scheme to https and port to https port
-    http-request redirect location https://%[req.hdr(Host)]%[capture.req.uri]
+    #http-request redirect location https://%[req.hdr(Host)]%[capture.req.uri]
+    
+    # New line to test URI to see if its a letsencrypt request
+    acl letsencrypt-acl path_beg /.well-known/acme-challenge/
+    use_backend letsencrypt if letsencrypt-acl
     
 frontend all_https
     # Https listens only on https port and forwards requests to backends
@@ -649,6 +653,12 @@ frontend all_https
                 . ' check weight 1
         ';
         }
+        $config .= '
+        backend letsencrypt
+            balance roundrobin
+            mode http
+            server letsencrypt 127.0.0.1:8080 check weight 1
+        ';
 
         $config .= "\n\n";
 
