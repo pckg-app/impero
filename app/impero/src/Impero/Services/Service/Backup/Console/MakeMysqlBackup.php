@@ -1,11 +1,13 @@
 <?php namespace Impero\Services\Service\Backup\Console;
 
 use Exception;
+use Impero\Mysql\Entity\Databases;
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
 use Pckg\Framework\Console\Command;
 use Pckg\Queue\Service\Cron\Fork;
+use Rollbar\Payload\Data;
 use Throwable;
 
 /**
@@ -50,12 +52,14 @@ class MakeMysqlBackup extends Command
                 try {
                     $pid = Fork::fork(
                         function() use ($server) {
-                            $this->outputDated('Started #' . $server->id . ' cold backup');
+                            $this->outputDated('Started #' . $server->id . ' cold backup (only gnp shop)');
+
+                            (new Databases())->where('name', 'gnp_shop')->one()->backup();
                             return;
                             /**
                              * Make backup of each database separately.
                              */
-                            $server->databases->each(
+                            $server->masterDatabases->each(
                                 function(Database $database) {
                                     $database->backup();
                                 }

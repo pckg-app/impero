@@ -100,6 +100,7 @@ class Database extends Record implements Connectable
             $backupService = new Backup($this->getConnection());
             $localBackupService = new Backup(context()->getOrCreate(ConnectionManager::class)->createConnection());
             $createdAt = date('Y-m-d H:i:s');
+
             $backupFile = $backupService->createMysqlBackup($this);
 
             if (!$backupFile) {
@@ -152,13 +153,14 @@ class Database extends Record implements Connectable
                  *         When decrypting we need to know which private key unlocks with file and which cert cancels private key.
                  *         Additionally we'll encrypt private key with password file.
                  */
-                $secret = Secret::create([
-                                             'file' => $coldFile,
-                                             'keys' => json_encode([
-                                                                       'private' => $coldPrivate,
-                                                                       'cert'    => $coldCert,
-                                                                   ]),
-                                         ]);
+                $secret = [
+                    'file' => $coldFile,
+                    'keys' => json_encode([
+                                              'private' => $coldPrivate,
+                                              'cert'    => $coldCert,
+                                          ]),
+                ];
+                $secret = Secret::create($secret);
 
                 /**
                  * Now tell system that this file is backup of specific database?
@@ -168,10 +170,10 @@ class Database extends Record implements Connectable
                     'poly_id'    => $this->id,
                     'created_at' => $createdAt,
                     'type'       => 'dump',
-                    'data'       => json_encode([
-                                                    'secret_id' => $secret->id,
-                                                ]),
+                    'data'       => json_encode($secret),
                 ];
+                d($backupData);
+                //PolyMorph::create($backupData);
             });
         });
 
