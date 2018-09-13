@@ -50,11 +50,11 @@ class MakeMysqlBackup extends Command
         $servers->each(
             function(Server $server) {
                 try {
-                    $pid = Fork::fork(
-                        function() use ($server) {
+                    /*$pid = Fork::fork(
+                        function() use ($server) {*/
                             $this->outputDated('Started #' . $server->id . ' cold backup (only gnp shop)');
 
-                            (new Databases())->where('name', 'gnp_shop')->one()->backup();
+                            (new Databases())->where('name', 'gnp_shop')->where('server_id', $server->id)->one()->backup();
                             return;
                             /**
                              * Make backup of each database separately.
@@ -65,7 +65,7 @@ class MakeMysqlBackup extends Command
                                 }
                             );
                             $this->outputDated('Ended #' . $server->id . ' cold backup');
-                        },
+                        /*},
                         function() use ($server) {
                             return 'impero:backup:mysql:' . $server->id;
                         },
@@ -73,7 +73,7 @@ class MakeMysqlBackup extends Command
                             throw new Exception('Cannot run mysql backup in parallel');
                         }
                     );
-                    Fork::waitFor($pid);
+                    Fork::waitFor($pid);*/
                 } catch (Throwable $e) {
                     $this->outputDated('EXCEPTION: ' . exception($e));
                 }
