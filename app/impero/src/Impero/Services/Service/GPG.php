@@ -2,6 +2,7 @@
 
 use Exception;
 use Impero\Servers\Record\Server;
+use Impero\Servers\Record\Task;
 use Impero\Servers\Service\ConnectionManager;
 use Impero\Services\Service\Connection\LocalConnection;
 use Impero\Services\Service\Crypto\Crypto;
@@ -50,12 +51,16 @@ class GPG extends AbstractService implements ServiceInterface
      */
     public function generateKey($sec, $pub, $random, $cert)
     {
-        /**
-         * Set key config.
-         */
-        $keyLength = 4096;
-        $keyLength = 2048;
-        $keyBatch = '%echo Generating a basic OpenPGP key
+        $task = Task::create('Generating key threesome');
+
+        return $task->make(function() use ($sec, $pub, $random, $cert){
+
+            /**
+             * Set key config.
+             */
+            $keyLength = 4096;
+            $keyLength = 2048;
+            $keyBatch = '%echo Generating a basic OpenPGP key
      Key-Type: RSA
      Key-Length: ' . $keyLength . '
      Subkey-Type: ELG-E
@@ -73,32 +78,33 @@ class GPG extends AbstractService implements ServiceInterface
      %commit
      %echo done';
 
-        /**
-         * Create config file.
-         */
-        $filename = $this->getKeysDir() . sha1random();
-        $this->getConnection()->saveContent($filename, $keyBatch);
+            /**
+             * Create config file.
+             */
+            $filename = $this->getKeysDir() . sha1random();
+            $this->getConnection()->saveContent($filename, $keyBatch);
 
-        /**
-         * Generate key.
-         */
-        $command = 'gpg2 --batch --gen-key ' . $filename;
-        $this->exec($command);
+            /**
+             * Generate key.
+             */
+            $command = 'gpg2 --batch --gen-key ' . $filename;
+            $this->exec($command);
 
-        /**
-         * Import private key.
-         */
-        $this->importPrivateKey($pub);
+            /**
+             * Import private key.
+             */
+            $this->importPrivateKey($pub);
 
-        /**
-         * Export private key if we need to export it.
-         *
-         * @T00D00
-         */
-        if ($this->getConnection() instanceof LocalConnection) {
-            $this->exportPrivateKey($random . '@impero', $sec);
-            $this->generateRevokeCertificate($random . '@impero', $cert);
-        }
+            /**
+             * Export private key if we need to export it.
+             *
+             * @T00D00
+             */
+            if ($this->getConnection() instanceof LocalConnection) {
+                $this->exportPrivateKey($random . '@impero', $sec);
+                $this->generateRevokeCertificate($random . '@impero', $cert);
+            }
+        });
     }
 
     /**
