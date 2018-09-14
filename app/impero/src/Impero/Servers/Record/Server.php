@@ -421,7 +421,7 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
     location /storage/ {
         deny all;
 
-        location ~ "\.(jpg|jp?g|gif|png|css|js|less|ico|pdf)$" {
+        location ~ "\.(jpg|jpeg|gif|png|css|js|less|ico|pdf)$" {
             allow all;
             expires 1M;
             access_log off;
@@ -433,7 +433,7 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
     location /cache/ {
         deny all;
 
-        location ~ "\.(jpg|jp?g|gif|png|css|js|less|ico|pdf)$" {
+        location ~ "\.(jpg|jpeg|gif|png|css|js|less|ico|pdf)$" {
             allow all;
             expires 1M;
             access_log off;
