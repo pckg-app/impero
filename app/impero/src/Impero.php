@@ -48,6 +48,7 @@ class Impero extends Provider
             MakeStorageBackup::class,
             MakeSystemBackup::class,
             MakeConfigBackup::class,
+            \Pckg\Queue\Console\RunJobs::class,
         ];
     }
 
