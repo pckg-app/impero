@@ -478,18 +478,19 @@ password = s0m3p4ssw0rd';*/
          * Save content to temporary file.
          */
         $tmp = tempnam('/tmp', 'tmp');
+        $this->server->logCommand('Saving content to ' . $tmp);
         file_put_contents($tmp, $content);
-
-        $this->server->logCommand('Saving content to ' . $file);
 
         /**
          * Send file to remote server.
          */
+        $this->server->logCommand('Sending content to ' . $file);
         $this->sftpSend($tmp, $file);
 
         /**
          * Remove temporary file.
          */
+        $this->server->logCommand('Removing ' . $tmp);
         unlink($tmp);
     }
 
