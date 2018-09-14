@@ -124,6 +124,7 @@ class Database extends Record implements Connectable
             if (!$coldFile) {
                 throw new Exception('Cold file not set?');
             }
+            return;
             $keys = $crypto->getKeys();
             /**
              * @T00D00
