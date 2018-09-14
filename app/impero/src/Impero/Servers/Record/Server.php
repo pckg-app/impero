@@ -418,18 +418,6 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
 
         try_files $uri =404;
     }
-    location /storage/ {
-        deny all;
-
-        location ~ "\.(jpg|jpeg|gif|png|css|js|less|ico|pdf)$" {
-            allow all;
-            expires 1M;
-            access_log off;
-            add_header Cache-Control "public";
-        }
-
-        try_files $uri =404;
-    }
     location /cache/ {
         deny all;
 
@@ -440,7 +428,7 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
             add_header Cache-Control "public";
         }
 
-        alias ' . $site->getHtdocsPath() . 'storage/cache/;
+        alias ' . $site->getHtdocsPath() . 'www/cache/;
         try_files $uri =404;
     }
 
