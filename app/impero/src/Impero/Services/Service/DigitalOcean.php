@@ -42,13 +42,15 @@ class DigitalOcean extends AbstractService implements ServiceInterface
             $task = Task::create('Uploading to spaces via local connection');
 
             $task->make(
-                function() use ($file, $coldFilesystem, $coldName) {
+                function() use ($file, $coldFilesystem, $coldName, $connection) {
                     /**
                      * Transfer image to digital ocean spaces?
                      * We need to be authenticated as
                      */
                     $stream = fopen($file, 'r+');
                     $coldFilesystem->writeStream($coldName, $stream);
+
+                    $connection->deleteFile($file);
                 }
             );
         } elseif ($connection instanceof SshConnection) {
@@ -76,6 +78,8 @@ class DigitalOcean extends AbstractService implements ServiceInterface
                     );
                     $remoteFilesystem = new Filesystem($adapter);
                     $coldFilesystem->writeStream($coldName, $remoteFilesystem->readStream($file));
+
+                    $connection->deleteFile($file);
                 }
             );
         }
