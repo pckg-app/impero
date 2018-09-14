@@ -80,7 +80,7 @@ class GPG extends AbstractService implements ServiceInterface
              * Create config file.
              */
             $filename = $this->getKeysDir() . sha1random();
-            d('creating ' . $filename);
+            d('creating ' . $filename, get_class($this->getConnection()));
             $this->getConnection()->saveContent($filename, $keyBatch);
 
             /**
