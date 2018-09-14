@@ -145,7 +145,7 @@ class Server extends Record implements Connectable
         return $jobs;
     }
 
-    public function logCommand($command, $info, $error, $e)
+    public function logCommand($command, $info = null, $error = null, $e = null)
     {
         $task = context()->getOrDefault(Task::class);
 

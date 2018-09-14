@@ -390,6 +390,7 @@ password = s0m3p4ssw0rd';*/
     public function createDir($dir, $mode, $recursive)
     {
         $sftp = $this->openSftp();
+        $this->server->logCommand('Creating dir ' . $dir);
 
         return ssh2_sftp_mkdir($sftp, $dir, $mode, $recursive);
     }
@@ -478,6 +479,8 @@ password = s0m3p4ssw0rd';*/
          */
         $tmp = tempnam('/tmp', 'tmp');
         file_put_contents($tmp, $content);
+
+        $this->server->logCommand('Saving content to ' . $file);
 
         /**
          * Send file to remote server.
