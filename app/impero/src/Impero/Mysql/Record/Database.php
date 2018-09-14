@@ -124,13 +124,13 @@ class Database extends Record implements Connectable
             if (!$coldFile) {
                 throw new Exception('Cold file not set?');
             }
-            return;
+
             $keys = $crypto->getKeys();
             /**
              * @T00D00
              */
-            $coldPrivate = $keys['private'];
-            $coldCert = $keys['cert'];
+            $coldPrivate = $keys['private'] ?? null;
+            $coldCert = $keys['cert'] ?? null;
             //$coldPrivate = $localBackupService->toCold($keys['private']);
             //$coldCert = $localBackupService->toCold($keys['cert']);
 
@@ -154,27 +154,22 @@ class Database extends Record implements Connectable
                  *         When decrypting we need to know which private key unlocks with file and which cert cancels private key.
                  *         Additionally we'll encrypt private key with password file.
                  */
-                $secret = [
-                    'file' => $coldFile,
-                    'keys' => json_encode([
-                                              'private' => $coldPrivate,
-                                              'cert'    => $coldCert,
-                                          ]),
-                ];
-                $secret = Secret::create($secret);
 
                 /**
                  * Now tell system that this file is backup of specific database?
                  */
-                $backupData = [
-                    'morph_id'   => Databases::class,
-                    'poly_id'    => $this->id,
-                    'created_at' => $createdAt,
-                    'type'       => 'dump',
-                    'data'       => json_encode($secret),
+                $secretData = [
+                    'file' => $coldFile,
+                    'keys' => json_encode([
+                                              'morph_id'   => Databases::class,
+                                              'poly_id'    => $this->id,
+                                              'created_at' => $createdAt,
+                                              'type'       => 'mysql:dump',
+                                              'private'    => $coldPrivate,
+                                              'cert'       => $coldCert,
+                                          ]),
                 ];
-                d($backupData);
-                //PolyMorph::create($backupData);
+                $secret = Secret::create($secretData);
             });
         });
 
