@@ -149,19 +149,24 @@ class Server extends Record implements Connectable
     {
         $task = context()->getOrDefault(Task::class);
 
-        return ServerCommand::create(
-            [
-                'server_id'   => $this->id,
-                'task_id'     => $task->id ?? null,
-                'command'     => $command,
-                'info'        => $info,
-                'error'       => ($e
-                        ? 'EXCEPTION: ' . exception($e) . "\n"
-                        : null) . $error,
-                'executed_at' => date('Y-m-d H:i:s'),
-                'code'        => null,
-            ]
-        );
+        try {
+            $serverCommand = ServerCommand::create(
+                [
+                    'server_id'   => $this->id,
+                    'task_id'     => $task->id ?? null,
+                    'command'     => $command,
+                    'info'        => $info,
+                    'error'       => ($e
+                            ? 'EXCEPTION: ' . exception($e) . "\n"
+                            : null) . $error,
+                    'executed_at' => date('Y-m-d H:i:s'),
+                    'code'        => null,
+                ]
+            );
+            return $serverCommand;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     public function addCronjob($command)
