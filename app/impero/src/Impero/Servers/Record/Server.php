@@ -440,7 +440,7 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
             add_header Cache-Control "public";
         }
 
-        root ' . $site->getHtdocsPath() . 'storage/cache/;
+        alias ' . $site->getHtdocsPath() . 'storage/cache/;
         try_files $uri =404;
     }
 
