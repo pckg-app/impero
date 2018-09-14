@@ -169,7 +169,7 @@ class Database extends Record implements Connectable
                                               'cert'       => $coldCert,
                                           ]),
                 ];
-                $secret = Secret::create($secretData);
+                Secret::create($secretData);
             });
         });
 

@@ -62,7 +62,6 @@ class MakeMysqlBackup extends Command
                                     $this->outputDated('Starting ' . $database->name);
                                     $database->backup();
                                     $this->outputDated('Finished ' . $database->name);
-                                    sleep(1);
                                 }
                             );
                             $this->outputDated('Ended #' . $server->id . ' cold backup');
