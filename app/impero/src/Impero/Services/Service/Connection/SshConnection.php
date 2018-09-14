@@ -259,7 +259,7 @@ class SshConnection implements ConnectionInterface, Connectable
     public function close()
     {
         if ($this->connection) {
-            //$this->server->logCommand('Closing connection', null, null, null);
+            $this->server->logCommand('Closing connection', null, null, null);
 
             ssh2_exec($this->connection, 'exit');
             unset($this->connection);

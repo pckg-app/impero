@@ -84,6 +84,8 @@ class MakeMysqlBackup extends Command
          * Wait for regular backups to be made.
          */
         Fork::waitWaiting();
+        $this->outputDated('Mysql partially backed up');
+        return;
 
         /**
          * Make "binlog" live backups.
