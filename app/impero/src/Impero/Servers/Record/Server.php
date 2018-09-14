@@ -418,6 +418,31 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
 
         try_files $uri =404;
     }
+    location /storage/ {
+        deny all;
+
+        location ~ "\.(jpg|jp?g|gif|png|css|js|less|ico|pdf)$" {
+            allow all;
+            expires 1M;
+            access_log off;
+            add_header Cache-Control "public";
+        }
+
+        try_files $uri =404;
+    }
+    location /cache/ {
+        deny all;
+
+        location ~ "\.(jpg|jp?g|gif|png|css|js|less|ico|pdf)$" {
+            allow all;
+            expires 1M;
+            access_log off;
+            add_header Cache-Control "public";
+        }
+
+        root ' . $site->getHtdocsPath() . 'storage/cache/;
+        try_files $uri =404;
+    }
 
 }
 
