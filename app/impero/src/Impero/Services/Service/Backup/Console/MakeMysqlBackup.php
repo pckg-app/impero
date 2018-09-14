@@ -52,14 +52,17 @@ class MakeMysqlBackup extends Command
                 try {
                     /*$pid = Fork::fork(
                         function() use ($server) {*/
-                            $this->outputDated('Started #' . $server->id . ' cold backup (only gnp shop)');
+                            $this->outputDated('Started #' . $server->id . ' cold backup');
 
                             /**
                              * Make backup of each database separately.
                              */
                             $server->masterDatabases->each(
                                 function(Database $database) {
+                                    $this->outputDated('Starting ' . $database->name);
                                     $database->backup();
+                                    $this->outputDated('Finished ' . $database->name);
+                                    sleep(3);
                                 }
                             );
                             $this->outputDated('Ended #' . $server->id . ' cold backup');
