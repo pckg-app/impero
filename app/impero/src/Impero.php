@@ -54,7 +54,7 @@ class Impero extends Provider
     public function jobs()
     {
         return [
-            Cron::createJob(MakeMysqlBackup::class, 'Make database backups')
+            /*Cron::createJob(MakeMysqlBackup::class, 'Make database backups')
                 ->at(['6:00', '18:00'])
                 ->background(),
             Cron::createJob(MakeStorageBackup::class, 'Make storage backups')
@@ -65,7 +65,7 @@ class Impero extends Provider
                 ->background(),
             Cron::createJob(MakeConfigBackup::class, 'Make config backups')
                 ->at(['10:00', '22:00'])
-                ->background(),
+                ->background(),*/
         ];
     }
 

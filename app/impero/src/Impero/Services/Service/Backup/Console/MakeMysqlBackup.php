@@ -54,8 +54,6 @@ class MakeMysqlBackup extends Command
                         function() use ($server) {*/
                             $this->outputDated('Started #' . $server->id . ' cold backup (only gnp shop)');
 
-                            (new Databases())->where('name', 'gnp_shop')->where('server_id', $server->id)->one()->backup();
-                            return;
                             /**
                              * Make backup of each database separately.
                              */
