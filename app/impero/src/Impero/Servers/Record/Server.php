@@ -575,7 +575,7 @@ frontend all_https
             /**
              * Match requests by SNI.
              */
-            if ($split[$site->id]['cdn']) {
+            if (false && $split[$site->id]['cdn']) {
                 $config .= "\n" . '    acl bcknd-dynamic-' . $site->id . ' req.ssl_sni -i '
                     . $nonCdn;
                 $config .= "\n" . '    acl bcknd-static-' . $site->id . ' req.ssl_sni -i '
@@ -591,7 +591,7 @@ frontend all_https
             /**
              * Forward requests to backend.
              */
-            if ($split[$site->id]['cdn']) {
+            if (false && $split[$site->id]['cdn']) {
                 $config .= "\n" . '    use_backend backend-dynamic-' . $site->id . ' if bcknd-dynamic-' . $site->id;
                 $config .= "\n" . '    use_backend backend-static-' . $site->id . ' if bcknd-static-' . $site->id;
             } else {
@@ -637,7 +637,7 @@ frontend all_https
                 // 'cookie ' . $site->server_name . '-' . $worker->name; // ssl verify none
             }
 
-            if (!$split[$site->id]['cdn']) {
+            if (true || !$split[$site->id]['cdn']) {
                 continue;
             }
 
