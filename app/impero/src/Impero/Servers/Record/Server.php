@@ -324,6 +324,7 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
         )->where('type', 'web')->all()
                                             ->groupBy('site_id');
 
+        $apachePort = $this->getSettingValue('service.apache.httpsPort', 8082);
         $httpPort = $this->getSettingValue('service.nginx.httpPort', 8083);
         $httpsPort = $this->getSettingValue('service.nginx.httpsPort', 8084);
 
@@ -414,9 +415,11 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
             expires 1M;
             access_log off;
             add_header Cache-Control "public";
-        }
 
-        try_files $uri =404;
+            try_files $uri =404;
+        }
+        
+        return 403;
     }
     location /cache/ {
         deny all;
@@ -426,10 +429,19 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
             expires 1M;
             access_log off;
             add_header Cache-Control "public";
-        }
 
-        alias ' . $site->getHtdocsPath() . 'www/cache/;
-        try_files $uri =404;
+            alias ' . $site->getHtdocsPath() . 'www/cache/;
+            try_files $uri @apacheProxy;
+        }
+        
+        return 403;
+    }
+    
+    location @apacheProxy {
+        proxy_set_header X-Real-IP  $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Host $host;
+        proxy_pass https://127.0.0.1:' . $apachePort . ';
     }
 
 }
@@ -575,7 +587,7 @@ frontend all_https
             /**
              * Match requests by SNI.
              */
-            if (false && $split[$site->id]['cdn']) {
+            if ($split[$site->id]['cdn']) {
                 $config .= "\n" . '    acl bcknd-dynamic-' . $site->id . ' req.ssl_sni -i '
                     . $nonCdn;
                 $config .= "\n" . '    acl bcknd-static-' . $site->id . ' req.ssl_sni -i '
@@ -591,7 +603,7 @@ frontend all_https
             /**
              * Forward requests to backend.
              */
-            if (false && $split[$site->id]['cdn']) {
+            if ($split[$site->id]['cdn']) {
                 $config .= "\n" . '    use_backend backend-dynamic-' . $site->id . ' if bcknd-dynamic-' . $site->id;
                 $config .= "\n" . '    use_backend backend-static-' . $site->id . ' if bcknd-static-' . $site->id;
             } else {
@@ -637,7 +649,7 @@ frontend all_https
                 // 'cookie ' . $site->server_name . '-' . $worker->name; // ssl verify none
             }
 
-            if (true || !$split[$site->id]['cdn']) {
+            if (!$split[$site->id]['cdn']) {
                 continue;
             }
 
