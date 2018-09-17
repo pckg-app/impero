@@ -1212,7 +1212,34 @@ class Site extends Record
             $commands = [];
             $pckg = $this->getImperoPckgAttribute();
 
-            if ($pckg['checkout']['type'] == 'linked') {
+            if ($pckg['checkout']['type'] == 'ab') {
+                /**
+                 * Htdocs directory will point to /www/_linked/$repository/$commit/
+                 */
+                /**
+                 * When multiple containers on host share same checkout each points to specific commit.
+                 *
+                 * There are directories:
+                 *       - /www/_ab/$repository/$branch/shacommit1
+                 *       - /www/_ab/$repository/$branch/shacommit2
+                 *       - ...
+                 *
+                 * When 1 worker is active:
+                 *  - apache and nginx point shacommit1 directory
+                 *  - we perform deploy in new directory shacommit2
+                 *  - we simply switch /www/client/project/htdocs/ from shacommit1 to shacommit2 and reload services
+                 *
+                 * When multiple workers are active
+                 *  - apache and nginx point shacommit1 directory
+                 *  - we perform deploy in new directory shacommit2
+                 *  - we put first worker down, change htdocs to shacommit2, reload services, put first worker up
+                 *  - we put next worker down, change htdocs to shacommit2, reload services, put worker up
+                 *  - ...
+                 */
+            } else if ($pckg['checkout']['type'] == 'linked') {
+                /**
+                 * Htdocs directory will point to /www/_linked/$repository/$branch/
+                 */
                 /**
                  * We need to make sure that repository and branch are already checked-out on filesystem.
                  */
