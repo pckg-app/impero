@@ -22,6 +22,7 @@ class Impero extends Provider
     {
         return [
             ImperoProvider::class,
+            Provider\Framework::class,
         ];
     }
 
