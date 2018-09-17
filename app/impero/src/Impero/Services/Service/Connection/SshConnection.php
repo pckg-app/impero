@@ -507,7 +507,7 @@ password = s0m3p4ssw0rd';*/
         try {
             $to->getConnection()->sftpSend($local, $remote);
         } catch (\Throwable $e) {
-            dd(exception($e));
+            ddd(exception($e));
         }
     }
 

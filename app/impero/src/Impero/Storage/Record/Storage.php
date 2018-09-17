@@ -49,7 +49,7 @@ class Storage extends Record
             $coldPrivate = $localBackupService->toCold($keys['private']);
             $coldCert = $localBackupService->toCold($keys['cert']);
         } catch (\Throwable $e) {
-            dd(exception($e));
+            ddd(exception($e));
         }
 
         /**
