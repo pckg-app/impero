@@ -459,6 +459,8 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
         $configs = (new SitesServers())->where('type', 'web')->where('site_id', $site->id)->all();
         $configs->each->redeploy();
 
+        $site->redeployConfigService();
+
         return [
             'success' => true,
         ];

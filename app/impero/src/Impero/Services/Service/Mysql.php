@@ -332,8 +332,22 @@ relay-log = /var/log/mysql/mysql-relay-bin.log';
         /**
          * Get last synced binlog location.
          */
-        $lastBinLog = 'binlog.000999';
-        $command = 'mysqlbinlog --read-from-remote-server --host=host_name --raw --stop-never ' . $lastBinLog;
+        $startLog = 'mysql-bin.002904';
+        $host = '10.135.61.34';
+        $authFile = '/etc/mysql/conf.d/impero-zero.cnf';
+        $resultDir = '/tmp/test-dump/';
+        $command = 'mysqlbinlog --defaults-file=' . $authFile . ' --read-from-remote-server --host=' . $host .
+            ' --raw --stop-never --result-file=' . $resultDir . ' ' . $startLog;
+
+        /**
+         * We've built a command, now we need to check that its properly configured in supervisor?
+         * For example, we have a master (zero.gonparty.eu) and backup (one.gonparty.eu) servers.
+         * We would like to copy binlog from master to backup server.
+         * On master server we create backup user (impero) with privileges to connect from backup server.
+         * On backup server we dump authentication details and protect file for access
+         * (/etc/mysql/mysql.cnf/impero-mysqlbinlog-zero.gonparty.eu.cnf).
+         * On backup server we configure supervisor service to make sure binlog is backed up at every time.
+         */
     }
 
     public function syncDatabaseToBinlogLocation(Database $database, $binlogLocation)
