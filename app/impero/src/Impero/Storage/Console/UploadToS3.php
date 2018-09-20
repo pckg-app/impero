@@ -3,6 +3,7 @@
 use Impero\Servers\Record\Server;
 use Impero\Services\Service\DigitalOcean;
 use Pckg\Framework\Console\Command;
+use Symfony\Component\Console\Input\InputOption;
 
 /**
  * Class UploadToS3
@@ -20,7 +21,7 @@ class UploadToS3 extends Command
         $this->setName('storage:upload-to-s3')->setDescription('Upload file to S3 storage')->addOptions([
                                                                                                             'file'   => 'Full file path',
                                                                                                             'server' => 'Server ID',
-                                                                                                        ]);
+                                                                                                        ], InputOption::VALUE_REQUIRED);
     }
 
     /**
