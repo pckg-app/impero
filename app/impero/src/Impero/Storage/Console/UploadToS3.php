@@ -34,7 +34,7 @@ class UploadToS3 extends Command
         $server = Server::getOrFail($this->option('server'));
 
         $do = (new DigitalOcean($server->getConnection()));
-        $do->uploadToSpaces($file);
+        $do->uploadToSpaces($file, false);
     }
 
 }
