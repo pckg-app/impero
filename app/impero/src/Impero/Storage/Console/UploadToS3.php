@@ -37,7 +37,7 @@ class UploadToS3 extends Command
 
         $s3cmd = new S3cmd($server->getConnection());
 
-        $s3cmd->put($file, 'backup/impero/000000' . sha1(microtime()));
+        $s3cmd->put($file, 'test/' . sha1(microtime()));
     }
 
 }
