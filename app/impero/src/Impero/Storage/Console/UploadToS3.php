@@ -1,7 +1,7 @@
 <?php namespace Impero\Storage\Console;
 
 use Impero\Servers\Record\Server;
-use Impero\Services\Service\DigitalOcean;
+use Impero\Services\Service\S3cmd;
 use Pckg\Framework\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -21,7 +21,8 @@ class UploadToS3 extends Command
         $this->setName('storage:upload-to-s3')->setDescription('Upload file to S3 storage')->addOptions([
                                                                                                             'file'   => 'Full file path',
                                                                                                             'server' => 'Server ID',
-                                                                                                        ], InputOption::VALUE_REQUIRED);
+                                                                                                        ],
+                                                                                                        InputOption::VALUE_REQUIRED);
     }
 
     /**
@@ -34,8 +35,9 @@ class UploadToS3 extends Command
         $file = $this->option('file');
         $server = Server::getOrFail($this->option('server'));
 
-        $do = (new DigitalOcean($server->getConnection()));
-        $do->uploadToSpaces($file, false);
+        $s3cmd = new S3cmd($server->getConnection());
+
+        $s3cmd->put($file, 'backup/impero/000000' . sha1(microtime()));
     }
 
 }

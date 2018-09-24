@@ -730,6 +730,20 @@ class Site extends Record
      */
     public function getConfigFileContent(SshConnection $connection, $file)
     {
+        /**
+         * Now, vars may be different on different servers.
+         * Before we start with named hosts (such as db.$id.impero) we need to use IPs.
+         * IP is determined by location of service, project and network topology.
+         * First we will scale web service, so we need to modify $dbDefaultHost variable for config.
+         * $dbDefaultHost variable is composed from config (we can use $web.., $cron.., and others in similar way).
+         *
+         *  - when web and db services are on same host network is local - localhost or 127.0.0.1
+         *  - when they are on different host:
+         *    - private network ip is used when private network is enabled (10....)
+         *    - public network ip is used when private network is not available (159....)
+         *
+         * /impero knows which services should be communicating from project network settings.
+         */
         return $this->replaceVars($connection->sftpRead($this->getHtdocsPath() . $file));
     }
 
