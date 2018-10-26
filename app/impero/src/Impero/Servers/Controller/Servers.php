@@ -127,7 +127,7 @@ class Servers
         $ip = server('REMOTE_ADDR', null);
         $port = post('port', 22);
         $user = 'impero';
-        //d("pass", $password);
+        dd("pass", $password);
 
         /**
          * Create new server.
@@ -170,14 +170,18 @@ class Servers
          * If this fails (firewall), notify user.
          */
         $output = $return_var = null;
-        /*$command = 'sshpass -p ' . $password . ' ssh-copy-id -p ' . $port . ' -i ' . $privateKey . '.pub ' . $user .
-                   '@' . $ip . ' 2>&1';
-        $passfile = '/tmp/pass.tmp.' . sha1(microtime());
-        file_put_contents($passfile, $password);
-        $command = 'sshpass -f "' . $passfile . '" scp -r ' . $user . '@' . $hostname .
-                   ':/some/remote/path /some/local/path';
-        exec($command, $output, $return_var);
-        d("copied", $command, $output, $return_var);*/
+
+        /*if ($server->status == 'new') {
+            $command = 'sshpass -p ' . $password . ' ssh-copy-id -p ' . $port . ' -i ' . $privateKey . '.pub ' . $user .
+                       '@' . $ip . ' 2>&1';
+            $passfile = '/tmp/pass.tmp.' . sha1(microtime());
+            file_put_contents($passfile, $password);
+
+            $command = 'sshpass -f "' . $passfile . '" scp -r ' . $user . '@' . $hostname . ':/some/remote/path /some/local/path';
+            exec($command, $output, $return_var);
+
+            d("copied", $command, $output, $return_var);
+        }*/
 
         $connection = null;
         try {
