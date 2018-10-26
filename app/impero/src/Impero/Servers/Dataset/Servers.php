@@ -52,7 +52,9 @@ class Servers
                                     ->map(function(Server $server) {
                                         $data = $server->toArray();
                                         try {
-                                            $connection = $server->getConnection();
+                                            if ($server->status == 'active') {
+                                                $server->getConnection();
+                                            }
                                         } catch (\Throwable $e) {
                                             $data['status'] = $e->getMessage();
                                         }
