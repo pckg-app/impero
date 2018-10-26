@@ -160,10 +160,10 @@ class Servers
         /**
          * Change permissions.
          */
-        /*d("chown", chown($privateKey, $user));
-        d("chown", chown($privateKey . '.pub', $user));
-        d("chmod", chmod($privateKey, 0775));
-        d("chmod", chmod($privateKey . '.pub', 0775));*/
+        chown($privateKey, $user);
+        chown($privateKey . '.pub', $user);
+        chmod($privateKey, 0775);
+        chmod($privateKey . '.pub', 0775);
 
         /**
          * Then we will transfer key to remote.
@@ -225,14 +225,14 @@ class Servers
             echo "Add known hosts manually:\n";
             echo "ssh-keyscan -t rsa impero.foobar.si >> /home/impero/.ssh/known_hosts";
 
-            dd('error', exception($e));
+            die('error ' . exception($e));
 
             return response()->respondWithError([
                                                     'error' => exception($e),
                                                 ]);
         }
 
-        dd('success');
+        die('success');
 
         return response()->respondWithSuccess();
         /**
