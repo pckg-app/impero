@@ -112,14 +112,16 @@ class SshConnection implements ConnectionInterface, Connectable
         /**
          * Authenticate with public and private key.
          */
-        if (!is_readable($key . '.pub')) {
-            $this->server->logCommand('Not readable public key: ' . $key . '.pub', null, null, null);
-            throw new Exception("Cannot authenticate with key");
-        }
+        if ($type == 'key') {
+            if (!is_readable($key . '.pub')) {
+                $this->server->logCommand('Not readable public key: ' . $key . '.pub', null, null, null);
+                throw new Exception("Cannot authenticate with key");
+            }
 
-        if (!is_readable($key)) {
-            $this->server->logCommand('Not readable private key: ' . $key, null, null, null);
-            throw new Exception("Cannot authenticate with key");
+            if (!is_readable($key)) {
+                $this->server->logCommand('Not readable private key: ' . $key, null, null, null);
+                throw new Exception("Cannot authenticate with key");
+            }
         }
 
         $auth = null;
@@ -137,7 +139,7 @@ class SshConnection implements ConnectionInterface, Connectable
                                       null,
                                       null,
                                       null);
-            throw new Exception("Cannot authenticate with key");
+            throw new Exception("Cannot authenticate with " . $type);
         } else {
             $this->server->logCommand('Authenticated with SSH', null, null, null);
         }
