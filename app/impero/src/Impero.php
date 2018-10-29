@@ -56,18 +56,30 @@ class Impero extends Provider
     public function jobs()
     {
         return [
+                /**
+                 * Binlog backup is done with supervisord.
+                 * Cold dump is done every day at 6am and 6pm.
+                 */
             Cron::createJob(MakeMysqlBackup::class, 'Make database backups')
                 ->at(['6:00', '18:00'])
                 ->background(),
-            /*Cron::createJob(MakeStorageBackup::class, 'Make storage backups')
-                ->at(['3:00', '15:00'])
-                ->background(),
-            Cron::createJob(MakeSystemBackup::class, 'Make system services backups')
-                ->at(['9:00', '21:00'])
-                ->background(),
-            Cron::createJob(MakeConfigBackup::class, 'Make config backups')
-                ->at(['10:00', '22:00'])
-                ->background(),*/
+                /**
+                 * Live partial backup is done with lsyncd.
+                 * Cold dump is done every monday at 1am.
+                 * Same as we make mysql backup per database, same should we make storage backups per client and volume.
+                 * But, how do we determine volumes? :)
+                 * Do we backup sites, volumes or servers?
+                 */
+                /*Cron::createJob(MakeStorageBackup::class, 'Make storage backups')
+                    ->onDays([1])
+                    ->at(['1:00'])
+                    ->background(),
+                    Cron::createJob(MakeSystemBackup::class, 'Make system services backups')
+                        ->at(['9:00', '21:00'])
+                        ->background(),
+                    Cron::createJob(MakeConfigBackup::class, 'Make config backups')
+                        ->at(['10:00', '22:00'])
+                        ->background(),*/
         ];
     }
 

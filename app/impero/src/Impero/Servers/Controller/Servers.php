@@ -155,19 +155,19 @@ class Servers
             exec($command, $output, $return_var);
             //d("generated", $command, $output, $return_var);
             // openssl rand -base64 32
+
+            /**
+             * Change permissions.
+             */
+            chown($privateKey, $user);
+            chown($privateKey . '.pub', $user);
+            chmod($privateKey, 0775);
+            chmod($privateKey . '.pub', 0775);
         }
 
         /**
-         * Change permissions.
-         */
-        chown($privateKey, $user);
-        chown($privateKey . '.pub', $user);
-        chmod($privateKey, 0775);
-        chmod($privateKey . '.pub', 0775);
-
-        /**
          * Then we will transfer key to remote.
-         * If this fails (firewall), notify user.
+         * If this fails (firewall), notify user (and try with manual copy?).
          */
         $output = $return_var = null;
 

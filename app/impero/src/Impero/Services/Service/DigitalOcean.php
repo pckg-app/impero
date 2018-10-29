@@ -38,6 +38,24 @@ class DigitalOcean extends AbstractService implements ServiceInterface
         $coldFilesystem = $this->getColdFilesystem();
         $connection = $this->getConnection();
         $coldName = 'backup/impero/' . filename($file);
+
+        $task = Task::create('Uploading file to DigitalOcean Spaces');
+
+        $task->make(function() use ($connection, $file){
+            /**
+             * In all cases we're uploading files via s3cmd command line tool.
+             * We will not differentiate connection by local and remote.
+             */
+            $s3cmd = new S3cmd($connection);
+            $s3cmd->put($file);
+        });
+
+        if ($delete) {
+            $connection->deleteFile($file);
+        }
+
+        return $coldName;
+
         if ($connection instanceof LocalConnection) {
             $task = Task::create('Uploading to spaces via local connection');
 
