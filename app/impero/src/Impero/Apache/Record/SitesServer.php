@@ -45,6 +45,8 @@ class SitesServer extends Record
         return $task->make(function() {
             if ($this->type == 'cron') {
                 $this->site->deployCronService($this->server);
+            } else if ($this->type == 'web') {
+                $this->site->deployConfigService($this->server);
             }
         });
     }
