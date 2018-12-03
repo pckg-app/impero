@@ -1464,6 +1464,7 @@ class Site extends Record
                      */
                     $database->requireScriptBackup();
                     $database->requireMysqlMasterReplication();
+                    $database->replicateOnMaster();
                 } elseif ($config['type'] == 'search') {
                     $database = Database::gets([
                                                    'server_id' => $server->id,
