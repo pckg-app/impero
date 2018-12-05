@@ -11,10 +11,12 @@
     "webpack-dev-server": "^2.9.5"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-pro": "^5.5.0",
     "blueimp-gallery": "^2.28.0",
     "chart.js": "^2.7.1",
     "dropzone": "^5.2.0",
     "eonasdan-bootstrap-datetimepicker": "^4.17.47",
+    "hard-source-webpack-plugin": "^0.12.0",
     "less": "^2.7.3",
     "moment": "^2.19.1",
     "owl.carousel": "^2.2.0",
@@ -24,7 +26,7 @@
     "tinymce": "^4.7.2",
     "vee-validate": "^2.0.0-rc.27",
     "vue": "^2.5.3",
-    "vue-loader": "^15.0.11",
+    "vue-loader": "^15.4.2",
     "vue-router": "^3.0.1",
     "vue-template-compiler": "^2.5.9",
     "vuedraggable": "^2.15.0",

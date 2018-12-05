@@ -22,6 +22,7 @@ class Impero extends Provider
     {
         return [
             ImperoProvider::class,
+            Provider\Framework::class,
         ];
     }
 
@@ -48,6 +49,7 @@ class Impero extends Provider
             MakeStorageBackup::class,
             MakeSystemBackup::class,
             MakeConfigBackup::class,
+            \Pckg\Queue\Console\RunJobs::class,
         ];
     }
 
@@ -57,7 +59,7 @@ class Impero extends Provider
             Cron::createJob(MakeMysqlBackup::class, 'Make database backups')
                 ->at(['6:00', '18:00'])
                 ->background(),
-            Cron::createJob(MakeStorageBackup::class, 'Make storage backups')
+            /*Cron::createJob(MakeStorageBackup::class, 'Make storage backups')
                 ->at(['3:00', '15:00'])
                 ->background(),
             Cron::createJob(MakeSystemBackup::class, 'Make system services backups')
@@ -65,7 +67,7 @@ class Impero extends Provider
                 ->background(),
             Cron::createJob(MakeConfigBackup::class, 'Make config backups')
                 ->at(['10:00', '22:00'])
-                ->background(),
+                ->background(),*/
         ];
     }
 
@@ -73,7 +75,9 @@ class Impero extends Provider
     {
         return [
             'vue' => [
-                '/dist/build/js/backend.js',
+                '/build/js/backend.js',
+                '/build/js/auth.js',
+                '/build/js/generic.js',
             ],
             'less/impero.less',
         ];

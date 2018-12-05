@@ -8,12 +8,17 @@ Pckg.vue.stores.impero = {
         }
     },
     mutations: {
+        setServices: function (state, services) {
+            state.services = Pckg.Collection.collect(services, Impero.Servers.Record.Service);
+        }
+    },
+    actions: {
         prepareServices: function (state) {
             /**
              * This should be stored in store!
              */
             http.getJSON(utils.url('@api.services'), function (data) {
-                state.services = Pckg.Collection.collect(data.services, Impero.Servers.Record.Service);
+                $store.commit('setServices', data.services);
             });
         }
     }

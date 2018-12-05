@@ -73,7 +73,7 @@ class LocalConnection implements ConnectionInterface, Connectable
         try {
             $to->getConnection()->sftpSend($local, $remote);
         } catch (\Throwable $e) {
-            dd(exception($e));
+            ddd(exception($e));
         }
     }
 

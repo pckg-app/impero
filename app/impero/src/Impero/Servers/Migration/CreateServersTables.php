@@ -30,7 +30,7 @@ class CreateServersTables extends Migration
         $serverCommands->integer('server_id')->references('servers');
         $serverCommands->integer('task_id')->references('tasks')->nullable();
         $serverCommands->text('command');
-        $serverCommands->text('info');
+        $serverCommands->longtext('info');
         $serverCommands->text('error');
         $serverCommands->varchar('code', 16);
         $serverCommands->datetime('executed_at');

@@ -142,7 +142,7 @@ class Server extends Record implements Connectable
         return $jobs;
     }
 
-    public function logCommand($command, $info, $error, $e)
+    public function logCommand($command, $info = null, $error = null, $e = null)
     {
         $task = context()->getOrDefault(Task::class);
 
@@ -312,6 +312,7 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
                                             ->all()
                                             ->groupBy('site_id');
 
+        $apachePort = $this->getSettingValue('service.apache.httpsPort', 8082);
         $httpPort = $this->getSettingValue('service.nginx.httpPort', 8083);
         $httpsPort = $this->getSettingValue('service.nginx.httpsPort', 8084);
 
@@ -404,14 +405,38 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
     location /storage/ {
         deny all;
 
-        location ~ "\.(jpg|jpeg|gif|png|css|js|ico)$" {
+        location ~* "\.(jpg|jpeg|gif|png|css|js|ico)$" {
             allow all;
             expires 1M;
             access_log off;
             add_header Cache-Control "public";
-        }
 
-        try_files $uri =404;
+            try_files $uri =404;
+        }
+        
+        return 403;
+    }
+    location /cache/ {
+        deny all;
+
+        location ~* "\.(jpg|jpeg|gif|png|css|js|less|ico|pdf)$" {
+            allow all;
+            expires 1M;
+            access_log off;
+            add_header Cache-Control "public";
+
+            alias ' . $site->getHtdocsPath() . 'www/cache/;
+            try_files $uri @apacheProxy;
+        }
+        
+        return 403;
+    }
+    
+    location @apacheProxy {
+        proxy_set_header X-Real-IP  $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Host $host;
+        proxy_pass https://127.0.0.1:' . $apachePort . ';
     }
 
 }
@@ -570,12 +595,16 @@ defaults
     bind *:' . $httpPort . '
     mode ' . $httpMode . '
     
+    # Forward letsencrypt requests separately
+    acl letsencrypt-acl path_beg /.well-known/acme-challenge/
+    use_backend letsencrypt if letsencrypt-acl
+    
     # Change http to https port
-    http-request replace-header Host ^(.*?)(:[0-9]+)?$ \1:443
+    http-request replace-header Host ^(.*?)(:[0-9]+)?$ \1:443 if !letsencrypt-acl
     
     # Change scheme to https and port to https port
-    http-request redirect location https://%[req.hdr(Host)]%[capture.req.uri]
-    
+    http-request redirect location https://%[req.hdr(Host)]%[capture.req.uri] if !letsencrypt-acl
+     
 frontend all_https
     # Https listens only on https port and forwards requests to backends
     bind *:' . $httpsPort . ($httpsMode == 'tcp' ? '' : ' ssl crt-list /etc/haproxy/crt-list.txt') . '
@@ -743,6 +772,12 @@ frontend all_https
                                                                                                                443) . ' check weight 1
         ';
         }
+        $config .= '
+        backend letsencrypt
+            balance roundrobin
+            mode http
+            server letsencrypt 127.0.0.1:8080 check weight 1
+        ';
 
         $config .= "\n\n";
 

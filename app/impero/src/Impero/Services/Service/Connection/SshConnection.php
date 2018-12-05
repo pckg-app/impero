@@ -112,14 +112,16 @@ class SshConnection implements ConnectionInterface, Connectable
         /**
          * Authenticate with public and private key.
          */
-        if (!is_readable($key . '.pub')) {
-            $this->server->logCommand('Not readable public key: ' . $key . '.pub', null, null, null);
-            throw new Exception("Cannot authenticate with key");
-        }
+        if ($type == 'key') {
+            if (!is_readable($key . '.pub')) {
+                $this->server->logCommand('Not readable public key: ' . $key . '.pub', null, null, null);
+                throw new Exception("Cannot authenticate with key");
+            }
 
-        if (!is_readable($key)) {
-            $this->server->logCommand('Not readable private key: ' . $key, null, null, null);
-            throw new Exception("Cannot authenticate with key");
+            if (!is_readable($key)) {
+                $this->server->logCommand('Not readable private key: ' . $key, null, null, null);
+                throw new Exception("Cannot authenticate with key");
+            }
         }
 
         $auth = null;
@@ -137,7 +139,7 @@ class SshConnection implements ConnectionInterface, Connectable
                                       null,
                                       null,
                                       null);
-            throw new Exception("Cannot authenticate with key");
+            throw new Exception("Cannot authenticate with " . $type);
         } else {
             $this->server->logCommand('Authenticated with SSH', null, null, null);
         }
@@ -390,6 +392,7 @@ password = s0m3p4ssw0rd';*/
     public function createDir($dir, $mode, $recursive)
     {
         $sftp = $this->openSftp();
+        $this->server->logCommand('Creating dir ' . $dir);
 
         return ssh2_sftp_mkdir($sftp, $dir, $mode, $recursive);
     }
@@ -398,7 +401,7 @@ password = s0m3p4ssw0rd';*/
     {
         $sftp = $this->openSftp();
 
-        // return ssh2_sftp_unlink($sftp, $file);
+        return ssh2_sftp_unlink($sftp, $file);
     }
 
     /**
@@ -477,16 +480,19 @@ password = s0m3p4ssw0rd';*/
          * Save content to temporary file.
          */
         $tmp = tempnam('/tmp', 'tmp');
+        $this->server->logCommand('Saving content to ' . $tmp);
         file_put_contents($tmp, $content);
 
         /**
          * Send file to remote server.
          */
+        $this->server->logCommand('Sending content to ' . $file);
         $this->sftpSend($tmp, $file);
 
         /**
          * Remove temporary file.
          */
+        $this->server->logCommand('Removing ' . $tmp);
         unlink($tmp);
     }
 
@@ -503,7 +509,7 @@ password = s0m3p4ssw0rd';*/
         try {
             $to->getConnection()->sftpSend($local, $remote);
         } catch (\Throwable $e) {
-            dd(exception($e));
+            ddd(exception($e));
         }
     }
 

@@ -30,7 +30,7 @@ class DigitalOcean extends AbstractService implements ServiceInterface
      * @throws \InvalidArgumentException
      * @throws \League\Flysystem\FileExistsException
      */
-    public function uploadToSpaces($file)
+    public function uploadToSpaces($file, $delete = true)
     {
         /**
          * Create spaces filesystem.
@@ -42,20 +42,24 @@ class DigitalOcean extends AbstractService implements ServiceInterface
             $task = Task::create('Uploading to spaces via local connection');
 
             $task->make(
-                function() use ($file, $coldFilesystem, $coldName) {
+                function() use ($file, $coldFilesystem, $coldName, $connection, $delete) {
                     /**
                      * Transfer image to digital ocean spaces?
                      * We need to be authenticated as
                      */
                     $stream = fopen($file, 'r+');
                     $coldFilesystem->writeStream($coldName, $stream);
+
+                    if ($delete) {
+                        $connection->deleteFile($file);
+                    }
                 }
             );
         } elseif ($connection instanceof SshConnection) {
             $task = Task::create('Uploading to spaces via ssh connection');
 
             $task->make(
-                function() use ($connection, $coldFilesystem, $coldName, $file) {
+                function() use ($connection, $coldFilesystem, $coldName, $file, $delete) {
                     /**
                      * @T00D00 - solve remote transfer (remote -> s3), it should be direct
                      *         the problem is, how to configure s3ctl script remotely?
@@ -76,6 +80,10 @@ class DigitalOcean extends AbstractService implements ServiceInterface
                     );
                     $remoteFilesystem = new Filesystem($adapter);
                     $coldFilesystem->writeStream($coldName, $remoteFilesystem->readStream($file));
+
+                    if ($delete) {
+                        $connection->deleteFile($file);
+                    }
                 }
             );
         }

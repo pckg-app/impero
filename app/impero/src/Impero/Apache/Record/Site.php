@@ -399,7 +399,7 @@ class Site extends Record
                 $connection->deleteFile($sslPath . $file);
             }
 
-            $connection->exec('ln -s ' . $dir . $file . ' ' . $sslPath . $file);
+            $connection->exec('sudo ln -s ' . $dir . $file . ' ' . $sslPath . $file);
         }
 
         /**
@@ -730,6 +730,20 @@ class Site extends Record
      */
     public function getConfigFileContent(SshConnection $connection, $file)
     {
+        /**
+         * Now, vars may be different on different servers.
+         * Before we start with named hosts (such as db.$id.impero) we need to use IPs.
+         * IP is determined by location of service, project and network topology.
+         * First we will scale web service, so we need to modify $dbDefaultHost variable for config.
+         * $dbDefaultHost variable is composed from config (we can use $web.., $cron.., and others in similar way).
+         *
+         *  - when web and db services are on same host network is local - localhost or 127.0.0.1
+         *  - when they are on different host:
+         *    - private network ip is used when private network is enabled (10....)
+         *    - public network ip is used when private network is not available (159....)
+         *
+         * /impero knows which services should be communicating from project network settings.
+         */
         return $this->replaceVars($connection->sftpRead($this->getHtdocsPath() . $file));
     }
 
@@ -1071,7 +1085,11 @@ class Site extends Record
             SitesServer::getOrCreate(['type' => 'config', 'site_id' => $this->id, 'server_id' => $server->id]);
 
             foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
-                $connection->saveContent($this->getHtdocsPath() . $dest,
+                $destination = $this->getHtdocsPath() . $dest;
+                if ($connection->fileExists($destination)) {
+                    $connection->deleteFile($destination);
+                }
+                $connection->saveContent($destination,
                                          $this->getConfigFileContent($connection, $copy));
             }
         });
@@ -1208,7 +1226,34 @@ class Site extends Record
             $commands = [];
             $pckg = $this->getImperoPckgAttribute();
 
-            if ($pckg['checkout']['type'] == 'linked') {
+            if ($pckg['checkout']['type'] == 'ab') {
+                /**
+                 * Htdocs directory will point to /www/_linked/$repository/$commit/
+                 */
+                /**
+                 * When multiple containers on host share same checkout each points to specific commit.
+                 *
+                 * There are directories:
+                 *       - /www/_ab/$repository/$branch/shacommit1
+                 *       - /www/_ab/$repository/$branch/shacommit2
+                 *       - ...
+                 *
+                 * When 1 worker is active:
+                 *  - apache and nginx point shacommit1 directory
+                 *  - we perform deploy in new directory shacommit2
+                 *  - we simply switch /www/client/project/htdocs/ from shacommit1 to shacommit2 and reload services
+                 *
+                 * When multiple workers are active
+                 *  - apache and nginx point shacommit1 directory
+                 *  - we perform deploy in new directory shacommit2
+                 *  - we put first worker down, change htdocs to shacommit2, reload services, put first worker up
+                 *  - we put next worker down, change htdocs to shacommit2, reload services, put worker up
+                 *  - ...
+                 */
+            } else if ($pckg['checkout']['type'] == 'linked') {
+                /**
+                 * Htdocs directory will point to /www/_linked/$repository/$branch/
+                 */
                 /**
                  * We need to make sure that repository and branch are already checked-out on filesystem.
                  */
@@ -1419,6 +1464,7 @@ class Site extends Record
                      */
                     $database->requireScriptBackup();
                     $database->requireMysqlMasterReplication();
+                    $database->replicateOnMaster();
                 } elseif ($config['type'] == 'search') {
                     $database = Database::gets([
                                                    'server_id' => $server->id,

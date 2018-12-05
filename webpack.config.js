@@ -1,6 +1,6 @@
-// webpack-dev-server ./webpack.config.js --hot
-
 const VueLoaderPlugin = require('./node_modules/vue-loader/lib/plugin');
+
+var HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 
 const vueLoader = {
     test: /\.vue$/,
@@ -8,14 +8,21 @@ const vueLoader = {
 };
 
 module.exports = {
+    mode: 'production',
     plugins: [
+        new HardSourceWebpackPlugin(),
         new VueLoaderPlugin()
     ],
-    entry: './app/impero/public/js/backend.js',
-    output: {
-        filename: 'build/js/backend.js'
-    },
     module: {
-        rules: [vueLoader]
+        rules: [vueLoader],
+    },
+    entry: {
+        auth: './app/impero/public/js/auth.js',
+        backend: './app/impero/public/js/backend.js',
+        generic: './app/impero/public/js/generic.js',
+    },
+    output: {
+        filename: '[name].js',
+        path: __dirname + '/build/js'
     }
 };

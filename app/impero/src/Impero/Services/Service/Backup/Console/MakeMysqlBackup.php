@@ -1,11 +1,13 @@
 <?php namespace Impero\Services\Service\Backup\Console;
 
 use Exception;
+use Impero\Mysql\Entity\Databases;
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
 use Pckg\Framework\Console\Command;
 use Pckg\Queue\Service\Cron\Fork;
+use Rollbar\Payload\Data;
 use Throwable;
 
 /**
@@ -48,20 +50,22 @@ class MakeMysqlBackup extends Command
         $servers->each(
             function(Server $server) {
                 try {
-                    $pid = Fork::fork(
-                        function() use ($server) {
+                    /*$pid = Fork::fork(
+                        function() use ($server) {*/
                             $this->outputDated('Started #' . $server->id . ' cold backup');
-                            return;
+
                             /**
                              * Make backup of each database separately.
                              */
-                            $server->databases->each(
+                            $server->masterDatabases->each(
                                 function(Database $database) {
+                                    $this->outputDated('Starting ' . $database->name);
                                     $database->backup();
+                                    $this->outputDated('Finished ' . $database->name);
                                 }
                             );
                             $this->outputDated('Ended #' . $server->id . ' cold backup');
-                        },
+                        /*},
                         function() use ($server) {
                             return 'impero:backup:mysql:' . $server->id;
                         },
@@ -69,7 +73,7 @@ class MakeMysqlBackup extends Command
                             throw new Exception('Cannot run mysql backup in parallel');
                         }
                     );
-                    Fork::waitFor($pid);
+                    Fork::waitFor($pid);*/
                 } catch (Throwable $e) {
                     $this->outputDated('EXCEPTION: ' . exception($e));
                 }
@@ -80,90 +84,7 @@ class MakeMysqlBackup extends Command
          * Wait for regular backups to be made.
          */
         Fork::waitWaiting();
-
-        /**
-         * Make "binlog" live backups.
-         * We can process each server simultaniosly.
-         */
-        $servers->each(
-            function(Server $server) {
-                /**
-                 * @T00D00 - find which server should we sync binlogs to ...
-                 *         each service on server should probably have it's 'backup:passive' server
-                 *         mysql on zero.gonparty.eu will have it's backup:passive server set as one.gonparty.eu
-                 * @T00D00 - in case of mysql outage on zero.gonparty.eu we:
-                 *           - reconfigure haproxy mysql balancer
-                 *           - reconfigure slave as master (allow write connections)
-                 */
-                try {
-                    $pid = Fork::fork(
-                        function() use ($server) {
-                            $this->outputDated('Started #' . $server->id . ' binlog backup');
-                            return;
-                            $server->binlogBackup();
-                            $this->outputDated('Ended #' . $server->id . ' binlog backup');
-                        },
-                        function() use ($server) {
-                            return 'impero:backup:mysqlBinlog:' . $server->id;
-                        },
-                        function() {
-                            throw new Exception('Cannot run mysql binlog backup in parallel');
-                        }
-                    );
-                    Fork::waitFor($pid);
-                } catch (Throwable $e) {
-                    $this->outputDated('EXCEPTION: ' . exception($e));
-                }
-            }
-        );
-
-        /**
-         * Wait for binlog backups to be made.
-         */
-        Fork::waitWaiting();
-
-        $this->outputDated('Mysql backed up');
-    }
-
-    /**
-     *
-     */
-    public function backupBinlogs()
-    {
-        $command = 'mysqlbinlog -u fullremote -p --read-from-remote-server --host=hardisland.com --raw mysql-bin.002157';
-        // --start-position=N, -j N
-        // --stop-position=N
-        // --stop-never
-        // mysqlbinlog binlog.000001 | mysql -u root -p
-        // --binary-mode
-        // mysqlbinlog binlog.000001 > tmpfile
-    }
-
-    /**
-     *
-     */
-    public function restoreMysqlMasterDatabase()
-    {
-        /**
-         * Get and decrypt latest mysql dump.
-         * Get binlogs between dump and till the end.
-         * Import mysql dump.
-         */
-    }
-
-    /**
-     *
-     */
-    public function restoreMysqlSlaveDatabase()
-    {
-        /**
-         * Get and decrypt latest mysql dump.
-         * Get binlogs between backup and slave.
-         * Stop slave.
-         * Import mysql dump.
-         * Sync dump with slave from binlogs.
-         * Resume slave.
-         */
+        $this->outputDated('Mysql databases were dumped. For full backup to be made make sure that mysql binlog backup is enabled.');
     }
 
 }

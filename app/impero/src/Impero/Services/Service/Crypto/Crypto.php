@@ -172,6 +172,8 @@ class Crypto
         $compressedFile = $zipService->compressFile($this->file);
         $this->replaceFile($this->from, $compressedFile);
 
+        return $compressedFile;
+
         /**
          * Encrypt compressed file.
          */
