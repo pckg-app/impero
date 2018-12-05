@@ -1,6 +1,7 @@
 <?php namespace Impero\User\Provider;
 
 use Impero\User\Controller\Users as UsersController;
+use Impero\User\Resolver\User;
 use Pckg\Auth\Provider\ApiAuth;
 use Pckg\Framework\Provider;
 
@@ -14,8 +15,10 @@ class Users extends Provider
                            'urlPrefix'  => '/api/',
                            'namePrefix' => 'api',
                            'controller' => UsersController::class,
+                           'tags' => ['auth:in'],
                        ], [
-                           '.user' => route('user', 'user'),
+                           '.user.create' => route('user', 'create'),
+                           '.user'        => route('user/[user]', 'user')->resolvers(['user' => User::class]),
                        ]),
         ];
     }

@@ -6,15 +6,32 @@ use Impero\Dependencies\Dependency\Wget;
 use Impero\Dependencies\Dependency\Xvfb;
 use Impero\Dependencies\Dependency\Zip;
 
+/**
+ * Class Php
+ *
+ * @package Impero\Services\Service
+ */
 class Php extends AbstractService implements ServiceInterface
 {
 
+    /**
+     * @var string
+     */
     protected $service = 'php';
 
+    /**
+     * @var string
+     */
     protected $name = 'PHP';
 
+    /**
+     * @var string
+     */
     protected $install = 'php7.0 php7.0-curl php7.0-intl php-curl php7.0-xml php7.0-mbstring php7.0-zip';
 
+    /**
+     * @var array
+     */
     protected $dependencies = [
         Wget::class,
         Xvfb::class,
@@ -23,6 +40,9 @@ class Php extends AbstractService implements ServiceInterface
         Curl::class,
     ];
 
+    /**
+     * @return bool
+     */
     public function isInstalled()
     {
         $response = $this->getConnection()
@@ -31,6 +51,9 @@ class Php extends AbstractService implements ServiceInterface
         return strpos($response, 'No command') === false;
     }
 
+    /**
+     * @return bool|mixed|string
+     */
     public function getVersion()
     {
         $response = $this->getConnection()
@@ -43,6 +66,9 @@ class Php extends AbstractService implements ServiceInterface
         return substr($response, $start, $length);
     }
 
+    /**
+     * @return mixed|string
+     */
     public function getStatus()
     {
         return 'ok';

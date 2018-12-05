@@ -4,16 +4,19 @@ use Impero\Servers\Entity\Servers as ServersEntity;
 use Impero\Servers\Record\Server;
 use Impero\Services\Service\Apache;
 use Impero\Services\Service\Cron;
+use Impero\Services\Service\GPG;
 use Impero\Services\Service\Mysql;
 use Impero\Services\Service\Nginx;
+use Impero\Services\Service\OpenSSL;
 use Impero\Services\Service\Openvpn;
 use Impero\Services\Service\Php;
 use Impero\Services\Service\PhpFpm;
 use Impero\Services\Service\Pureftpd;
 use Impero\Services\Service\Sendmail;
 use Impero\Services\Service\Ssh;
-use Impero\Services\Service\SshConnection;
+use Impero\Services\Service\Connection\SshConnection;
 use Impero\Services\Service\Ufw;
+use Impero\Services\Service\Zip;
 use Pckg\Database\Relation\HasAndBelongsTo;
 
 class Servers
@@ -49,7 +52,9 @@ class Servers
                                     ->map(function(Server $server) {
                                         $data = $server->toArray();
                                         try {
-                                            $connection = $server->getConnection();
+                                            if ($server->status == 'active') {
+                                                $server->getConnection();
+                                            }
                                         } catch (\Throwable $e) {
                                             $data['status'] = $e->getMessage();
                                         }
@@ -83,6 +88,9 @@ class Servers
             new Openvpn($connection),
             new Sendmail($connection),
             new Pureftpd($connection),
+            new OpenSSL($connection),
+            new Zip($connection),
+            new GPG($connection),
         ];
 
         $data = [];
@@ -119,6 +127,10 @@ class Servers
             ],
             [
                 'name'    => 'Svn',
+                'version' => $this->getVersion(),
+            ],
+            [
+                'name'    => 'Yarn',
                 'version' => $this->getVersion(),
             ],
         ];

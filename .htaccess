@@ -5,8 +5,7 @@ Options All -Indexes
 RewriteEngine On
 
 # private rewrite
-RewriteCond %{REQUEST_FILENAME} \.(js|css|less|jpg|jpe?g|png|gif|eot|otf|svg|woff|ttf|pdf)$ [NC]
-RewriteCond %{REQUEST_FILENAME} -f [NC]
+RewriteCond %{REQUEST_FILENAME} \.(js|css|less|jpg|jpe?g|png|gif|webp|eot|otf|svg|woff|woff2|ttf|pdf|gz|ico|html|vue)$ [NC]
 RewriteRule ^ - [L]
 
 # default handler # index.php, dev.php

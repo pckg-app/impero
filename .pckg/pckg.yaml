@@ -45,13 +45,14 @@ migrate:
   #- php console $app generic:import-lists
 
   # clear cache
-  #- php console cache:clear
+  - php $webDirconsole cache:clear
 
   # install migrations
-  #- php console $app migrator:install --repository=default --fields --yes
+  - php $webDirconsole $app migrator:install --repository=default --fields --yes --clear
+  - php $webDirconsole $app migrator:install --repository=default --indexes --yes --clear
 
   # upgrade slugs
   # - php console $app translator:upgrade-slugs
 
   # clear cache
-  - php console cache:clear
+  - php $webDirconsole cache:clear

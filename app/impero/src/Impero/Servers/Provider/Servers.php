@@ -22,6 +22,7 @@ class Servers extends Provider
                            'controller' => ServersController::class,
                            'urlPrefix'  => '/impero/servers',
                            'namePrefix' => 'impero.servers',
+                           'tags' => ['auth:in'],
                        ]))->routes([
                                        ''                                => new Route('', 'index'),
                                        '.server'                         => (new Route('/server/[server]',
@@ -74,9 +75,10 @@ class Servers extends Provider
                                                                                                                     ]),
                                    ]),
             (new Group([
-                           'controller' => Sites::class,
-                           'urlPrefix'  => '/api/site',
-                           'namePrefix' => 'api.impero.site',
+                           'controller' => ServersController::class,
+                           'urlPrefix'  => '/api/server',
+                           'namePrefix' => 'api.server',
+                           'tags' => ['auth:in'],
                        ]))->routes([
                                        ''                => (new Route('', 'site')),
                                        '.exec'           => (new Route('/[site]/exec', 'exec'))
@@ -103,6 +105,9 @@ class Servers extends Provider
                                            ->resolvers([
                                                            'site' => Site::class,
                                                        ]),
+                                       '.cronjob' => (new Route('/[server]/cronjob', 'cronjob'))->resolvers([
+                                                                                                                'server' => Server::class,
+                                                                                                            ]),
                                    ]),
         ];
     }

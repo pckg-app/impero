@@ -9,9 +9,9 @@ class CreateFtpTable extends Migration
     {
         $ftpTable = $this->table('ftps');
 
-        $ftpTable->varchar('username', 128)->required();
-        $ftpTable->varchar('password', 255)->required();
-        $ftpTable->varchar('path', 255)->required();
+        $ftpTable->varchar('username', 128);
+        $ftpTable->varchar('password', 255);
+        $ftpTable->varchar('path', 255);
         $ftpTable->integer('user_id')->references('users');
 
         $this->save();

@@ -1,12 +1,26 @@
 <?php namespace Impero\Services\Service;
 
+/**
+ * Class Sendmail
+ *
+ * @package Impero\Services\Service
+ */
 class Sendmail extends AbstractService implements ServiceInterface
 {
 
+    /**
+     * @var string
+     */
     protected $service = 'sendmail';
 
+    /**
+     * @var string
+     */
     protected $name = 'Sendmail';
 
+    /**
+     * @return bool|mixed|string
+     */
     public function getVersion()
     {
         $response = $this->getConnection()

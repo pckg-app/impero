@@ -8,6 +8,10 @@ use Impero\Impero\Middleware\LogApiRequests;
 use Impero\Impero\Middleware\LogApiResponses;
 use Impero\Mysql\Provider\Mysql as MysqlProvider;
 use Impero\Servers\Provider\Servers;
+use Impero\Services\Provider\Services;
+use Impero\Sites\Provider\Sites;
+use Impero\Storage\Provider\Storage;
+use Impero\Task\Provider\Task;
 use Impero\User\Provider\Users;
 use Pckg\Auth\Provider\Auth as AuthProvider;
 use Pckg\Framework\Provider;
@@ -23,10 +27,12 @@ class Impero extends Provider
         return [
             ManagerProvider::class,
             ApacheProvider::class,
+            Sites::class,
             FtpProvider::class,
             MysqlProvider::class,
             GitProvider::class,
             Users::class,
+            Services::class,
             //DynamicProvider::class,
             AuthProvider::class,
             GenericProvider::class,
@@ -34,6 +40,8 @@ class Impero extends Provider
             // new generation
             Servers::class,
             Frontend::class,
+            Task::class,
+            Storage::class,
         ];
     }
 
@@ -41,11 +49,11 @@ class Impero extends Provider
     {
         return [
             'url' => [
-                '/'      => [
+                '/maestro-impero' => [
                     'controller' => ImperoController::class,
                     'view'       => 'index',
                 ],
-                '/intro' => [
+                '/'               => [
                     'controller' => ImperoController::class,
                     'view'       => 'intro',
                 ],
@@ -64,6 +72,18 @@ class Impero extends Provider
     {
         return [
             LogApiResponses::class,
+        ];
+    }
+
+    public function assets()
+    {
+        return [
+            'main'        => [
+                '/app/impero/src/Pckg/Generic/public/app.js',
+            ],
+            'footerFirst' => [
+                '/app/impero/src/Pckg/Generic/public/pckg-generic-app.js',
+            ],
         ];
     }
 

@@ -13,7 +13,7 @@ class CreateSiteTable extends Migration
         $siteTable->integer('user_id')->references('users', 'id');
 
         $siteTable->varchar('server_name', 128)->required();
-        $siteTable->varchar('server_alias', 255)->nullable();
+        $siteTable->text('server_alias')->nullable();
         $siteTable->varchar('document_root', 255)->required();
 
         $siteTable->varchar('ssl', 16)->nullable();
@@ -30,10 +30,18 @@ class CreateSiteTable extends Migration
 
         $siteTable->timeable();
 
-        $siteServers = $this->table('site_servers');
-        $siteServers->integer('site_id')->references('sites');
-        $siteServers->integer('server_id')->references('servers');
-        $siteServers->varchar('type'); // web:dynamic, web:static, loadbalancer, mysql:master, mysql:slave, data
+        /**
+         * Each site use some services: db (mysql), web (apache), lb (haproxy), storage (?), cron (?).
+         * They can be all put on single server and in that case we do not fill table below.
+         * When app is loadbalanced in any way or distributed over multiple servers, then we need to define to whose.
+         * For example, at one point we'll move cronjobs to separate server.
+         */
+        $sitesServers = $this->table('sites_servers');
+        $sitesServers->integer('site_id')->references('sites');
+        $sitesServers->integer('server_id')->references('servers');
+        $sitesServers->varchar('type'); // web:dynamic, web:static, loadbalancer, mysql:master, mysql:slave, data, cron
+
+        //$volumes = $this->table('volumes');
 
         $this->save();
     }

@@ -1,9 +1,24 @@
 <h2>Nightly writing</h2>
 <p>There're many tools that make app deployment simpler, but we made it crazy simple.</p>
-<p>First, create new <b>server</b> and connect it to - server. If you don't have one you can simply create new droplet
-    on one of cloud providers.</p>
-<p>Then, create new <b>site</b> - all you need to define is domain and source, for example impero.foobar.si and
-    ssh://github.com/pckg-app/impero.git.</p>
+<p>Impero is a service which which simplifies deployments and management of multi service-platforms. It combines
+    automatic configuration changes and service reloads on entrypoint and top level services with composing docker
+    configuration files and container scaling managed from web interface and project configuration file.</p>
+
+<div class="row">
+    <div class="col-xs-4">
+        <p>First, create new <b>server</b> and connect it to - server. If you don't have one you can simply create new
+            droplet on supported cloud provider.</p>
+    </div>
+    <div class="col-xs-4">
+        <p>Then, create new <b>site</b> - all you need to define is domain and source, for example impero.foobar.si and
+            ssh://git@github.com/pckg-app/impero.git.</p>
+    </div>
+    <div class="col-xs-4">
+        <p>
+            Deploy your site's services and reconfigure services in /.pckg/pckg.yaml file.
+        </p>
+    </div>
+</div>
 <p>
     All services and configuration you need is defined in 3 simple scripts in /.pckg/pckg.yaml in your git
     repository
@@ -18,7 +33,7 @@
     </li>
 </ul>
 </p>
-<p>When you choose to put your website online you simply select servers on which to put your app.</p>
+<p>When you choose to put your website online you simply select servers on which to put your app or app's services.</p>
 <p>You can select multiple web workers and configure load balancing mechanism. You can select multiple mysql servers and
     put them in master / slave mode replication and load balancing. You can have multiple storages in sync when hard
     drive is bottleneck, or optimize things by caching them.</p>
@@ -163,12 +178,12 @@
 <div class="row">
     <div class="col-md-4 col-sm-6">
         <h4>Centralized management</h4>
-        <p>Impero is SaaS meaning that we take care of infrastructure so you don't need do deploy anything at all.</p>
+        <p>Impero is Software as a Service which means we take care of infrastructure.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
         <h4>Zero overhead</h4>
-        <p>All communication is done with ssh protocol. No services or daemons are installed.</p>
+        <p>All communication is done through SSH protocol. No services or daemons are installed.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
@@ -187,12 +202,12 @@
     </div>
     <div class="col-md-4 col-sm-6">
         <h4>Scaling</h4>
-        <p>Clone whole web server faster then ever.</p>
+        <p>Clone whole web server faster then ever. Use services on bare-metal, vps or docker image.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
         <h4>Automatic updates</h4>
-        <p>Don't worry about security updates. We will update every service by default and let you know about any
+        <p>Don't worry about security updates. We will update supported services by default and let you know about any
             changes.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
@@ -207,8 +222,7 @@
     </div>
     <div class="col-md-4 col-sm-6">
         <h4>Automated testing</h4>
-        <p>2017 is the year of automated deployment and testing. You will be able to install everything from jenkins
-            server to virtual machines.</p>
+        <p>You will be able to install everything from jenkins server to virtual machines.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
@@ -297,3 +311,19 @@
         <a href="#" class="pull-right">Learn more</a>
     </div>
 </div>
+
+<p>* some of described features are being developed, or in beta phase.</p>
+
+<h3>Full example</h3>
+<p>
+<ul>
+    <li>Create a <b>server</b> and make sure that ssh connection is successful.</li>
+    <li>Create a <b>site</b> and <b>checkout</b> some code from git. Web (<b>apache</b>) and <b>storage</b> services are enabled at this point.</li>
+    <li>Create <b>database</b>, <b>user</b> and set <b>privileges</b>. Database (<b>mysql</b>) service is added at this point.</li>
+    <li>Add a <b>cronjob</b> for website. <b>Cron</b> service is added at this point.</li>
+    <li>Enable cold and passive <b>backups</b> for code, config, db and storage with <b>backup</b> service.</li>
+    <li>Add another <b>web worker</b>. Loadbalancing (<b>haproxy</b>) is enabled at this point.</li>
+    <li>Replicate mysql as active or passive slave for better performance and quicker restore in case backup is needed.</li>
+    <li>Configure ./pckg/pckg.yaml file and integrate /impero API to automatically manage your infrastructure.</li>
+</ul>
+</p>

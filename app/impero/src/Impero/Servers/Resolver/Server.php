@@ -1,19 +1,14 @@
 <?php namespace Impero\Servers\Resolver;
 
-use Impero\Servers\Dataset\Servers;
+use Impero\Servers\Entity\Servers;
+use Pckg\Framework\Provider\Helper\EntityResolver;
 use Pckg\Framework\Provider\RouteResolver;
 
 class Server implements RouteResolver
 {
 
-    public function resolve($value)
-    {
-        return (new Servers())->getServerForUser($value);
-    }
+    use EntityResolver;
 
-    public function parametrize($record)
-    {
-        return $record->id;
-    }
+    protected $entity = Servers::class;
 
 }

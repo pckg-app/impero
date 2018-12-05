@@ -1,7 +1,6 @@
 <?php namespace Impero\Mysql\Controller;
 
 use Impero\Mysql\Record\Database;
-use Impero\Servers\Record\Server;
 use Pckg\Framework\Controller;
 
 class DatabaseApi extends Controller
@@ -15,22 +14,9 @@ class DatabaseApi extends Controller
         $data = post(['name', 'server_id']);
 
         /**
-         * Save database in our database.
+         * Create datebase.
          */
-        $database = Database::create(['name' => $data['name'], 'server_id' => $data['server_id']]);
-
-        /**
-         * Connect to proper mysql server and execute sql.
-         */
-        $server = Server::gets(['id' => $data['server_id']]);
-
-        /**
-         * Receive mysql connection?
-         */
-        $mysqlConnection = $server->getMysqlConnection();
-
-        $sql = 'CREATE DATABASE IF NOT EXISTS `' . $data['name'] . '` CHARACTER SET `utf8` COLLATE `utf8_general_ci`';
-        $mysqlConnection->execute($sql);
+        $database = Database::createFromPost($data);
 
         /**
          * Return created database.
@@ -40,10 +26,9 @@ class DatabaseApi extends Controller
 
     public function postImportFileAction(Database $database)
     {
-        $server = $database->server;
         $file = post('file');
-        $mysqlConnection = $server->getMysqlConnection();
-        $mysqlConnection->pipeIn($file, $database->name);
+
+        $database->importFile($file);
 
         return $this->response()->respondWithSuccess();
     }
@@ -54,9 +39,9 @@ class DatabaseApi extends Controller
         $databaseName = post('name');
 
         $database = Database::gets([
-                                       'server_id' => $server,
-                                       'name'      => $databaseName,
-                                   ]);
+            'server_id' => $server,
+            'name'      => $databaseName,
+        ]);
 
         return [
             'database' => $database,
@@ -65,41 +50,48 @@ class DatabaseApi extends Controller
 
     public function postQueryAction(Database $database)
     {
-        $server = $database->server;
         $sql = post('sql');
         $bind = post('bind');
-        $mysqlConnection = $server->getMysqlConnection();
 
-        $data = $mysqlConnection->query($database->name, $sql, $bind);
+        $data = $database->query($sql, $bind);
 
         return [
             'data' => $data,
         ];
     }
 
-    public function getBackupAction(Database $database)
-    {
-        return $this->postBackupAction($database);
-    }
-
+    /**
+     * @param Database $database
+     *
+     * @return array
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
     public function postBackupAction(Database $database)
     {
         /**
          * Enable or disable mysql backup.
          */
-        $database->configureBackup();
+        $database->requireScriptBackup();
 
         return [
             'success' => true,
         ];
     }
 
+    /**
+     * @param Database $database
+     *
+     * @return array
+     * @throws \Exception
+     */
     public function postReplicateAction(Database $database)
     {
         /**
          * Enable or disable mysql replication.
          */
-        $database->replicate();
+        $database->requireMysqlMasterReplication();
+        $database->replicateOnMaster();
 
         return [
             'success' => true,

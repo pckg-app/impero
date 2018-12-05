@@ -1,6 +1,6 @@
 <?php namespace Impero\Dependencies\Dependency;
 
-use Impero\Services\Service\SshConnection;
+use Impero\Services\Service\Connection\SshConnection;
 
 abstract class AbstractDependency implements DependencyInterface
 {
