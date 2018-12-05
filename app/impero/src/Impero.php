@@ -75,7 +75,9 @@ class Impero extends Provider
     {
         return [
             'vue' => [
-                '/dist/build/js/backend.js',
+                '/build/js/backend.js',
+                '/build/js/auth.js',
+                '/build/js/generic.js',
             ],
             'less/impero.less',
         ];

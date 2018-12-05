@@ -22,6 +22,7 @@ logs/**
 # ENV
 app/*/config/env.php
 config/env.php
+.npmrc
 
 # DEV -.-
 sublime
