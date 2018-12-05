@@ -77,7 +77,7 @@ Impero.Servers.Entity.Services = class extends Pckg.Database.Entity {
     }
 
     static getAllServices() {
-        return $store.state.impero.services;
+        return $store.getters.services;
     }
 };
 Impero.Servers.Entity.Dependencies = class extends Pckg.Database.Entity {
@@ -139,12 +139,6 @@ Impero.Servers.Record.Server = class extends Pckg.Database.Record {
 
     getEntity() {
         return new Impero.Servers.Entity.Servers();
-    }
-
-    getUrl(type) {
-        if (type == 'insert') {
-            return utils.url('@impero.servers.addServer', {server: this.id});
-        }
     }
 
     getUrl(type) {

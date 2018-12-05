@@ -357,7 +357,7 @@
         },
         created: function () {
             this.fetchServer();
-            $store.commit('prepareServices');
+            $store.dispatch('prepareServices');
         }
     });
 </script>

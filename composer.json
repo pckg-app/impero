@@ -16,7 +16,7 @@
     "pckg/mail": "dev-master",
     "pckg/translator": "dev-master",
     "pckg/auth": "dev-master",
-    "pckg/generic": "dev-BR-basket",
+    "pckg/generic": "dev-BR-vueify-frontend",
     "pckg/helpers-js": "dev-master",
     "pckg/helpers-less": "dev-master",
     "pckg/import": "dev-master",
@@ -38,7 +38,9 @@
     "league/flysystem": "1.*",
     "league/flysystem-aws-s3-v3": "^1.0@dev",
     "league/flysystem-sftp": "dev-master",
-    "pckg-app/api": "dev-master"
+    "pckg-app/api": "dev-master",
+    "pckg/manager": "dev-master",
+    "snapappointments/bootstrap-select": "dev-master"
   },
   "minimum-stability": "dev",
   "autoload": {
