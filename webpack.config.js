@@ -19,6 +19,7 @@ module.exports = {
     entry: {
         auth: './app/impero/public/js/auth.js',
         backend: './app/impero/public/js/backend.js',
+        services: './app/impero/public/js/services.js',
         generic: './app/impero/public/js/generic.js',
     },
     output: {

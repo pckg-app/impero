@@ -63,7 +63,7 @@ class Servers extends Entity
     {
         return $this->morphsMany(Settings::class)
                     ->over(SettingsMorphs::class)
-                    ->foreignKey('server_id');
+                    ->rightForeignKey('setting_id');
     }
 
     public function serversMorphs(callable $callable = null)

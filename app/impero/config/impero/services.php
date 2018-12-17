@@ -66,4 +66,12 @@ return [
         'title'   => 'PureFTPd',
         'service' => Service\HAProxy::class,
     ],
+    'locales' => [
+        'title' => 'Locales',
+        'service' => Service\Locales::class,
+    ],
+    'software-properties-common' => [
+        'title' => 'Software properties (common)',
+        'service' => Service\SoftwareProperties::class,
+    ],
 ];

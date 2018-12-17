@@ -11,6 +11,6 @@ RewriteRule ^ - [L]
 # default handler # index.php, dev.php
 RewriteRule ^(.*)$ www/$1 [L]
 
-<IfModule mod_headers.c>
-    Header set Access-Control-Allow-Origin http://bob.gonparty
-</IfModule>
+#<IfModule mod_headers.c>
+#    Header set Access-Control-Allow-Origin http://bob.gonparty
+#</IfModule>

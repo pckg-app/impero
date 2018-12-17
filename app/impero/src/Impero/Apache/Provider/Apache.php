@@ -25,7 +25,7 @@ class Apache extends Provider
                 [
                     'controller' => Sites::class,
                     'urlPrefix'  => '/api/site',
-                    'namePrefix' => 'api.impero.site',
+                    'namePrefix' => 'api.site',
                     'tags'       => ['auth:in'],
                 ]
             ))->routes(

@@ -94,6 +94,14 @@ class AbstractService
     }
 
     /**
+     * @return mixed
+     */
+    public function getService()
+    {
+        return $this->service;
+    }
+
+    /**
      * @param      $command
      * @param null $output
      * @param null $error
@@ -161,6 +169,13 @@ class AbstractService
         } elseif ($this->via == 'npm') {
             $this->getConnection()->exec('sudo npm install -g ' . ($this->install ?? $this->service));
         }
+    }
+    /**
+     * @return mixed|null
+     */
+    public function getVersion()
+    {
+        return null;
     }
 
 }

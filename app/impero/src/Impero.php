@@ -76,6 +76,7 @@ class Impero extends Provider
         return [
             'vue' => [
                 '/build/js/backend.js',
+                '/build/js/services.js',
                 '/build/js/auth.js',
                 '/build/js/generic.js',
             ],

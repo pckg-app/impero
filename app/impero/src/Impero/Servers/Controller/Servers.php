@@ -33,8 +33,6 @@ class Servers
 
     public function getViewServerAction(ServersDataset $serversDataset)
     {
-        vueManager()->addView('Impero/Servers:servers/one.vue');
-
         return view('servers/one');
     }
 
@@ -45,10 +43,38 @@ class Servers
         ];
     }
 
-    public function getServerServicesAction(ServersDataset $serversDataset, $server)
+    public function getServerServicesAction(ServersDataset $serversDataset, Server $server)
     {
         return [
-            'services' => $serversDataset->getServerServices(),
+            'services' => $serversDataset->getServerServices($server),
+        ];
+    }
+
+    public function getServerDependenciesAction(ServersDataset $serversDataset, Server $server)
+    {
+        return [
+            'dependencies' => $serversDataset->getServerDependencies($server),
+        ];
+    }
+
+    public function getServerWebsitesAction(ServersDataset $serversDataset, Server $server)
+    {
+        return [
+            'websites' => $serversDataset->getServerApplications($server),
+        ];
+    }
+
+    public function getNetworkInterfacesAction(ServersDataset $serversDataset, Server $server)
+    {
+        return [
+            'networkInterfaces' => $serversDataset->getServerNetworkInterfaces($server),
+        ];
+    }
+
+    public function getFirewallSettingsAction(ServersDataset $serversDataset, Server $server)
+    {
+        return [
+            'firewallSettings' => $serversDataset->getServerFirewallSettings($server),
         ];
     }
 

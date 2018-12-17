@@ -81,9 +81,6 @@ class Impero extends Provider
             'main'        => [
                 '/app/impero/src/Pckg/Generic/public/app.js',
             ],
-            'footerFirst' => [
-                '/app/impero/src/Pckg/Generic/public/pckg-generic-app.js',
-            ],
         ];
     }
 

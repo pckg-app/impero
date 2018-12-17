@@ -15,13 +15,16 @@ use Impero\Services\Service\OpenSSL;
 use Impero\Services\Service\Zip;
 use Pckg\Database\Record;
 use Pckg\Generic\Entity\SettingsMorphs;
+use Pckg\Generic\Record\Setting;
 
 class Server extends Record implements Connectable
 {
 
     protected $entity = Servers::class;
 
-    protected $toArray = ['services', 'dependencies', 'jobs'];
+    protected $toArray = [/*'services', 'dependencies', 'jobs', */
+                          'settings2',
+    ];
 
     protected $connection;
 
@@ -31,6 +34,18 @@ class Server extends Record implements Connectable
      * @var Mysql
      */
     protected $mysqlService;
+
+    public function getSettings2Attribute()
+    {
+        return [
+            'ssh' => [
+                'sshPort'                => $this->port,
+                'loginGraceTime'         => 123,
+                'permitRootLogin'        => false,
+                'passwordAuthentication' => false,
+            ],
+        ];
+    }
 
     /**
      * @return mixed|SshConnection
@@ -62,6 +77,7 @@ class Server extends Record implements Connectable
     public function readFile($file)
     {
         $connection = $this->server->getConnection();
+
         return $connection->sftpRead($file);
     }
 
@@ -128,17 +144,13 @@ class Server extends Record implements Connectable
                 $command = implode(' ', array_slice(explode(' ', $line), 5));
                 $frequency = substr($line, 0, strlen($line) - strlen($command));
 
-                Job::create(
-                    [
-                        'server_id' => $this->id,
-                        'name'      => '',
-                        'status'    => $inactive
-                            ? 'inactive'
-                            : 'active',
-                        'command'   => $command,
-                        'frequency' => $frequency,
-                    ]
-                );
+                Job::create([
+                                'server_id' => $this->id,
+                                'name'      => '',
+                                'status'    => $inactive ? 'inactive' : 'active',
+                                'command'   => $command,
+                                'frequency' => $frequency,
+                            ]);
             }
         }
 
@@ -149,19 +161,16 @@ class Server extends Record implements Connectable
     {
         $task = context()->getOrDefault(Task::class);
 
-        $serverCommand = ServerCommand::create(
-            [
-                'server_id'   => $this->id,
-                'task_id'     => $task->id ?? null,
-                'command'     => $command,
-                'info'        => $info,
-                'error'       => ($e
-                        ? 'EXCEPTION: ' . exception($e) . "\n"
-                        : null) . $error,
-                'executed_at' => date('Y-m-d H:i:s'),
-                'code'        => null,
-            ]
-        );
+        $serverCommand = ServerCommand::create([
+                                                   'server_id'   => $this->id,
+                                                   'task_id'     => $task->id ?? null,
+                                                   'command'     => $command,
+                                                   'info'        => $info,
+                                                   'error'       => ($e ? 'EXCEPTION: ' . exception($e) . "\n" : null) .
+                                                       $error,
+                                                   'executed_at' => date('Y-m-d H:i:s'),
+                                                   'code'        => null,
+                                               ]);
 
         return $serverCommand;
     }
@@ -232,22 +241,32 @@ class Server extends Record implements Connectable
         return $this->ip;
     }
 
+    public function hasSetting($slug)
+    {
+        return $this->settings->has(function(Setting $setting) use ($slug) {
+            return $setting->slug == $slug;
+        });
+    }
+
     public function getSettingValue($slug, $default = null)
     {
-        return (new SettingsMorphs())
-                ->joinSetting()
-                ->where('morph_id', Servers::class)
-                ->where('poly_id', $this->id)
-                ->where('settings.slug', $slug)
-                ->one()->value ?? $default;
+        $setting = $this->settings->first(function(Setting $setting) use ($slug) {
+            return $setting->slug == $slug;
+        });
+
+        if (!$setting) {
+            return $default;
+        }
+
+        return $setting->value;
     }
 
     public function getMysqlConfig()
     {
         return [];
+
         /**
          * @T00D00 ...
-         *
          */
         return [
             '/etc/mysql/conf.d/replication.cnf' => '',
@@ -286,26 +305,23 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
         /**
          * Get all sites for web service on this server.
          */
-        $sitesServers = (new SitesServers())->where('server_id', $this->id)
-                                            ->where('type', 'web')
-                                            ->all();
+        $sitesServers = (new SitesServers())->where('server_id', $this->id)->where('type', 'web')->all();
 
         $server = $this;
-        $sitesServers->each(
-            function(SitesServer $sitesServer) use (&$virtualhosts, $server) {
-                /**
-                 * Apache: apache port
-                 * Nginx: nginx port
-                 * Haproxy: haproxy port
-                 */
-                $virtualhosts[] = $sitesServer->site->getVirtualhost($server);
-            }
-        );
+        $sitesServers->each(function(SitesServer $sitesServer) use (&$virtualhosts, $server) {
+            /**
+             * Apache: apache port
+             * Nginx: nginx port
+             * Haproxy: haproxy port
+             */
+            $virtualhosts[] = $sitesServer->site->getVirtualhost($server);
+        });
 
         return implode("\n\n", $virtualhosts);
     }
 
-    public function getNginxConfig() {
+    public function getNginxConfig()
+    {
         /**
          * First, check that nginx is active on server.
          */
@@ -317,11 +333,11 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
         /**
          * Get all sites that are routed to this server and proxied to workers.
          */
-        $sitesServers = (new SitesServers())->where(
-            'site_id', (new SitesServers())->select('sites_servers.site_id')
-                                           ->where('server_id', $this->id)
-                                           ->where('type', 'web')
-        )->where('type', 'web')->all()
+        $sitesServers = (new SitesServers())->where('site_id', (new SitesServers())->select('sites_servers.site_id')
+                                                                                   ->where('server_id', $this->id)
+                                                                                   ->where('type', 'web'))
+                                            ->where('type', 'web')
+                                            ->all()
                                             ->groupBy('site_id');
 
         $apachePort = $this->getSettingValue('service.apache.httpsPort', 8082);
@@ -465,11 +481,10 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
         /**
          * Get all sites that are routed to this server and proxied to workers.
          */
-        $sitesServers = (new SitesServers())->where(
-            'site_id', (new SitesServers())->select('sites_servers.site_id')
-                                           ->where('server_id', $this->id)
-                                           ->where('type', 'web')
-        )->where('type', 'web')
+        $sitesServers = (new SitesServers())->where('site_id', (new SitesServers())->select('sites_servers.site_id')
+                                                                                   ->where('server_id', $this->id)
+                                                                                   ->where('type', 'web'))
+                                            ->where('type', 'web')
                                             ->all()
                                             ->groupBy('site_id');
 
@@ -572,10 +587,10 @@ frontend all_https
             $site = collect($sitesServersGrouped)->first()->site;
             $domains = $site->getUniqueDomains();
             $imploded = implode(' ', $domains->all());
-            $cdn = implode(' ', $domains->filter(function($domain){
+            $cdn = implode(' ', $domains->filter(function($domain) {
                 return strpos($domain, '.cdn.startcomms.com') !== false;
             })->all());
-            $nonCdn = implode(' ', $domains->filter(function($domain){
+            $nonCdn = implode(' ', $domains->filter(function($domain) {
                 return strpos($domain, '.cdn.startcomms.com') === false;
             })->all());
             $split[$site->id] = [
@@ -588,13 +603,10 @@ frontend all_https
              * Match requests by SNI.
              */
             if ($split[$site->id]['cdn']) {
-                $config .= "\n" . '    acl bcknd-dynamic-' . $site->id . ' req.ssl_sni -i '
-                    . $nonCdn;
-                $config .= "\n" . '    acl bcknd-static-' . $site->id . ' req.ssl_sni -i '
-                    . $cdn;
+                $config .= "\n" . '    acl bcknd-dynamic-' . $site->id . ' req.ssl_sni -i ' . $nonCdn;
+                $config .= "\n" . '    acl bcknd-static-' . $site->id . ' req.ssl_sni -i ' . $cdn;
             } else {
-                $config .= "\n" . '    acl bcknd-dynamic-' . $site->id . ' req.ssl_sni -i '
-                    . $imploded;
+                $config .= "\n" . '    acl bcknd-dynamic-' . $site->id . ' req.ssl_sni -i ' . $imploded;
             }
         }
 
@@ -643,9 +655,8 @@ frontend all_https
             foreach ($workers as $worker) {
                 $allWorkers[$worker->id] = $worker;
                 $workerHttpsPort = $worker->getSettingValue('service.apache2.httpsPort', 443);
-                $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name
-                    . ' ' . $worker->privateIp . ':' . $workerHttpsPort . ' check weight '
-                    . $worker->getSettingValue('service.haproxy.weight', 1);
+                $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name . ' ' . $worker->privateIp .
+                    ':' . $workerHttpsPort . ' check weight ' . $worker->getSettingValue('service.haproxy.weight', 1);
                 // 'cookie ' . $site->server_name . '-' . $worker->name; // ssl verify none
             }
 
@@ -662,9 +673,8 @@ frontend all_https
             foreach ($workers as $worker) {
                 $allWorkers[$worker->id] = $worker;
                 $workerHttpsPort = $worker->getSettingValue('service.nginx.httpsPort', 8084);
-                $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name
-                    . ' ' . $worker->privateIp . ':' . $workerHttpsPort . ' check weight '
-                    . $worker->getSettingValue('service.haproxy.weight', 1);
+                $config .= "\n" . '    server ' . $site->server_name . '-' . $worker->name . ' ' . $worker->privateIp .
+                    ':' . $workerHttpsPort . ' check weight ' . $worker->getSettingValue('service.haproxy.weight', 1);
             }
         }
 
@@ -675,9 +685,8 @@ frontend all_https
             balance roundrobin
             mode tcp
             option ssl-hello-chk
-            server fallback-' . $firstWorker->name . ' ' . $worker->privateIp . ':'
-                . $worker->getSettingValue('service.apache2.httpsPort', 443)
-                . ' check weight 1
+            server fallback-' . $firstWorker->name . ' ' . $worker->privateIp . ':' .
+                $worker->getSettingValue('service.apache2.httpsPort', 443) . ' check weight 1
         ';
         }
         $config .= '
@@ -753,13 +762,12 @@ frontend all_https
     public function transferFile($file, $destination, Server $toServer)
     {
         $task = Task::create('Rsyncing file');
-        $command = 'rsync -a ' . $file . ' impero@' . $toServer->ip . ':' . $destination . ' -e \'ssh -p ' . $toServer->port . '\'';
+        $command = 'rsync -a ' . $file . ' impero@' . $toServer->ip . ':' . $destination . ' -e \'ssh -p ' .
+            $toServer->port . '\'';
 
-        return $task->make(
-            function() use ($command) {
-                return $this->exec($command);
-            }
-        );
+        return $task->make(function() use ($command) {
+            return $this->exec($command);
+        });
     }
 
     /**
