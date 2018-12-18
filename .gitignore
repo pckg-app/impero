@@ -27,7 +27,6 @@ config/env.php
 # DEV -.-
 sublime
 .idea
-phinx.yml
 
 # TESTS ;-)
 tests/_output/*
