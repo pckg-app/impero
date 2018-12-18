@@ -1,38 +1,5 @@
 import {Entity, Record} from "../../../../../../vendor/pckg/helpers-js/webpack/orm";
 
-export class Person extends Record {
-
-    constructor(data) {
-        super(data);
-        console.log('creating', data, this);
-        this.$entity = People;
-    }
-
-    testAttrMethod(param) {
-        return (param || 'testAttrMethod') + ' yes ' + this.$data.id;
-    }
-
-    get testAttr() {
-        console.log(this);
-        return this.testAttrMethod('testAttr');
-    }
-
-}
-
-export class People extends Entity {
-
-    constructor() {
-        super();
-        this.$path = 'people';
-        this.$record = Person;
-    }
-
-    getAdmins() {
-        return this.get('admins', {status: 'admin'});
-    }
-
-}
-
 export class Task extends Record {
 
     constructor(data) {
