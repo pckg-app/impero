@@ -1552,7 +1552,7 @@ class Site extends Record
 
     public function setImperoVarsAttribute($vars)
     {
-        $this->set('imperoVars', $vars);
+        $this->data['imperoVars'] = $vars;
         SettingsMorph::makeItHappen('impero.vars', $vars, Sites::class, $this->id, 'array');
 
         return $this;
@@ -1565,7 +1565,7 @@ class Site extends Record
 
     public function setImperoPckgAttribute($pckg)
     {
-        $this->set('imperoPckg', $pckg);
+        $this->data['imperoPckg'] = $pckg;
         SettingsMorph::makeItHappen('impero.pckg', $pckg, Sites::class, $this->id, 'array');
 
         return $this;

@@ -2612,12 +2612,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/framework.git",
-                "reference": "1a76466a582a391d56e16d1d329aed3562393fcf"
+                "reference": "cb5c34b572f01a4d93aa24bb7bb0ac450b57154a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/framework/zipball/1a76466a582a391d56e16d1d329aed3562393fcf",
-                "reference": "1a76466a582a391d56e16d1d329aed3562393fcf",
+                "url": "https://api.github.com/repos/pckg/framework/zipball/cb5c34b572f01a4d93aa24bb7bb0ac450b57154a",
+                "reference": "cb5c34b572f01a4d93aa24bb7bb0ac450b57154a",
                 "shasum": ""
             },
             "require": {
@@ -2653,7 +2653,7 @@
             ],
             "description": "Fully featured lightweight php framework with multilingual support, twig templating engine, and tons of other features.",
             "homepage": "https://github.com/pckg/framework",
-            "time": "2018-12-15T01:19:10+00:00"
+            "time": "2018-12-18T20:19:41+00:00"
         },
         {
             "name": "pckg/generic",
@@ -2661,12 +2661,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/generic.git",
-                "reference": "eb7f5e341654c698e9b66e534b6ba0d62f6e3b27"
+                "reference": "2a3bcad829758b45146ad6c5569ec7b339f48dfb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/generic/zipball/eb7f5e341654c698e9b66e534b6ba0d62f6e3b27",
-                "reference": "eb7f5e341654c698e9b66e534b6ba0d62f6e3b27",
+                "url": "https://api.github.com/repos/pckg/generic/zipball/2a3bcad829758b45146ad6c5569ec7b339f48dfb",
+                "reference": "2a3bcad829758b45146ad6c5569ec7b339f48dfb",
                 "shasum": ""
             },
             "require": {
@@ -2692,7 +2692,7 @@
             ],
             "description": "Building admin interface and generic frontend made simple",
             "homepage": "https://github.com/pckg/generic",
-            "time": "2018-12-18T16:30:57+00:00"
+            "time": "2018-12-18T22:00:12+00:00"
         },
         {
             "name": "pckg/helpers-js",
@@ -2700,12 +2700,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/helpers-js.git",
-                "reference": "3855ff54210d1ad4c0bc6c16db7b4b9da3ccc8af"
+                "reference": "87ae5f80c6dcc26fe19bbebce77d21965bc11fc2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/helpers-js/zipball/3855ff54210d1ad4c0bc6c16db7b4b9da3ccc8af",
-                "reference": "3855ff54210d1ad4c0bc6c16db7b4b9da3ccc8af",
+                "url": "https://api.github.com/repos/pckg/helpers-js/zipball/87ae5f80c6dcc26fe19bbebce77d21965bc11fc2",
+                "reference": "87ae5f80c6dcc26fe19bbebce77d21965bc11fc2",
                 "shasum": ""
             },
             "type": "library",
@@ -2721,7 +2721,7 @@
             ],
             "description": "Basic JS helpers",
             "homepage": "https://github.com/pckg/helpers-js",
-            "time": "2018-12-16T01:29:37+00:00"
+            "time": "2018-12-18T19:41:38+00:00"
         },
         {
             "name": "pckg/helpers-less",
