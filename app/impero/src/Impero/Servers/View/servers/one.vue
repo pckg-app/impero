@@ -138,33 +138,9 @@
                 </div>
                 <div role="tabpanel" class="tab-pane" id="applications">
                     <div class="row">
-                        <table class="table table-condensed table-striped">
-                            <thead>
-                            <tr>
-                                <th>Website</th>
-                                <th>Application</th>
-                                <th>Url</th>
-                                <th>Https</th>
-                                <th>Source</th>
-                                <th>Version</th>
-                                <th>Status</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr v-for="website in server.websites">
-                                <td>{{ website.name }}</td>
-                                <td>{{ website.name }}</td>
-                                <td>
-                                    {{ website.url }}<br/>
-                                    <span v-for="(url, i) in website.urls">{{ url }}<br v-if="i + 1 < website.urls.length"/></span>
-                                </td>
-                                <td>{{ website.https }}</td>
-                                <td>{{ website.source }}</td>
-                                <td>{{ website.version }}</td>
-                                <td>{{ website.status }}</td>
-                            </tr>
-                            </tbody>
-                        </table>
+
+                        <impero-servers-one-applications :server="server"></impero-servers-one-applications>
+
                     </div>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="deployments">

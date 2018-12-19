@@ -80,6 +80,7 @@ class Impero extends Provider
                 '/build/js/auth.js',
                 '/build/js/generic.js',
             ],
+            '@' . path('root') . 'app/impero/public/less/vars.less',
             'less/impero.less',
         ];
     }
