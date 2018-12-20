@@ -258,7 +258,7 @@ class Server extends Record implements Connectable
             return $default;
         }
 
-        return $setting->value;
+        return $setting->pivot->value;
     }
 
     public function getMysqlConfig()
