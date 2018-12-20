@@ -53,16 +53,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.81.7",
+            "version": "3.82.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "73fdee34e6db72954a6110ff71ea5e9bf6e95e48"
+                "reference": "f3c38c0d74fba49fdaa1ce856412ea1017513002"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/73fdee34e6db72954a6110ff71ea5e9bf6e95e48",
-                "reference": "73fdee34e6db72954a6110ff71ea5e9bf6e95e48",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/f3c38c0d74fba49fdaa1ce856412ea1017513002",
+                "reference": "f3c38c0d74fba49fdaa1ce856412ea1017513002",
                 "shasum": ""
             },
             "require": {
@@ -132,7 +132,7 @@
                 "s3",
                 "sdk"
             ],
-            "time": "2018-12-17T22:58:13+00:00"
+            "time": "2018-12-19T22:35:44+00:00"
         },
         {
             "name": "behat/gherkin",
@@ -2569,12 +2569,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/database.git",
-                "reference": "34af6e660298b28551483213e471d780819ffbc2"
+                "reference": "7312ee0f04a04fc04881f1b321b254cadeaab829"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/database/zipball/34af6e660298b28551483213e471d780819ffbc2",
-                "reference": "34af6e660298b28551483213e471d780819ffbc2",
+                "url": "https://api.github.com/repos/pckg/database/zipball/7312ee0f04a04fc04881f1b321b254cadeaab829",
+                "reference": "7312ee0f04a04fc04881f1b321b254cadeaab829",
                 "shasum": ""
             },
             "require": {
@@ -2604,7 +2604,7 @@
             ],
             "description": "Just another php / orm / pdo implementation for simple and advanced data management",
             "homepage": "https://github.com/pckg/database",
-            "time": "2018-12-16T01:36:59+00:00"
+            "time": "2018-12-20T01:33:23+00:00"
         },
         {
             "name": "pckg/framework",
@@ -2612,12 +2612,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/framework.git",
-                "reference": "cb5c34b572f01a4d93aa24bb7bb0ac450b57154a"
+                "reference": "33a9f25772eef38a3fec1672555128ab329e0637"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/framework/zipball/cb5c34b572f01a4d93aa24bb7bb0ac450b57154a",
-                "reference": "cb5c34b572f01a4d93aa24bb7bb0ac450b57154a",
+                "url": "https://api.github.com/repos/pckg/framework/zipball/33a9f25772eef38a3fec1672555128ab329e0637",
+                "reference": "33a9f25772eef38a3fec1672555128ab329e0637",
                 "shasum": ""
             },
             "require": {
@@ -2653,7 +2653,7 @@
             ],
             "description": "Fully featured lightweight php framework with multilingual support, twig templating engine, and tons of other features.",
             "homepage": "https://github.com/pckg/framework",
-            "time": "2018-12-18T20:19:41+00:00"
+            "time": "2018-12-19T22:31:07+00:00"
         },
         {
             "name": "pckg/generic",
@@ -2661,12 +2661,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/generic.git",
-                "reference": "2a3bcad829758b45146ad6c5569ec7b339f48dfb"
+                "reference": "788d8467e4e645b4ff1d4befbe04945ce8ff176d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/generic/zipball/2a3bcad829758b45146ad6c5569ec7b339f48dfb",
-                "reference": "2a3bcad829758b45146ad6c5569ec7b339f48dfb",
+                "url": "https://api.github.com/repos/pckg/generic/zipball/788d8467e4e645b4ff1d4befbe04945ce8ff176d",
+                "reference": "788d8467e4e645b4ff1d4befbe04945ce8ff176d",
                 "shasum": ""
             },
             "require": {
@@ -2692,7 +2692,7 @@
             ],
             "description": "Building admin interface and generic frontend made simple",
             "homepage": "https://github.com/pckg/generic",
-            "time": "2018-12-18T22:00:12+00:00"
+            "time": "2018-12-20T01:30:52+00:00"
         },
         {
             "name": "pckg/helpers-js",
@@ -2700,12 +2700,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/helpers-js.git",
-                "reference": "87ae5f80c6dcc26fe19bbebce77d21965bc11fc2"
+                "reference": "8b5fbd62ef3fc754d695a8f888899d6acd799d5a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/helpers-js/zipball/87ae5f80c6dcc26fe19bbebce77d21965bc11fc2",
-                "reference": "87ae5f80c6dcc26fe19bbebce77d21965bc11fc2",
+                "url": "https://api.github.com/repos/pckg/helpers-js/zipball/8b5fbd62ef3fc754d695a8f888899d6acd799d5a",
+                "reference": "8b5fbd62ef3fc754d695a8f888899d6acd799d5a",
                 "shasum": ""
             },
             "type": "library",
@@ -2721,7 +2721,7 @@
             ],
             "description": "Basic JS helpers",
             "homepage": "https://github.com/pckg/helpers-js",
-            "time": "2018-12-18T19:41:38+00:00"
+            "time": "2018-12-20T01:31:38+00:00"
         },
         {
             "name": "pckg/helpers-less",
@@ -2758,12 +2758,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/htmlbuilder.git",
-                "reference": "9cd7054ca779b9baa85a08dfb49fefa350ed09ae"
+                "reference": "12d2483f8280c86b9f16774ae572852eb57859fb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/htmlbuilder/zipball/9cd7054ca779b9baa85a08dfb49fefa350ed09ae",
-                "reference": "9cd7054ca779b9baa85a08dfb49fefa350ed09ae",
+                "url": "https://api.github.com/repos/pckg/htmlbuilder/zipball/12d2483f8280c86b9f16774ae572852eb57859fb",
+                "reference": "12d2483f8280c86b9f16774ae572852eb57859fb",
                 "shasum": ""
             },
             "require": {
@@ -2795,7 +2795,7 @@
             ],
             "description": "Build advanced forms in php with datasources, decorators, handlers and validators",
             "homepage": "https://bitbucket.org/lfw/htmlbuilder",
-            "time": "2018-12-16T20:42:22+00:00"
+            "time": "2018-12-19T22:11:51+00:00"
         },
         {
             "name": "pckg/import",
@@ -6340,12 +6340,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "fac7c487488520109302a604d13c28f15e0a9640"
+                "reference": "dfb3b1e87673313cfc632509cfe2d8bea4c5a241"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/fac7c487488520109302a604d13c28f15e0a9640",
-                "reference": "fac7c487488520109302a604d13c28f15e0a9640",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/dfb3b1e87673313cfc632509cfe2d8bea4c5a241",
+                "reference": "dfb3b1e87673313cfc632509cfe2d8bea4c5a241",
                 "shasum": ""
             },
             "require": {
@@ -6391,7 +6391,7 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "time": "2018-12-11T14:13:08+00:00"
+            "time": "2018-12-19T19:15:57+00:00"
         },
         {
             "name": "theseer/tokenizer",
