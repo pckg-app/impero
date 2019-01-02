@@ -5,12 +5,32 @@ Options All -Indexes
 RewriteEngine On
 
 # private rewrite
-RewriteCond %{REQUEST_FILENAME} \.(js|css|less|jpg|jpe?g|png|gif|webp|eot|otf|svg|woff|woff2|ttf|pdf|gz|ico|html|vue)$ [NC]
+RewriteCond %{REQUEST_FILENAME} \.(js|css|less|jpg|jpe?g|png|gif|eot|otf|svg|woff|woff2|ttf|pdf|gz|ico)$ [NC]
+#RewriteCond %{REQUEST_FILENAME} -f [NC]
 RewriteRule ^ - [L]
+
+# www rewrite
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC] # if host starts with www ...
+RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+# https rewrite
+RewriteCond %{HTTPS} off [NC] # if https is not current scheme ...
+RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301] # ... then redirect to https
+
+# dev.php redirect
+RewriteCond %{REQUEST_URI} ^/dev.php$
+RewriteRule .* %{REQUEST_SCHEME}://%{HTTP_HOST}/dev.php/ [L,R=301]
+
+# remove trailing slash
+RewriteCond %{REQUEST_URI} !^/dev.php/$ [NC]
+RewriteRule ^(.*)/$ /$1 [L,R=301]
 
 # default handler # index.php, dev.php
 RewriteRule ^(.*)$ www/$1 [L]
 
-#<IfModule mod_headers.c>
-#    Header set Access-Control-Allow-Origin http://bob.gonparty
-#</IfModule>
+<IfModule mod_headers.c>
+    Header add Access-Control-Allow-Origin *
+</IfModule>
+
+AddType text/css .less
+AddType 'text/css; charset=UTF-8' less
