@@ -14,8 +14,8 @@ RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC] # if host starts with www ...
 RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 
 # https rewrite
-RewriteCond %{HTTPS} off [NC] # if https is not current scheme ...
-RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301] # ... then redirect to https
+#RewriteCond %{HTTPS} off [NC] # if https is not current scheme ...
+#RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301] # ... then redirect to https
 
 # dev.php redirect
 RewriteCond %{REQUEST_URI} ^/dev.php$
