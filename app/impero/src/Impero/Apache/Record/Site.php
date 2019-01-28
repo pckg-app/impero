@@ -1407,7 +1407,7 @@ class Site extends Record
 
         $escaped = [];
         foreach ($replaces as $key => $value) {
-            $escaped[] = $key != '$password' ? $value : escapeshellarg($value);
+            $escaped[] = in_array($key, ['$password', '$name']) ? escapeshellarg($value) : $value;
         }
 
         return str_replace(array_keys($replaces), $escaped, $command);
