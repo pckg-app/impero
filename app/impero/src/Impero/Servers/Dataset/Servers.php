@@ -27,39 +27,39 @@ class Servers
     public function getServerForUser($serverId)
     {
         return (new ServersEntity())->withTags()->withSystem()->withServices(function(HasAndBelongsTo $services) {
-                $services->getMiddleEntity()->withStatus();
-            })->withDependencies(function(HasAndBelongsTo $dependencies) {
-                $dependencies->getMiddleEntity()->withStatus();
-            })->withJobs()->where('id', $serverId)->oneOrFail();
+            $services->getMiddleEntity()->withStatus();
+        })->withDependencies(function(HasAndBelongsTo $dependencies) {
+            $dependencies->getMiddleEntity()->withStatus();
+        })->withJobs()->where('id', $serverId)->oneOrFail();
     }
 
     public function getServersForUser()
     {
         return (new ServersEntity())->withTags()->withSystem()->withServices(function(HasAndBelongsTo $services) {
-                $services->getMiddleEntity()->withStatus();
-            })->withDependencies(function(HasAndBelongsTo $dependencies) {
-                $dependencies->getMiddleEntity()->withStatus();
-            })->withJobs()->all()->map(function(Server $server) {
-                $data = $server->toArray();
-                try {
-                    if ($server->status == 'active') {
-                        $server->getConnection();
-                    }
-                } catch (\Throwable $e) {
-                    $data['status'] = $e->getMessage();
+            $services->getMiddleEntity()->withStatus();
+        })->withDependencies(function(HasAndBelongsTo $dependencies) {
+            $dependencies->getMiddleEntity()->withStatus();
+        })->withJobs()->all()->map(function(Server $server) {
+            $data = $server->toArray();
+            try {
+                if ($server->status == 'active') {
+                    $server->getConnection();
                 }
+            } catch (\Throwable $e) {
+                $data['status'] = $e->getMessage();
+            }
 
-                $data['tags'] = $server->tags->toArray();
-                $data['os'] = $server->system->toArray();
+            $data['tags'] = $server->tags->toArray();
+            $data['os'] = $server->system->toArray();
 
-                $data['url'] = url('impero.servers.server', ['server' => $server->id]);
-                $data['applications'] = $this->getServerApplications($server);
-                $data['websites'] = $this->getServerWebsites($server);
-                $data['deployments'] = $this->getServerDeployments($server);
-                $data['logs'] = $this->getServerLogs($server);
+            $data['url'] = url('impero.servers.server', ['server' => $server->id]);
+            $data['applications'] = $this->getServerApplications($server);
+            $data['websites'] = $this->getServerWebsites($server);
+            $data['deployments'] = $this->getServerDeployments($server);
+            $data['logs'] = $this->getServerLogs($server);
 
-                return $data;
-            });
+            return $data;
+        });
     }
 
     public function getServerServices(Server $server)

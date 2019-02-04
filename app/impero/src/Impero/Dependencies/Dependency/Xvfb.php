@@ -7,8 +7,7 @@ class Xvfb extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('xvfb version');
+        $response = $this->getConnection()->exec('xvfb version');
 
         return $response;
     }

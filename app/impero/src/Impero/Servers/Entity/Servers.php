@@ -19,14 +19,12 @@ class Servers extends Entity
 
     public function tags()
     {
-        return $this->hasMany(Tags::class)
-                    ->foreignKey('server_id');
+        return $this->hasMany(Tags::class)->foreignKey('server_id');
     }
 
     public function system()
     {
-        return $this->belongsTo(Systems::class)
-                    ->foreignKey('system_id');
+        return $this->belongsTo(Systems::class)->foreignKey('system_id');
     }
 
     public function status()
@@ -55,47 +53,39 @@ class Servers extends Entity
 
     public function jobs()
     {
-        return $this->hasMany(Jobs::class)
-                    ->foreignKey('server_id');
+        return $this->hasMany(Jobs::class)->foreignKey('server_id');
     }
 
     public function settings()
     {
-        return $this->morphsMany(Settings::class)
-                    ->over(SettingsMorphs::class)
-                    ->rightForeignKey('setting_id');
+        return $this->morphsMany(Settings::class)->over(SettingsMorphs::class)->rightForeignKey('setting_id');
     }
 
     public function serversMorphs(callable $callable = null)
     {
-        return $this->hasMany(ServersMorphs::class, $callable)
-                    ->foreignKey('server_id');
+        return $this->hasMany(ServersMorphs::class, $callable)->foreignKey('server_id');
     }
 
     public function masterDatabases()
     {
-        return $this->hasMany(Databases::class)
-                    ->foreignKey('server_id');
+        return $this->hasMany(Databases::class)->foreignKey('server_id');
     }
 
     public function slaveDatabases()
     {
         return $this->hasAndBelongsTo(Databases::class)
-                    ->over(
-                        ServersMorphs::class, function(HasAndBelongsTo $databases) {
+                    ->over(ServersMorphs::class, function(HasAndBelongsTo $databases) {
                         $databases->getMiddleEntity()
                                   ->where('morph_id', Databases::class)
                                   ->where('type', 'database:slave');
-                    }
-                    )
+                    })
                     ->leftForeignKey('server_id')
                     ->rightForeignKey('poly_id');
     }
 
     public function sites()
     {
-        return $this->hasMany(Sites::class)
-                    ->foreignKey('server_id');
+        return $this->hasMany(Sites::class)->foreignKey('server_id');
     }
 
 }

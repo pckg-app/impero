@@ -12,21 +12,17 @@ class ServersServices extends Entity
 
     public function server()
     {
-        return $this->belongsTo(Servers::class)
-                    ->foreignKey('server_id');
+        return $this->belongsTo(Servers::class)->foreignKey('server_id');
     }
 
     public function service()
     {
-        return $this->belongsTo(Services::class)
-                    ->foreignKey('service_id');
+        return $this->belongsTo(Services::class)->foreignKey('service_id');
     }
 
     public function status()
     {
-        return $this->belongsTo(ListItems::class)
-                    ->foreignKey('status_id')
-                    ->primaryKey('slug');
+        return $this->belongsTo(ListItems::class)->foreignKey('status_id')->primaryKey('slug');
     }
 
 }

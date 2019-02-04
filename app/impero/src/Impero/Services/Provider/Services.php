@@ -19,10 +19,10 @@ class Services extends Provider
                            'tags'       => ['auth:in'],
                        ], [
                            ''         => route('', 'services'),
-                           '.install' => route('/[service]/install/[server]',
-                                               'install')->resolvers(['server'  => Server::class,
-                                                                      'service' => Service::class,
-                                                                     ]),
+                           '.install' => route('/[service]/install/[server]', 'install')->resolvers([
+                                                                                                        'server'  => Server::class,
+                                                                                                        'service' => Service::class,
+                                                                                                    ]),
                        ]),
         ];
     }

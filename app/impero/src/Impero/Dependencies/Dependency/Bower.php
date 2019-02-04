@@ -7,8 +7,7 @@ class Bower extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('bower --version');
+        $response = $this->getConnection()->exec('bower --version');
 
         return $response;
     }
@@ -17,9 +16,7 @@ class Bower extends AbstractDependency
     {
         $outdated = false;
 
-        return $outdated
-            ? 'outdated'
-            : 'ok';
+        return $outdated ? 'outdated' : 'ok';
     }
 
 }

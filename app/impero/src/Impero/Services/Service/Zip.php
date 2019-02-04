@@ -40,17 +40,16 @@ class Zip extends AbstractService implements ServiceInterface
     {
         $task = Task::create('Compressing file ');
 
-        return $task->make(
-            function() use ($file, $output) {
-                if (!$output) {
-                    $output = $this->prepareDirectory('random') . sha1random();
-                }
-                $dir = collect(explode('/', $output))->slice(0, -1)->implode('/');
-                $command = 'cd ' . $dir . ' && zip -j ' . $output . ' ' . $file . ' && mv ' . $output . '.zip ' . $output;
-                $this->exec($command);
-                return $output;
+        return $task->make(function() use ($file, $output) {
+            if (!$output) {
+                $output = $this->prepareDirectory('random') . sha1random();
             }
-        );
+            $dir = collect(explode('/', $output))->slice(0, -1)->implode('/');
+            $command = 'cd ' . $dir . ' && zip -j ' . $output . ' ' . $file . ' && mv ' . $output . '.zip ' . $output;
+            $this->exec($command);
+
+            return $output;
+        });
     }
 
     /**
@@ -65,8 +64,8 @@ class Zip extends AbstractService implements ServiceInterface
             $output = $this->prepareDirectory('random') . sha1random();
         }
 
-        $command = 'zip ' . $output . ' -y -x "live/*/*/storage/tmp/*" -x "live/*/*/storage/cache/*" -r '
-            . $input . ' && mv ' . $output . '.zip ' . $output;
+        $command = 'zip ' . $output . ' -y -x "live/*/*/storage/tmp/*" -x "live/*/*/storage/cache/*" -r ' . $input .
+            ' && mv ' . $output . '.zip ' . $output;
         $this->exec($command);
 
         return $output;
@@ -110,6 +109,7 @@ class Zip extends AbstractService implements ServiceInterface
         }
         $command = 'unzip ' . $file . ' ' . $output;
         $this->exec($command);
+
         return $output;
     }
 

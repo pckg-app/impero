@@ -7,8 +7,7 @@ class Git extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('git --version');
+        $response = $this->getConnection()->exec('git --version');
 
         $versionStart = strlen('git version ');
 
@@ -19,9 +18,7 @@ class Git extends AbstractDependency
     {
         $outdated = false;
 
-        return $outdated
-            ? 'outdated'
-            : 'ok';
+        return $outdated ? 'outdated' : 'ok';
     }
 
 }

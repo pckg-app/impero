@@ -19,7 +19,8 @@ class SitesServer extends Record
 
     public function undeploy()
     {
-        $task = Task::create('Un-deploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' . $this->server_id);
+        $task = Task::create('Un-deploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' .
+                             $this->server_id);
 
         return $task->make(function() {
             if ($this->type == 'cron') {
@@ -30,7 +31,8 @@ class SitesServer extends Record
 
     public function redeploy()
     {
-        $task = Task::create('Redeploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' . $this->server_id);
+        $task = Task::create('Redeploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' .
+                             $this->server_id);
 
         return $task->make(function() {
             $this->undeploy();
@@ -40,12 +42,13 @@ class SitesServer extends Record
 
     public function deploy()
     {
-        $task = Task::create('Deploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' . $this->server_id);
+        $task = Task::create('Deploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' .
+                             $this->server_id);
 
         return $task->make(function() {
             if ($this->type == 'cron') {
                 $this->site->deployCronService($this->server);
-            } else if ($this->type == 'web') {
+            } elseif ($this->type == 'web') {
                 $this->site->deployConfigService($this->server);
             }
         });

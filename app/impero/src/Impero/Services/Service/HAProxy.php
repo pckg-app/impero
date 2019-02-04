@@ -35,8 +35,7 @@ class HAProxy extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('haproxy -v');
+        $response = $this->getConnection()->exec('haproxy -v');
 
         $start = strpos($response, 'HA-Proxy version ') + strlen('HA-Proxy version ');
         $end = strpos($response, "\n");

@@ -45,8 +45,7 @@ class Php extends AbstractService implements ServiceInterface
      */
     public function isInstalled()
     {
-        $response = $this->getConnection()
-                         ->exec($this->service . ' -v');
+        $response = $this->getConnection()->exec($this->service . ' -v');
 
         return strpos($response, 'No command') === false;
     }
@@ -56,8 +55,7 @@ class Php extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec($this->service . ' -v');
+        $response = $this->getConnection()->exec($this->service . ' -v');
 
         $start = strpos($response, 'PHP ') + strlen('PHP ');
         $end = strpos($response, " ", $start);

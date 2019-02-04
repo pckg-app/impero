@@ -333,21 +333,18 @@ class Site extends Record
         }
 
         if ($skipped) {
-            $this->server->logCommand('Skipping obtaining certificate(s) for domains ' . collect($skipped)->implode(', ') . ' on ip ' . $ip,
-                                      null,
-                                      null,
-                                      null);
+            $this->server->logCommand('Skipping obtaining certificate(s) for domains ' .
+                                      collect($skipped)->implode(', ') . ' on ip ' . $ip, null, null, null);
         }
 
         if ($realDomains) {
-            $this->server->logCommand('Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') . ' on ip ' . $ip,
-                                      null,
-                                      null,
-                                      null);
+            $this->server->logCommand('Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') .
+                                      ' on ip ' . $ip, null, null, null);
         }
 
         $realDomains = implode(',', $realDomains);
-        $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email . ' --webroot-path ' . $webroot . ' --cert-name ' . $domain . ' --domains "' . $realDomains . '" --webroot --expand';
+        $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email . ' --webroot-path ' .
+            $webroot . ' --cert-name ' . $domain . ' --domains "' . $realDomains . '" --webroot --expand';
 
         /**
          * Execute command.
@@ -736,12 +733,10 @@ class Site extends Record
          * IP is determined by location of service, project and network topology.
          * First we will scale web service, so we need to modify $dbDefaultHost variable for config.
          * $dbDefaultHost variable is composed from config (we can use $web.., $cron.., and others in similar way).
-         *
          *  - when web and db services are on same host network is local - localhost or 127.0.0.1
          *  - when they are on different host:
          *    - private network ip is used when private network is enabled (10....)
          *    - public network ip is used when private network is not available (159....)
-         *
          * /impero knows which services should be communicating from project network settings.
          */
         return $this->replaceVars($connection->sftpRead($this->getHtdocsPath() . $file));
@@ -855,22 +850,35 @@ class Site extends Record
 
         foreach ($pckg['checkout']['create']['dir'] ?? [] as $dir) {
             $parsed = $this->replaceVars($htdocsDir . $dir);
-            $checks['dirs'][$storageDir . $dir] = $connection->dirExists($parsed) ? 'ok:dir' : ($connection->symlinkExists($parsed) ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
+            $checks['dirs'][$storageDir . $dir] = $connection->dirExists($parsed) ? 'ok:dir'
+                : ($connection->symlinkExists($parsed) ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
         }
         foreach ($pckg['checkout']['symlink']['dir'] ?? [] as $dir) {
             $parsed = $this->replaceVars($htdocsDir . $dir);
-            $checks['dirs'][$parsed] = $connection->symlinkExists($parsed) ? 'ok:symlink' : ($connection->dirExists($parsed) ? 'dir' : $connection->fileExists($parsed) ? 'file' : null);
+            $checks['dirs'][$parsed] = $connection->symlinkExists($parsed) ? 'ok:symlink'
+                : ($connection->dirExists($parsed) ? 'dir' : $connection->fileExists($parsed) ? 'file' : null);
         }
         foreach ($pckg['checkout']['symlink']['file'] ?? [] as $dir) {
             $parsed = $this->replaceVars($htdocsDir . $dir);
-            $checks['dirs'][$parsed] = $connection->fileExists($parsed) ? 'ok:file' : ($connection->dirExists($parsed) ? 'dir' : $connection->symlinkExists($parsed) ? 'symlink' : null);
+            $checks['dirs'][$parsed] = $connection->fileExists($parsed)
+                ? 'ok:file'
+                : ($connection->dirExists($parsed)
+                    ? 'dir' : $connection->symlinkExists($parsed) ? 'symlink' : null);
         }
         foreach ($pckg['services']['storage']['dir'] ?? [] as $dir) {
             $parsed = $this->replaceVars($storageDir . $dir);
-            $checks['dirs'][$parsed] = $connection->dirExists($parsed) ? 'ok:dir' : ($connection->symlinkExists($parsed) ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
+            $checks['dirs'][$parsed] = $connection->dirExists($parsed)
+                ? 'ok:dir'
+                : ($connection->symlinkExists($parsed)
+                    ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
         }
         foreach ($pckg['services']['web']['mount'] ?? [] as $link => $dir) {
-            $checks['dirs'][$storageDir . $link] = $connection->symlinkExists($htdocsDir . $link) ? 'ok:symlink' : ($connection->dirExists($htdocsDir . $link) ? 'dir' : $connection->fileExists($htdocsDir . $link) ? 'file' : null);
+            $checks['dirs'][$storageDir . $link] = $connection->symlinkExists($htdocsDir . $link)
+                ? 'ok:symlink'
+                : ($connection->dirExists($htdocsDir . $link)
+                    ? 'dir'
+                    : $connection->fileExists($htdocsDir . $link)
+                        ? 'file' : null);
         }
 
         return $checks;
@@ -1002,8 +1010,8 @@ class Site extends Record
         $task = Task::create('Copying old config');
 
         return $task->make(function() use ($server) {
-            $server->getConnection()
-                   ->exec('cp ' . $this->getHtdocsOldPath() . 'config/env.php ' . $this->getHtdocsPath() . 'config/env.php');
+            $server->getConnection()->exec('cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
+                                           $this->getHtdocsPath() . 'config/env.php');
         });
     }
 
@@ -1089,8 +1097,7 @@ class Site extends Record
                 if ($connection->fileExists($destination)) {
                     $connection->deleteFile($destination);
                 }
-                $connection->saveContent($destination,
-                                         $this->getConfigFileContent($connection, $copy));
+                $connection->saveContent($destination, $this->getConfigFileContent($connection, $copy));
             }
         });
     }
@@ -1183,10 +1190,7 @@ class Site extends Record
         $connection->execMultiple([
                                       'git clone ' . $pckg['repository'] . ' .',
                                       'git checkout ' . $pckg['branch'],
-                                  ],
-                                  $output,
-                                  $error,
-                                  $aliasDir);
+                                  ], $output, $error, $aliasDir);
 
         /**
          * Init platform.
@@ -1196,16 +1200,14 @@ class Site extends Record
 
     public function getLinkedDir($pckg)
     {
-        return '/www/_linked/' . str_replace(['.', '@', '/', ':'],
-                                             '-',
-                                             $pckg['repository']) . '/' . $pckg['branch'] . '/';
+        return '/www/_linked/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' . $pckg['branch'] .
+            '/';
     }
 
     public function getBlueGreenDir($pckg)
     {
-        return '/www/_ab/' . str_replace(['.', '@', '/', ':'],
-                                         '-',
-                                         $pckg['repository']) . '/' . $pckg['branch'] . '/a|b|giTcommit' . '/';
+        return '/www/_ab/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' . $pckg['branch'] .
+            '/a|b|giTcommit' . '/';
     }
 
     /**
@@ -1232,17 +1234,14 @@ class Site extends Record
                  */
                 /**
                  * When multiple containers on host share same checkout each points to specific commit.
-                 *
                  * There are directories:
                  *       - /www/_ab/$repository/$branch/shacommit1
                  *       - /www/_ab/$repository/$branch/shacommit2
                  *       - ...
-                 *
                  * When 1 worker is active:
                  *  - apache and nginx point shacommit1 directory
                  *  - we perform deploy in new directory shacommit2
                  *  - we simply switch /www/client/project/htdocs/ from shacommit1 to shacommit2 and reload services
-                 *
                  * When multiple workers are active
                  *  - apache and nginx point shacommit1 directory
                  *  - we perform deploy in new directory shacommit2
@@ -1250,7 +1249,7 @@ class Site extends Record
                  *  - we put next worker down, change htdocs to shacommit2, reload services, put worker up
                  *  - ...
                  */
-            } else if ($pckg['checkout']['type'] == 'linked') {
+            } elseif ($pckg['checkout']['type'] == 'linked') {
                 /**
                  * Htdocs directory will point to /www/_linked/$repository/$branch/
                  */
@@ -1363,7 +1362,8 @@ class Site extends Record
                  *
                  * @T00D00 - check if this is needed at all times?
                  */
-                $connection->exec('rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath . $storageDir . '/ --stats');
+                $connection->exec('rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath . $storageDir .
+                                  '/ --stats');
             }
 
             /**

@@ -152,8 +152,7 @@ class GPG extends AbstractService implements ServiceInterface
         }
         die("why is this used?");
         $toGpgService = new GPG($to);
-        $toGpgService->tempUseFile($crypto->getKeys()['public'],
-                                   $from,
+        $toGpgService->tempUseFile($crypto->getKeys()['public'], $from,
             function() use ($toGpgService, $from, $input, $output, $keyFiles) {
                 //$toGpgService->tempUsePrivateKey(
                 //  $keyFiles, $from, function() use ($keyFiles, $input, $output) {
@@ -194,9 +193,10 @@ class GPG extends AbstractService implements ServiceInterface
          * When we encrypt things for unknown server (regular backups) we generate public and private key on /impero.
          * Generate key threesome.
          */
-        $toConnection = $to ? $to->getConnection() : context()
-            ->getOrCreate(ConnectionManager::class)
-            ->createConnection();
+        $toConnection = $to
+            ? $to->getConnection() : context()
+                ->getOrCreate(ConnectionManager::class)
+                ->createConnection();
         $toGpgService = (new GPG($toConnection));
         $keyFiles = $toGpgService->generateThreesome();
         $crypto->setKeys($keyFiles);
@@ -207,18 +207,16 @@ class GPG extends AbstractService implements ServiceInterface
          *  - unknown: impero -> source
          * We also import public key to gpg store, encrypt file, remove it from store and delete it from server.
          */
-        $toGpgService->tempUseFile($keyFiles['public'],
-                                   $from,
+        $toGpgService->tempUseFile($keyFiles['public'], $from,
             function($tempFile) use ($toGpgService, $from, $keyFiles, $input, $output) {
-                $toGpgService->tempUsePublicKey($tempFile,
-                                                $keyFiles,
-                                                $from,
+                $toGpgService->tempUsePublicKey($tempFile, $keyFiles, $from,
                     function() use ($keyFiles, $input, $output) {
 
                         /**
                          * Encrypt file.
                          */
-                        $command = 'gpg2 --output ' . $output . ' --trust-model always --encrypt --recipient ' . $keyFiles['recipient'] . '@impero ' . $input;
+                        $command = 'gpg2 --output ' . $output . ' --trust-model always --encrypt --recipient ' .
+                            $keyFiles['recipient'] . '@impero ' . $input;
                         $this->exec($command);
                     });
             });
@@ -487,12 +485,14 @@ class GPG extends AbstractService implements ServiceInterface
          */
         $connection = $this->getConnection();
         if ($connection instanceof LocalConnection) {
-            $connection->exec('rsync -a ' . $file . ' impero@' . $to->ip . ':' . ($target ?? $file) . ' -e \'ssh -p ' . $to->port . ' -i ' . path('private') . 'keys/id_rsa_' . $to->id . '\'');
+            $connection->exec('rsync -a ' . $file . ' impero@' . $to->ip . ':' . ($target ?? $file) . ' -e \'ssh -p ' .
+                              $to->port . ' -i ' . path('private') . 'keys/id_rsa_' . $to->id . '\'');
         } else {
             /**
              * Remotes are synced.
              */
-            $connection->exec('rsync -a ' . $file . ' impero@' . $to->ip . ':' . ($target ?? $file) . ' -e \'ssh -p ' . $to->port . '\'');
+            $connection->exec('rsync -a ' . $file . ' impero@' . $to->ip . ':' . ($target ?? $file) . ' -e \'ssh -p ' .
+                              $to->port . '\'');
         }
     }
 

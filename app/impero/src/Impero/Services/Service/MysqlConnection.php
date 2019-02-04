@@ -76,11 +76,7 @@ class MysqlConnection
             $tunnelPort = $this->sshConnection->tunnel();
 
             $p = "mysql:host=127.0.0.1:" . $tunnelPort . ";charset=utf8" . ($database ? ";dbname=" . $database : '');
-            $this->pdo = new PDO(
-                $p,
-                'impero',
-                $this->getMysqlPassword()
-            );
+            $this->pdo = new PDO($p, 'impero', $this->getMysqlPassword());
         }
 
         if (!$sql) {
@@ -100,9 +96,8 @@ class MysqlConnection
         if (!$execute) {
             $errorInfo = $prepared->errorInfo();
 
-            throw new Exception(
-                'Cannot execute prepared statement: ' . end($errorInfo) . ' : ' . $prepared->queryString
-            );
+            throw new Exception('Cannot execute prepared statement: ' . end($errorInfo) . ' : ' .
+                                $prepared->queryString);
         }
 
         return $prepared->fetchAll();

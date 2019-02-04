@@ -66,7 +66,6 @@ class Ssh extends AbstractService implements ServiceInterface
                  * We will edit /etc/ssh/sshd_config
                  * Find line which starts with 'Port '
                  * Replace it with 'Port $newVal'
-                 *
                  */
             });
         }

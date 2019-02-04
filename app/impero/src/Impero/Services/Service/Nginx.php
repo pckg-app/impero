@@ -23,8 +23,7 @@ class Nginx extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('nginx version');
+        $response = $this->getConnection()->exec('nginx version');
 
         $start = strpos($response, 'ufw ') + strlen('ufw ');
         $end = strpos($response, "\n");

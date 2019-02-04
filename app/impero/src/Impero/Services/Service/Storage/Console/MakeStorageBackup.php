@@ -36,41 +36,36 @@ class MakeStorageBackup extends Command
          * Filter only master servers.
          * First, make zipped backup.
          */
-        $servers->each(
-            function(Server $server) {
-                try {
-                    $pid = Fork::fork(
-                        function() use ($server) {
-                            $this->outputDated('Started #' . $server->id . ' cold storage backup');
-                            return;
-                            /**
-                             * Backup primarly attached volumes.
-                             * On zero.gonparty.eu: backup /mnt/volume-fra1-01/live/
-                             * This is backed up to cold storage.
-                             *
-                             * @T00D00 - we should backup each site separately for quicker restore and backup
-                             *         - we should also automate restore of multiple sites per once for faster restore
-                             * @T00D00 : there are different types of storages:
-                             *        - volume: can be backed up by making snapshot
-                             *        - root: can be backed up by making zip
-                             */
-                            $storage = Storage::gets(1);
-                            $storage->backup($server);
-                            $this->outputDated('Ended #' . $server->id . ' cold storage backup');
-                        },
-                        function() use ($server) {
-                            return 'impero:backup:storage:' . $server->id;
-                        },
-                        function() {
-                            throw new Exception('Cannot run storage backup in parallel');
-                        }
-                    );
-                    Fork::waitFor($pid);
-                } catch (Throwable $e) {
-                    $this->outputDated('EXCEPTION: ' . exception($e));
-                }
+        $servers->each(function(Server $server) {
+            try {
+                $pid = Fork::fork(function() use ($server) {
+                    $this->outputDated('Started #' . $server->id . ' cold storage backup');
+
+                    return;
+                    /**
+                     * Backup primarly attached volumes.
+                     * On zero.gonparty.eu: backup /mnt/volume-fra1-01/live/
+                     * This is backed up to cold storage.
+                     *
+                     * @T00D00 - we should backup each site separately for quicker restore and backup
+                     *         - we should also automate restore of multiple sites per once for faster restore
+                     * @T00D00 : there are different types of storages:
+                     *        - volume: can be backed up by making snapshot
+                     *        - root: can be backed up by making zip
+                     */
+                    $storage = Storage::gets(1);
+                    $storage->backup($server);
+                    $this->outputDated('Ended #' . $server->id . ' cold storage backup');
+                }, function() use ($server) {
+                    return 'impero:backup:storage:' . $server->id;
+                }, function() {
+                    throw new Exception('Cannot run storage backup in parallel');
+                });
+                Fork::waitFor($pid);
+            } catch (Throwable $e) {
+                $this->outputDated('EXCEPTION: ' . exception($e));
             }
-        );
+        });
 
         Fork::waitWaiting();
 
@@ -78,38 +73,33 @@ class MakeStorageBackup extends Command
          * Make storage live backups.
          * We can process each server simultaniosly.
          */
-        $servers->each(
-            function(Server $server) {
-                /**
-                 * @T00D00 - somehow we need to sync only changed files?
-                 */
-                try {
-                    $pid = Fork::fork(
-                        function() use ($server) {
-                            $this->outputDated('Started #' . $server->id . ' passive storage backup');
-                            return;
-                            /**
-                             * Backup primarly attached volumes.
-                             * On zero.gonparty.eu: backup /mnt/volume-fra1-01/live/
-                             * This is backed up to slave / passive storage.
-                             */
-                            $storage = Storage::gets(1);
-                            $storage->backupLive($server);
-                            $this->outputDated('Ended #' . $server->id . ' binlog backup');
-                        },
-                        function() use ($server) {
-                            return 'impero:backup:storageLive:' . $server->id;
-                        },
-                        function() {
-                            throw new Exception('Cannot run storage live backup in parallel');
-                        }
-                    );
-                    Fork::waitFor($pid);
-                } catch (Throwable $e) {
-                    $this->outputDated('EXCEPTION: ' . exception($e));
-                }
+        $servers->each(function(Server $server) {
+            /**
+             * @T00D00 - somehow we need to sync only changed files?
+             */
+            try {
+                $pid = Fork::fork(function() use ($server) {
+                    $this->outputDated('Started #' . $server->id . ' passive storage backup');
+
+                    return;
+                    /**
+                     * Backup primarly attached volumes.
+                     * On zero.gonparty.eu: backup /mnt/volume-fra1-01/live/
+                     * This is backed up to slave / passive storage.
+                     */
+                    $storage = Storage::gets(1);
+                    $storage->backupLive($server);
+                    $this->outputDated('Ended #' . $server->id . ' binlog backup');
+                }, function() use ($server) {
+                    return 'impero:backup:storageLive:' . $server->id;
+                }, function() {
+                    throw new Exception('Cannot run storage live backup in parallel');
+                });
+                Fork::waitFor($pid);
+            } catch (Throwable $e) {
+                $this->outputDated('EXCEPTION: ' . exception($e));
             }
-        );
+        });
 
         Fork::waitWaiting();
 

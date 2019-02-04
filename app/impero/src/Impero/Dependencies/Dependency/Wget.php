@@ -7,8 +7,7 @@ class Wget extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('wget version');
+        $response = $this->getConnection()->exec('wget version');
 
         return $response;
     }

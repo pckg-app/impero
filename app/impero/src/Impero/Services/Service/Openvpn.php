@@ -23,8 +23,7 @@ class Openvpn extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('openvnp --version');
+        $response = $this->getConnection()->exec('openvnp --version');
 
         return $response;
         $start = strpos($response, 'OpenVPN ') + strlen('OpenVPN ');

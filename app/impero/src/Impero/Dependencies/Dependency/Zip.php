@@ -7,8 +7,7 @@ class Zip extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('zip version');
+        $response = $this->getConnection()->exec('zip version');
 
         return $response;
     }

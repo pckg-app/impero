@@ -31,27 +31,21 @@ class MakeSystemBackup extends Command
     {
         $servers = (new Servers())->all();
 
-        $servers->each(
-            function(Server $server) {
-                try {
-                    Fork::fork(
-                        function() use ($server) {
-                            /**
-                             * Throw backup event for all services that are listening for backup event. :)
-                             */
-                        },
-                        function() use ($server) {
-                            return 'impero:backup:system:' . $server->id;
-                        },
-                        function() {
-                            throw new Exception('Cannot run system backup in parallel');
-                        }
-                    );
-                } catch (Throwable $e) {
-                    $this->output('EXCEPTION: ' . exception($e));
-                }
+        $servers->each(function(Server $server) {
+            try {
+                Fork::fork(function() use ($server) {
+                    /**
+                     * Throw backup event for all services that are listening for backup event. :)
+                     */
+                }, function() use ($server) {
+                    return 'impero:backup:system:' . $server->id;
+                }, function() {
+                    throw new Exception('Cannot run system backup in parallel');
+                });
+            } catch (Throwable $e) {
+                $this->output('EXCEPTION: ' . exception($e));
             }
-        );
+        });
     }
 
 }

@@ -11,17 +11,12 @@ class DumpMysql extends Command
     {
         $this->setName('mysql:dump')
              ->setDescription('Dump mysql configuration')
-             ->addOptions(
-                 [
-                     'server' => 'Server ID',
-                 ],
-                 InputOption::VALUE_REQUIRED
-             )
-             ->addOptions(
-                 [
-                     'dry' => 'Do not dump on remote',
-                 ], InputOption::VALUE_NONE
-             );
+             ->addOptions([
+                              'server' => 'Server ID',
+                          ], InputOption::VALUE_REQUIRED)
+             ->addOptions([
+                              'dry' => 'Do not dump on remote',
+                          ], InputOption::VALUE_NONE);
     }
 
     public function handle()

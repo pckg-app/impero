@@ -35,8 +35,7 @@ abstract class AbstractDependency implements DependencyInterface
 
     public function isInstalled()
     {
-        $this->getConnection()
-             ->exec($this->dependency, $error);
+        $this->getConnection()->exec($this->dependency, $error);
 
         if ($error && strpos($error, 'command not found')) {
             return false;
@@ -49,7 +48,7 @@ abstract class AbstractDependency implements DependencyInterface
     {
         if ($this->via == 'apt') {
             $this->getConnection()->exec('sudo apt-get install -y ' . ($this->install ?? $this->service));
-        } else if ($this->via == 'npm') {
+        } elseif ($this->via == 'npm') {
             $this->getConnection()->exec('sudo npm install -g ' . ($this->install ?? $this->service));
         }
     }

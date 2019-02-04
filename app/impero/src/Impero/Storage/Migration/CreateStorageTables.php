@@ -10,7 +10,7 @@ class CreateStorageTables extends Migration
         $storages = $this->table('storages');
         $storages->title();
         $storages->varchar('location');
-        
+
         $this->save();
     }
 

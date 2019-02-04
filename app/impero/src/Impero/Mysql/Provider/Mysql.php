@@ -17,39 +17,35 @@ class Mysql extends Provider
     public function routes()
     {
         return [
-            'url' => maestro_urls(Database::class, 'database', 'database', DatabaseResolver::class, 'mysql/databases')
-                     + maestro_urls(User::class, 'user', 'user', UserResolver::class, 'mysql/users'),
+            'url' => maestro_urls(Database::class, 'database', 'database', DatabaseResolver::class, 'mysql/databases') +
+                maestro_urls(User::class, 'user', 'user', UserResolver::class, 'mysql/users'),
 
             (new Group([
                            'controller' => DatabaseApi::class,
                            'urlPrefix'  => '/api/database',
                            'namePrefix' => 'api.database',
-                           'tags' => ['auth:in'],
+                           'tags'       => ['auth:in'],
                        ]))->routes([
                                        ''            => (new Route('', 'database')),
                                        '.search'     => (new Route('/search', 'search')),
-                                       '.query'      => (new Route('/[database]/query', 'query'))
-                                           ->resolvers([
-                                                           'database' => NewDatabaseResolver::class,
-                                                       ]),
-                                       '.importFile' => (new Route('/[database]/importFile', 'importFile'))
-                                           ->resolvers([
-                                                           'database' => NewDatabaseResolver::class,
-                                                       ]),
-                                       '.replicate'  => (new Route('/[database]/replicate', 'replicate'))
-                                           ->resolvers([
-                                                           'database' => NewDatabaseResolver::class,
-                                                       ]),
-                                       '.backup'     => (new Route('/[database]/backup', 'backup'))
-                                           ->resolvers([
-                                                           'database' => NewDatabaseResolver::class,
-                                                       ]),
+                                       '.query'      => (new Route('/[database]/query', 'query'))->resolvers([
+                                                                                                                 'database' => NewDatabaseResolver::class,
+                                                                                                             ]),
+                                       '.importFile' => (new Route('/[database]/importFile', 'importFile'))->resolvers([
+                                                                                                                           'database' => NewDatabaseResolver::class,
+                                                                                                                       ]),
+                                       '.replicate'  => (new Route('/[database]/replicate', 'replicate'))->resolvers([
+                                                                                                                         'database' => NewDatabaseResolver::class,
+                                                                                                                     ]),
+                                       '.backup'     => (new Route('/[database]/backup', 'backup'))->resolvers([
+                                                                                                                   'database' => NewDatabaseResolver::class,
+                                                                                                               ]),
                                    ]),
             (new Group([
                            'controller' => DatabaseUserApi::class,
                            'urlPrefix'  => '/api/databaseUser',
                            'namePrefix' => 'api.databaseUser',
-                           'tags' => ['auth:in'],
+                           'tags'       => ['auth:in'],
                        ]))->routes([
                                        '' => (new Route('', 'user'))->resolvers(),
                                    ]),

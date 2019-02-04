@@ -16,10 +16,9 @@ class Services
 
     public function getInstallAction(Server $server, Service $service)
     {
-        return '<impero-service-install-' . $service->service
-            . ' :server="' . htmlspecialchars(json_encode($server))
-            . '" :service="' . htmlspecialchars(json_encode($service))
-            . '"></impero-service-install-' . $service->service . '>';
+        return '<impero-service-install-' . $service->service . ' :server="' . htmlspecialchars(json_encode($server)) .
+            '" :service="' . htmlspecialchars(json_encode($service)) . '"></impero-service-install-' .
+            $service->service . '>';
     }
 
     public function postInstallAction(Server $server, Service $service)

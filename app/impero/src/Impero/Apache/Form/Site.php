@@ -10,13 +10,9 @@ class Site extends Form\Bootstrap implements ResolvesOnRequest
     {
         $this->addHidden('id');
 
-        $this->addText('server_name')
-             ->setLabel('Server name (URL)')
-             ->setPrefix('http(s)://');
+        $this->addText('server_name')->setLabel('Server name (URL)')->setPrefix('http(s)://');
 
-        $this->addText('server_alias')
-             ->setLabel('Server aliases:')
-             ->setHelp('<p>Separated by spaces</p>');
+        $this->addText('server_alias')->setLabel('Server aliases:')->setHelp('<p>Separated by spaces</p>');
 
         $this->addText('document_root')
              ->setLabel('Document root:')
@@ -27,22 +23,17 @@ class Site extends Form\Bootstrap implements ResolvesOnRequest
         $this->addSelect('ssl')
              ->setLabel('SSL')
              ->setPlaceholder('Select SSL method')
-             ->setHelp(
-                 '<p>By default, we disabled SSL.</p><p>You can enable it by uploading cerficates or choosing LetsEncrypt FREE alternative.</p>'
-             )
-             ->addOptions(
-                 [
-                     ''            => 'Disabled (default)',
-                     'file'        => 'File',
-                     'letsencrypt' => 'LetsEncrypt',
-                 ]
-             );
+             ->setHelp('<p>By default, we disabled SSL.</p><p>You can enable it by uploading cerficates or choosing LetsEncrypt FREE alternative.</p>')
+             ->addOptions([
+                              ''            => 'Disabled (default)',
+                              'file'        => 'File',
+                              'letsencrypt' => 'LetsEncrypt',
+                          ]);
         $this->addSslFileFields();
         $this->addSslLetsencrypt();
         $this->addLogFields();
 
-        $this->addCheckbox('enabled')
-             ->setLabel('Site is enabled');
+        $this->addCheckbox('enabled')->setLabel('Site is enabled');
 
         $this->addSubmit();
 
@@ -51,15 +42,13 @@ class Site extends Form\Bootstrap implements ResolvesOnRequest
 
     private function addSslFileFields()
     {
-        $this->addFile('ssl_certificate_key')
-             ->setLabel('*.crt')/*
+        $this->addFile('ssl_certificate_key')->setLabel('*.crt')/*
             ->extensions(['crt'])
             ->requiredWhen('ssl', 'file')
             ->enabledWhen('ssl', 'file')*/
         ;
 
-        $this->addFile('ssl_certificate_key_file')
-             ->setLabel('*.key')/*
+        $this->addFile('ssl_certificate_key_file')->setLabel('*.key')/*
             ->extensions(['key'])
             ->requiredWhen('ssl', 'file')
             ->enabledWhen('ssl', 'file')*/
@@ -68,8 +57,7 @@ class Site extends Form\Bootstrap implements ResolvesOnRequest
 
     private function addSslLetsencrypt()
     {
-        $this->addCheckbox('ssl_letsencrypt_autorenew')
-             ->setLabel('Automatically renew certificate');
+        $this->addCheckbox('ssl_letsencrypt_autorenew')->setLabel('Automatically renew certificate');
     }
 
     private function addLogFields()

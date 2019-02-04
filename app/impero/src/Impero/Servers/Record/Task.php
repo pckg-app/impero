@@ -32,12 +32,10 @@ class Task extends Record
         /**
          * Create task in database.
          */
-        $task = parent::create(array_merge($data,
-                                           [
-                                               'parent_id' => $parentTask->id ?? null,
-                                               'status'    => 'created',
-                                           ]),
-                               $entity);
+        $task = parent::create(array_merge($data, [
+                                                    'parent_id' => $parentTask->id ?? null,
+                                                    'status'    => 'created',
+                                                ]), $entity);
 
         /**
          * Bind it as current.

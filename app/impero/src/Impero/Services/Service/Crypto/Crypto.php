@@ -48,7 +48,7 @@ class Crypto
     /**
      * Crypto constructor.
      *
-     * @param string      $file
+     * @param string $file
      * @param Server|null $from
      * @param Server|null $to
      */
@@ -134,25 +134,23 @@ class Crypto
     {
         $task = Task::create('Transferring file');
 
-        return $task->make(
-            function() {
-                /**
-                 * Compress, encrypt, and delete all unused copies.
-                 * We know that we'll transfer file from $from to $to server.
-                 */
-                $this->compressAndEncrypt();
+        return $task->make(function() {
+            /**
+             * Compress, encrypt, and delete all unused copies.
+             * We know that we'll transfer file from $from to $to server.
+             */
+            $this->compressAndEncrypt();
 
-                /**
-                 * Transfer backup.
-                 */
-                $this->transfer();
+            /**
+             * Transfer backup.
+             */
+            $this->transfer();
 
-                /**
-                 * Decrypt, decompress, and delete all unused copies.
-                 */
-                return $this->decryptAndDecompress();
-            }
-        );
+            /**
+             * Decrypt, decompress, and delete all unused copies.
+             */
+            return $this->decryptAndDecompress();
+        });
     }
 
     /**
@@ -193,19 +191,17 @@ class Crypto
     {
         $task = Task::create('Encrypting file');
 
-        return $task->make(
-            function() {
-                /**
-                 * File is then encrypted with gpg service.
-                 * Delete original after usage.
-                 */
-                $fromGpgService = new GPG($this->from);
-                $encryptedFile = $fromGpgService->encrypt($this);
-                $this->replaceFile($this->from, $encryptedFile);
+        return $task->make(function() {
+            /**
+             * File is then encrypted with gpg service.
+             * Delete original after usage.
+             */
+            $fromGpgService = new GPG($this->from);
+            $encryptedFile = $fromGpgService->encrypt($this);
+            $this->replaceFile($this->from, $encryptedFile);
 
-                return $encryptedFile;
-            }
-        );
+            return $encryptedFile;
+        });
     }
 
     /**
@@ -247,7 +243,9 @@ class Crypto
          */
         $toConnection = $this->to
             ? $this->to->getConnection()
-            : context()->getOrCreate(ConnectionManager::class)->createConnection();
+            : context()
+                ->getOrCreate(ConnectionManager::class)
+                ->createConnection();
         $toGpgService = (new GPG($toConnection));
         $decryptedFile = $toGpgService->decrypt($this);
         $this->replaceFile($this->to, $decryptedFile);
@@ -283,9 +281,7 @@ class Crypto
     protected function prepareDirectory($dir)
     {
 
-        $root = $this->to->getConnection() instanceof LocalConnection
-            ? path('private')
-            : '/home/impero/impero/';
+        $root = $this->to->getConnection() instanceof LocalConnection ? path('private') : '/home/impero/impero/';
         $dir = $root . 'service/random';// . $dir;
 
         if ($this->to->getConnection()->dirExists($dir)) {

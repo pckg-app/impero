@@ -18,11 +18,9 @@ class ApacheGraceful extends Command
 
         $this->output('Restarting apache.');
         unlink('/tmp/impero_apache_graceful');
-        $this->exec(
-            [
-                'apache2ctl graceful',
-            ]
-        );
+        $this->exec([
+                        'apache2ctl graceful',
+                    ]);
         $this->output('Apache restarted');
     }
 
@@ -30,12 +28,9 @@ class ApacheGraceful extends Command
     {
         $this->setName('apache:graceful')
              ->setDescription('Graceful apache (this should be run by root privileges)')
-             ->addOptions(
-                 [
-                     'server' => 'Server ID',
-                 ],
-                 InputOption::VALUE_REQUIRED
-             );
+             ->addOptions([
+                              'server' => 'Server ID',
+                          ], InputOption::VALUE_REQUIRED);
     }
 
 }

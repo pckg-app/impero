@@ -1,7 +1,6 @@
 <?php namespace Impero\Ftp\Record\Ftp;
 
 use Impero\Ftp\Entity\Ftps;
-use Impero\Ftp\Record\Ftp;
 use Pckg\Auth\Service\Auth;
 use Pckg\Concept\Reflect\Resolver as ResolverInterface;
 use Pckg\Framework\Response;
@@ -51,13 +50,10 @@ class Resolver implements ResolverInterface
         /**
          * We should resolve parameter or throw exception.
          */
-        return $this->ftps->where('id', $id)
-            //->userIsAuthorized()
-                          ->oneOrFail(
-                function() {
-                    $this->response->unauthorized('Ftp account not found');
-                }
-            );
+        return $this->ftps->where('id', $id)//->userIsAuthorized()
+                          ->oneOrFail(function() {
+                $this->response->unauthorized('Ftp account not found');
+            });
     }
 
     public function parametrize($record)

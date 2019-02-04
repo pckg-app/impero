@@ -11,8 +11,7 @@ class Task extends Provider
         return [
             routeGroup([
                            'controller' => Tasks::class,
-                       ],
-                       [
+                       ], [
                            'tasks.history' => route('/tasks', 'tasks'),
                        ]),
 
@@ -20,8 +19,7 @@ class Task extends Provider
                            'controller' => Tasks::class,
                            'namePrefix' => 'api.tasks',
                            'urlPrefix'  => '/api',
-                       ],
-                       [
+                       ], [
                            '' => route('/tasks', 'apiTasks'),
                        ]),
         ];

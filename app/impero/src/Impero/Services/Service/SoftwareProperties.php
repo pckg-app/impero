@@ -18,5 +18,4 @@ class SoftwareProperties extends AbstractService implements ServiceInterface
      */
     protected $name = 'Software properties (common)';
 
-
 }

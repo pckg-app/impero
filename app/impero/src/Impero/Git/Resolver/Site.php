@@ -8,11 +8,9 @@ class Site implements RouteResolver
 
     public function resolve($value)
     {
-        return (new Sites())->where('id', $value)->oneOrFail(
-            function() {
-                response()->notFound('Site not found');
-            }
-        );
+        return (new Sites())->where('id', $value)->oneOrFail(function() {
+            response()->notFound('Site not found');
+        });
     }
 
     public function parametrize($record)

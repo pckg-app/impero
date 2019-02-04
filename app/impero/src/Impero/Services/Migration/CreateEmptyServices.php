@@ -15,17 +15,11 @@ class CreateEmptyServices extends Migration
          */
         $sites = (new Sites())->all();
         $services = collect(['web', 'database', 'cron']);
-        $sites->each(
-            function(Site $site) use ($services) {
-                $services->each(
-                    function($service) use ($site) {
-                        SitesServer::getOrCreate(
-                            ['server_id' => $site->server_id, 'site_id' => $site->id, 'type' => $service]
-                        );
-                    }
-                );
-            }
-        );
+        $sites->each(function(Site $site) use ($services) {
+            $services->each(function($service) use ($site) {
+                SitesServer::getOrCreate(['server_id' => $site->server_id, 'site_id' => $site->id, 'type' => $service]);
+            });
+        });
     }
 
 }

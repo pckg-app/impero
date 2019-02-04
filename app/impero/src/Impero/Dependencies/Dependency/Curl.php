@@ -13,8 +13,7 @@ class Curl extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('curl version');
+        $response = $this->getConnection()->exec('curl version');
 
         return $response;
     }

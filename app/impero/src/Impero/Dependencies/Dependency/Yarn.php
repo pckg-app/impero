@@ -7,8 +7,7 @@ class Yarn extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('yarn version');
+        $response = $this->getConnection()->exec('yarn version');
 
         return $response;
     }

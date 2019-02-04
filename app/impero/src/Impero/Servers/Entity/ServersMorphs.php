@@ -8,9 +8,7 @@ class ServersMorphs extends Entity
 
     public function database()
     {
-        return $this->belongsTo(Databases::class)
-                    ->foreignKey('poly_id')
-                    ->where('morph_id', Databases::class);
+        return $this->belongsTo(Databases::class)->foreignKey('poly_id')->where('morph_id', Databases::class);
     }
 
 }

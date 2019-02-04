@@ -71,9 +71,7 @@ class AbstractService
     protected function prepareDirectory($dir, Server $server = null)
     {
         $connection = $server ? $server->getConnection() : $this->getConnection();
-        $root = $connection instanceof LocalConnection
-            ? path('private')
-            : '/home/impero/impero/';
+        $root = $connection instanceof LocalConnection ? path('private') : '/home/impero/impero/';
         $dir = $root . 'service/random';// . $dir;
 
         if ($connection->dirExists($dir)) {
@@ -126,8 +124,7 @@ class AbstractService
      */
     public function isInstalled()
     {
-        $response = $this->getConnection()
-                         ->exec('service ' . $this->service . ' status');
+        $response = $this->getConnection()->exec('service ' . $this->service . ' status');
 
         $notFound = strpos($response, 'Loaded: not-found');
         $loaded = strpos($response, 'Loaded: loaded');
@@ -140,23 +137,14 @@ class AbstractService
      */
     public function getStatus()
     {
-        $response = $this->getConnection()
-                         ->exec('service ' . $this->service . ' status');
+        $response = $this->getConnection()->exec('service ' . $this->service . ' status');
 
         $loaded = strpos($response, 'Loaded: loaded');
         $active = strpos($response, 'Active: active (running)');
         $exited = strpos($response, 'Active: active (exited)');
         $notFound = strpos($response, 'Loaded: not-found');
 
-        return $loaded
-            ? ($active
-                ? 'ok'
-                : ($exited
-                    ? 'ok, exited'
-                    : 'inactive'))
-            : ($notFound
-                ? 'missing'
-                : 'error');
+        return $loaded ? ($active ? 'ok' : ($exited ? 'ok, exited' : 'inactive')) : ($notFound ? 'missing' : 'error');
     }
 
     /**
@@ -170,6 +158,7 @@ class AbstractService
             $this->getConnection()->exec('sudo npm install -g ' . ($this->install ?? $this->service));
         }
     }
+
     /**
      * @return mixed|null
      */

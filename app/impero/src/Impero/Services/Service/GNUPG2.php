@@ -33,8 +33,7 @@ class GNUPG2 extends AbstractService implements ServiceInterface
         // mkdir ~/.gnupg
         // chmod 0700 ~/.gnupg
         // mkdir /var/www/.gnupg
-        $response = $this->getConnection()
-                         ->exec('ufw version');
+        $response = $this->getConnection()->exec('ufw version');
 
         $start = strpos($response, 'ufw ') + strlen('ufw ');
         $end = strpos($response, "\n");

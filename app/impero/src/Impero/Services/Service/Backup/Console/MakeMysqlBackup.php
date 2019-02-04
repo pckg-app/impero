@@ -1,13 +1,10 @@
 <?php namespace Impero\Services\Service\Backup\Console;
 
-use Exception;
-use Impero\Mysql\Entity\Databases;
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
 use Pckg\Framework\Console\Command;
 use Pckg\Queue\Service\Cron\Fork;
-use Rollbar\Payload\Data;
 use Throwable;
 
 /**
@@ -47,38 +44,34 @@ class MakeMysqlBackup extends Command
          * As soon as possible we have to implement fully automated restore strategy.
          * Also, filter only master servers.
          */
-        $servers->each(
-            function(Server $server) {
-                try {
-                    /*$pid = Fork::fork(
-                        function() use ($server) {*/
-                            $this->outputDated('Started #' . $server->id . ' cold backup');
+        $servers->each(function(Server $server) {
+            try {
+                /*$pid = Fork::fork(
+                    function() use ($server) {*/
+                $this->outputDated('Started #' . $server->id . ' cold backup');
 
-                            /**
-                             * Make backup of each database separately.
-                             */
-                            $server->masterDatabases->each(
-                                function(Database $database) {
-                                    $this->outputDated('Starting ' . $database->name);
-                                    $database->backup();
-                                    $this->outputDated('Finished ' . $database->name);
-                                }
-                            );
-                            $this->outputDated('Ended #' . $server->id . ' cold backup');
-                        /*},
-                        function() use ($server) {
-                            return 'impero:backup:mysql:' . $server->id;
-                        },
-                        function() {
-                            throw new Exception('Cannot run mysql backup in parallel');
-                        }
-                    );
-                    Fork::waitFor($pid);*/
-                } catch (Throwable $e) {
-                    $this->outputDated('EXCEPTION: ' . exception($e));
+                /**
+                 * Make backup of each database separately.
+                 */
+                $server->masterDatabases->each(function(Database $database) {
+                    $this->outputDated('Starting ' . $database->name);
+                    $database->backup();
+                    $this->outputDated('Finished ' . $database->name);
+                });
+                $this->outputDated('Ended #' . $server->id . ' cold backup');
+                /*},
+                function() use ($server) {
+                    return 'impero:backup:mysql:' . $server->id;
+                },
+                function() {
+                    throw new Exception('Cannot run mysql backup in parallel');
                 }
+            );
+            Fork::waitFor($pid);*/
+            } catch (Throwable $e) {
+                $this->outputDated('EXCEPTION: ' . exception($e));
             }
-        );
+        });
 
         /**
          * Wait for regular backups to be made.
