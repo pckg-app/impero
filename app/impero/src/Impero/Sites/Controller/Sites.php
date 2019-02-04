@@ -21,18 +21,13 @@ class Sites
     {
         $deleteUrl = url('impero.site.confirmDelete', ['site' => $site], true) . '?hash=' . $site->hash;
 
-        email(
-            [
-                'subject' => 'Confirm /impero site #' . $site->id . ' (' . $site->title . ') removal',
-                'content' => '<p>Hey Bojan,</p>'
-                    . '<p>someone requested removal of site ' . $site->id . ' (' . $site->title . '.</p>'
-                    . '<p>If you really want to delete site and all it\'s contents, please login to /impero and click '
-                    . '<a href="' . $deleteUrl . '">here</a>.'
-                    . '</p>'
-                    . '<p>Best regards, /impero team</p>',
-            ],
-            new SimpleUser('schtr4jh@schtr4jh.net')
-        );
+        email([
+                  'subject' => 'Confirm /impero site #' . $site->id . ' (' . $site->title . ') removal',
+                  'content' => '<p>Hey Bojan,</p>' . '<p>someone requested removal of site ' . $site->id . ' (' .
+                      $site->title . '.</p>' .
+                      '<p>If you really want to delete site and all it\'s contents, please login to /impero and click ' .
+                      '<a href="' . $deleteUrl . '">here</a>.' . '</p>' . '<p>Best regards, /impero team</p>',
+              ], new SimpleUser('schtr4jh@schtr4jh.net'));
 
         return [
             'success' => true,
@@ -70,18 +65,16 @@ class Sites
          * Site is only created, it is not deployed in any way.
          * Services are enabled manually.
          */
-        $site = Site::create(
-            [
-                'server_name'   => $data['name'],
-                'server_alias'  => $data['aliases'],
-                'user_id'       => $data['user_id'],
-                'error_log'     => 1,
-                'access_log'    => 1,
-                'created_at'    => date('Y-m-d H:i:s'),
-                'document_root' => $data['name'],
-                'server_id'     => $data['server_id'],
-            ]
-        );
+        $site = Site::create([
+                                 'server_name'   => $data['name'],
+                                 'server_alias'  => $data['aliases'],
+                                 'user_id'       => $data['user_id'],
+                                 'error_log'     => 1,
+                                 'access_log'    => 1,
+                                 'created_at'    => date('Y-m-d H:i:s'),
+                                 'document_root' => $data['name'],
+                                 'server_id'     => $data['server_id'],
+                             ]);
 
         return [
             'site' => $site,
@@ -227,7 +220,8 @@ class Sites
      */
     public function postDeployAction(Site $site)
     {
-        $site->deploy($site->server, post('pckg', []), post('vars', []), post('isAlias', false), post('checkAlias', false));
+        $site->deploy($site->server, post('pckg', []), post('vars', []), post('isAlias', false),
+                      post('checkAlias', false));
 
         return [
             'site' => $site,
@@ -275,13 +269,11 @@ class Sites
         }
 
         $databases = (new Databases())->where('server_id', $server->id)->where('name', $databases)->all();
-        $databases->each(
-            function(Database $database) use ($server) {
-                $database->requireMysqlMasterReplication();
-                $database->replicateOnMaster();
-                $database->replicateTo($server);
-            }
-        );
+        $databases->each(function(Database $database) use ($server) {
+            $database->requireMysqlMasterReplication();
+            $database->replicateOnMaster();
+            $database->replicateTo($server);
+        });
 
         return [
             'success'   => true,

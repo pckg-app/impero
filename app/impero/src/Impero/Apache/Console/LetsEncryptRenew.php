@@ -10,13 +10,12 @@ class LetsEncryptRenew extends Command
      */
     public function handle()
     {
-        
+
     }
 
     protected function configure()
     {
-        $this->setName('letsencrypt:renew')
-             ->setDescription('Renew LetsEncrypt certificates');
+        $this->setName('letsencrypt:renew')->setDescription('Renew LetsEncrypt certificates');
     }
 
 }

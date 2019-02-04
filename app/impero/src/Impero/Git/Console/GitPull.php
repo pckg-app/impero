@@ -18,13 +18,11 @@ class GitPull extends Command
         $this->output('Pulling changes.');
         $data = json_decode($this->option('data'));
 
-        $this->exec(
-            [
-                'cd ' . $data->dir . ' && git pull --ff',
-                'cd ' . $data->dir . ' && git submodule update',
-                'cd ' . $data->dir . ' && composer install',
-            ]
-        );
+        $this->exec([
+                        'cd ' . $data->dir . ' && git pull --ff',
+                        'cd ' . $data->dir . ' && git submodule update',
+                        'cd ' . $data->dir . ' && composer install',
+                    ]);
 
         $this->output('Changes pulled.');
     }

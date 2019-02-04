@@ -3,6 +3,7 @@
 use Impero\Servers\Entity\Servers as ServersEntity;
 use Impero\Servers\Record\Server;
 use Impero\Services\Service\Apache;
+use Impero\Services\Service\Connection\SshConnection;
 use Impero\Services\Service\Cron;
 use Impero\Services\Service\GPG;
 use Impero\Services\Service\Mysql;
@@ -14,7 +15,6 @@ use Impero\Services\Service\PhpFpm;
 use Impero\Services\Service\Pureftpd;
 use Impero\Services\Service\Sendmail;
 use Impero\Services\Service\Ssh;
-use Impero\Services\Service\Connection\SshConnection;
 use Impero\Services\Service\Ufw;
 use Impero\Services\Service\Zip;
 use Pckg\Database\Relation\HasAndBelongsTo;
@@ -24,50 +24,38 @@ class Servers
 
     public function getServerForUser($serverId)
     {
-        return (new ServersEntity())->withTags()
-                                    ->withSystem()
-                                    ->withServices(function(HasAndBelongsTo $services) {
-                                        $services->getMiddleEntity()->withStatus();
-                                    })
-                                    ->withDependencies(function(HasAndBelongsTo $dependencies) {
-                                        $dependencies->getMiddleEntity()->withStatus();
-                                    })
-                                    ->withJobs()
-                                    ->where('id', $serverId)
-                                    ->oneOrFail();
+        return (new ServersEntity())->withTags()->withSystem()->withServices(function(HasAndBelongsTo $services) {
+                $services->getMiddleEntity()->withStatus();
+            })->withDependencies(function(HasAndBelongsTo $dependencies) {
+                $dependencies->getMiddleEntity()->withStatus();
+            })->withJobs()->where('id', $serverId)->oneOrFail();
     }
 
     public function getServersForUser()
     {
-        return (new ServersEntity())->withTags()
-                                    ->withSystem()
-                                    ->withServices(function(HasAndBelongsTo $services) {
-                                        $services->getMiddleEntity()->withStatus();
-                                    })
-                                    ->withDependencies(function(HasAndBelongsTo $dependencies) {
-                                        $dependencies->getMiddleEntity()->withStatus();
-                                    })
-                                    ->withJobs()
-                                    ->all()
-                                    ->map(function(Server $server) {
-                                        $data = $server->toArray();
-                                        try {
-                                            $connection = $server->getConnection();
-                                        } catch (\Throwable $e) {
-                                            $data['status'] = $e->getMessage();
-                                        }
+        return (new ServersEntity())->withTags()->withSystem()->withServices(function(HasAndBelongsTo $services) {
+                $services->getMiddleEntity()->withStatus();
+            })->withDependencies(function(HasAndBelongsTo $dependencies) {
+                $dependencies->getMiddleEntity()->withStatus();
+            })->withJobs()->all()->map(function(Server $server) {
+                $data = $server->toArray();
+                try {
+                    $connection = $server->getConnection();
+                } catch (\Throwable $e) {
+                    $data['status'] = $e->getMessage();
+                }
 
-                                        $data['tags'] = $server->tags->toArray();
-                                        $data['os'] = $server->system->toArray();
+                $data['tags'] = $server->tags->toArray();
+                $data['os'] = $server->system->toArray();
 
-                                        $data['url'] = url('impero.servers.server', ['server' => $server->id]);
-                                        $data['applications'] = $this->getServerApplications();
-                                        $data['websites'] = $this->getServerWebsites();
-                                        $data['deployments'] = $this->getServerDeployments();
-                                        $data['logs'] = $this->getServerLogs();
+                $data['url'] = url('impero.servers.server', ['server' => $server->id]);
+                $data['applications'] = $this->getServerApplications();
+                $data['websites'] = $this->getServerWebsites();
+                $data['deployments'] = $this->getServerDeployments();
+                $data['logs'] = $this->getServerLogs();
 
-                                        return $data;
-                                    });
+                return $data;
+            });
     }
 
     public function getServerServices()
@@ -268,8 +256,8 @@ class Servers
             '--bla --blabla --foo=bar',
         ];
 
-        return $prefixes[array_rand($prefixes)] . ' ' . $dirs[array_rand($dirs)] . ' ' .
-               $execs[array_rand($execs)] . ' ' . $args[array_rand($args)] . ' ';
+        return $prefixes[array_rand($prefixes)] . ' ' . $dirs[array_rand($dirs)] . ' ' . $execs[array_rand($execs)] .
+            ' ' . $args[array_rand($args)] . ' ';
     }
 
     private function getGitVersion()

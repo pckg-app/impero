@@ -23,8 +23,7 @@ class Ssh extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('ssh -V');
+        $response = $this->getConnection()->exec('ssh -V');
 
         $length = strpos($response, ",");
 

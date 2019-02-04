@@ -1,11 +1,8 @@
 <?php namespace Impero\Apache\Record\Site;
 
 use Impero\Apache\Entity\Sites;
-use Impero\Apache\Record\Site;
 use Pckg\Auth\Service\Auth;
-use Pckg\Concept\Reflect;
 use Pckg\Concept\Reflect\Resolver as ResolverInterface;
-use Pckg\Database\Record;
 use Pckg\Framework\Response;
 use Pckg\Framework\Router;
 
@@ -46,13 +43,10 @@ class Resolver implements ResolverInterface
             $this->response->bad('Site parameter is missing ...');
         }
 
-        return $this->sites->where('id', $id)
-            //->userIsAuthorized()
-                           ->oneOrFail(
-                function() {
-                    $this->response->unauthorized('Site not found');
-                }
-            );
+        return $this->sites->where('id', $id)//->userIsAuthorized()
+                           ->oneOrFail(function() {
+                $this->response->unauthorized('Site not found');
+            });
     }
 
     public function parametrize($record)

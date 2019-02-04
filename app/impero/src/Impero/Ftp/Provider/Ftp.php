@@ -1,6 +1,5 @@
 <?php namespace Impero\Ftp\Provider;
 
-use Impero\Apache\Record\Site;
 use Impero\Ftp\Console\DumpFtpAccounts;
 use Impero\Ftp\Controller\Ftp as FtpController;
 use Impero\Ftp\Record\Ftp\Resolver as FtpResolver;

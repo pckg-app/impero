@@ -29,10 +29,10 @@ class ConnectionManager
          * When server is passed, create remote ssh connection.
          */
         if ($server && !isset($this->connections[$server->id])) {
-            return $this->connections[$server->id] = new SshConnection(
-                $server, $server->ip, $server->user, $server->port,
-                path('storage') . 'private/keys/id_rsa_' . $server->id
-            );
+            return $this->connections[$server->id] = new SshConnection($server, $server->ip, $server->user,
+                                                                       $server->port,
+                                                                       path('storage') . 'private/keys/id_rsa_' .
+                                                                       $server->id);
         }
 
         return $this->connections[$server->id ?? null];

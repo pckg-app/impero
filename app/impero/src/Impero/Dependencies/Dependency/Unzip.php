@@ -7,8 +7,7 @@ class Unzip extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('unzip version');
+        $response = $this->getConnection()->exec('unzip version');
 
         return $response;
     }

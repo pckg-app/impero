@@ -24,9 +24,7 @@ class Sites extends Entity implements MaestroEntity
 
     public function user()
     {
-        return $this->belongsTo(Users::class)
-                    ->foreignKey('user_id')
-                    ->fill('user', 'sites');
+        return $this->belongsTo(Users::class)->foreignKey('user_id')->fill('user', 'sites');
     }
 
     public function scopeUserIsAuthorized()
@@ -38,24 +36,19 @@ class Sites extends Entity implements MaestroEntity
              * User has access to it's domains
              */
             return $this->where('user_id', $auth->getUser()->id);
-        } else if ($auth->hasFlag('reseller')) {
+        } elseif ($auth->hasFlag('reseller')) {
             /**
              * Reseller has access to it's and sub-user domains
              */
-            return $this->where(
-                'user_id',
-                $auth->getUser()->id,
-                '=',
-                function($query) use ($auth) {
-                    $query->orWhere('user_id', $auth->getUser()->subusers->all()->map('id'));
-                }
-            );
-        } else if ($auth->hasFlag('admin')) {
+            return $this->where('user_id', $auth->getUser()->id, '=', function($query) use ($auth) {
+                $query->orWhere('user_id', $auth->getUser()->subusers->all()->map('id'));
+            });
+        } elseif ($auth->hasFlag('admin')) {
             /**
              * Admin has access to all domains
              */
             return $this->where('user_id', $auth->getUser()->id, '=');
-        } else if ($auth->hasFlag('superadmin')) {
+        } elseif ($auth->hasFlag('superadmin')) {
             /**
              * Admin has access to all domains
              */
@@ -67,8 +60,7 @@ class Sites extends Entity implements MaestroEntity
 
     public function server()
     {
-        return $this->belongsTo(Servers::class)
-                    ->foreignKey('server_id');
+        return $this->belongsTo(Servers::class)->foreignKey('server_id');
     }
 
 }

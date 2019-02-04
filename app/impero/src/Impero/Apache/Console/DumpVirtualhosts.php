@@ -15,18 +15,12 @@ class DumpVirtualhosts extends Command
     {
         $this->setName('apache:dump')
              ->setDescription('Dump all virtualhosts')
-             ->addOptions(
-                 [
-                     'server' => 'Server ID',
-                 ],
-                 InputOption::VALUE_REQUIRED
-             )
-             ->addOptions(
-                 [
-                     'dry' => 'Do not dump or restart',
-                 ],
-                 InputOption::VALUE_NONE
-             );
+             ->addOptions([
+                              'server' => 'Server ID',
+                          ], InputOption::VALUE_REQUIRED)
+             ->addOptions([
+                              'dry' => 'Do not dump or restart',
+                          ], InputOption::VALUE_NONE);
     }
 
     /**

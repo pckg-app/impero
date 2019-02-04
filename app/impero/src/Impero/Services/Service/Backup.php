@@ -63,6 +63,7 @@ class Backup extends AbstractService implements ServiceInterface
     public function createStorageBackup(Server $server, Storage $storage)
     {
         $zip = (new Zip($server->getConnection()));
+
         return $zip->compressDirectory($storage->location);
     }
 
@@ -97,6 +98,7 @@ class Backup extends AbstractService implements ServiceInterface
     public function fromCold($file)
     {
         $do = (new DigitalOcean($this->getConnection()));
+
         return $do->downloadFromSpaces($file);
     }
 

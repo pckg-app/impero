@@ -27,8 +27,7 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('mysql -V');
+        $response = $this->getConnection()->exec('mysql -V');
 
         $start = strpos($response, 'Ver ') + strlen('Ver ');
         $end = strpos($response, ",");
@@ -173,11 +172,9 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function refreshMasterReplicationFilter(Collection $databases)
     {
-        $dbString = $databases->map(
-            function(Database $database) {
-                return '`' . $database->name . '`';
-            }
-        )->implode(',');
+        $dbString = $databases->map(function(Database $database) {
+            return '`' . $database->name . '`';
+        })->implode(',');
         $sql = 'CHANGE REPLICATION FILTER REPLICATE_DO_DB = (' . $dbString . ');';
         $this->getMysqlConnection()->execute($sql);
     }
@@ -187,11 +184,9 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function refreshSlaveReplicationFilter(Collection $databases)
     {
-        $dbString = $databases->map(
-            function(Database $database) {
-                return '`' . $database->name . '.%`';
-            }
-        )->implode(',');
+        $dbString = $databases->map(function(Database $database) {
+            return '`' . $database->name . '.%`';
+        })->implode(',');
         $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
         $this->getMysqlConnection()->execute($sql);
     }
@@ -211,6 +206,7 @@ class Mysql extends AbstractService implements ServiceInterface
          * Check for existence.
          */
         $line = 'binlog_do_db = ' . $database->name;
+
         return in_array($line, $replications);
     }
 
@@ -293,8 +289,8 @@ class Mysql extends AbstractService implements ServiceInterface
         $binlogs = 'binlog.001002 binlog.001003 binlog.001004';
         $startBinlogPosition = '27284';
         $stopBinlogPosition = '27284'; // or --stop-never ? what about --one-database ?
-        $command = 'mysqlbinlog --start-position=' . $startBinlogPosition . '  --stop-position=' . $stopBinlogPosition . ' ' . $binlogs . ' '
-            . '| mysql --host=host_name -u root -p';
+        $command = 'mysqlbinlog --start-position=' . $startBinlogPosition . '  --stop-position=' . $stopBinlogPosition .
+            ' ' . $binlogs . ' ' . '| mysql --host=host_name -u root -p';
     }
 
 }

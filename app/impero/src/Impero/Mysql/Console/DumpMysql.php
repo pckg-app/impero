@@ -10,14 +10,10 @@ class DumpMysql extends Command
 
     protected function configure()
     {
-        $this->setName('mysql:dump')
-             ->setDescription('Dump mysql configuration')
-             ->addOptions(
-                 [
-                     'server' => 'Server ID',
-                 ],
-                 InputOption::VALUE_REQUIRED
-             );
+        $this->setName('mysql:dump')->setDescription('Dump mysql configuration')->addOptions([
+                                                                                                 'server' => 'Server ID',
+                                                                                             ],
+                                                                                             InputOption::VALUE_REQUIRED);
     }
 
     public function handle()

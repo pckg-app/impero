@@ -11,19 +11,17 @@ class Services extends Provider
     public function routes()
     {
         return [
-            routeGroup(
-                [
-                    'controller' => ServicesController::class,
-                    'urlPrefix'  => '/api/services',
-                    'namePrefix' => 'api.services',
-                ],
-                [
-                    '' => route('', 'services'),
-                    '.install' => route('/[service]/install/[server]', 'install')->resolvers(
-                        ['server' => Server::class, 'service' => Service::class]
-                    ),
-                ]
-            ),
+            routeGroup([
+                           'controller' => ServicesController::class,
+                           'urlPrefix'  => '/api/services',
+                           'namePrefix' => 'api.services',
+                       ], [
+                           ''         => route('', 'services'),
+                           '.install' => route('/[service]/install/[server]',
+                                               'install')->resolvers(['server'  => Server::class,
+                                                                      'service' => Service::class,
+                                                                     ]),
+                       ]),
         ];
     }
 

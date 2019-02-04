@@ -24,8 +24,7 @@ class Users extends Entity implements MaestroEntity
 
     public function server()
     {
-        return $this->belongsTo(Servers::class)
-                    ->foreignKey('server_id');
+        return $this->belongsTo(Servers::class)->foreignKey('server_id');
     }
 
 }

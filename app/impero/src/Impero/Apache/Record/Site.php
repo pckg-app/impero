@@ -316,23 +316,18 @@ class Site extends Record
         }
 
         if ($skipped) {
-            $this->server->logCommand(
-                'Skipping obtaining certificate(s) for domains ' .
-                collect($skipped)->implode(', ') . ' on ip ' . $ip, null, null, null
-            );
+            $this->server->logCommand('Skipping obtaining certificate(s) for domains ' .
+                                      collect($skipped)->implode(', ') . ' on ip ' . $ip, null, null, null);
         }
 
         if ($realDomains) {
-            $this->server->logCommand(
-                'Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') .
-                ' on ip ' . $ip, null, null, null
-            );
+            $this->server->logCommand('Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') .
+                                      ' on ip ' . $ip, null, null, null);
         }
 
         $realDomains = implode(',', $realDomains);
-        $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email
-            . ' --webroot-path ' . $webroot . ' --cert-name ' . $domain . ' --domains "'
-            . $realDomains . '" --webroot --expand';
+        $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email . ' --webroot-path ' .
+            $webroot . ' --cert-name ' . $domain . ' --domains "' . $realDomains . '" --webroot --expand';
 
         /**
          * Execute command.
@@ -340,9 +335,8 @@ class Site extends Record
         $connection = $this->getServerConnection();
         $response = $connection->exec($command . ' ' . $params);
 
-        if (strpos($response, 'Congratulations! Your certificate and chain have been saved at:') === false
-            && strpos($response, 'Certificate not yet due for renewal') === false
-        ) {
+        if (strpos($response, 'Congratulations! Your certificate and chain have been saved at:') === false &&
+            strpos($response, 'Certificate not yet due for renewal') === false) {
             return false;
         }
 
@@ -367,15 +361,13 @@ class Site extends Record
         /**
          * Update site in impero.
          */
-        $this->setAndSave(
-            [
-                'ssl'                        => 'letsencrypt',
-                'ssl_certificate_file'       => 'cert.pem',
-                'ssl_certificate_key_file'   => 'privkey.pem',
-                'ssl_certificate_chain_file' => 'fullchain.pem',
-                'ssl_letsencrypt_autorenew'  => true,
-            ]
-        );
+        $this->setAndSave([
+                              'ssl'                        => 'letsencrypt',
+                              'ssl_certificate_file'       => 'cert.pem',
+                              'ssl_certificate_key_file'   => 'privkey.pem',
+                              'ssl_certificate_chain_file' => 'fullchain.pem',
+                              'ssl_letsencrypt_autorenew'  => true,
+                          ]);
 
         /**
          * Dump virtualhosts and restart apache.
@@ -636,52 +628,31 @@ class Site extends Record
 
         foreach ($pckg['checkout']['create']['dir'] ?? [] as $dir) {
             $parsed = $this->replaceVars($htdocsDir . $dir);
-            $checks['dirs'][$storageDir . $dir] = $connection->dirExists($parsed)
-                ? 'ok:dir'
-                : ($connection->symlinkExists($parsed)
-                    ? 'symlink'
-                    : $connection->fileExists($parsed)
-                        ? 'file'
-                        : null);
+            $checks['dirs'][$storageDir . $dir] = $connection->dirExists($parsed) ? 'ok:dir'
+                : ($connection->symlinkExists($parsed) ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
         }
         foreach ($pckg['checkout']['symlink']['dir'] ?? [] as $dir) {
             $parsed = $this->replaceVars($htdocsDir . $dir);
-            $checks['dirs'][$parsed] = $connection->symlinkExists($parsed)
-                ? 'ok:symlink'
-                : ($connection->dirExists($parsed)
-                    ? 'dir'
-                    : $connection->fileExists($parsed)
-                        ? 'file'
-                        : null);
+            $checks['dirs'][$parsed] = $connection->symlinkExists($parsed) ? 'ok:symlink'
+                : ($connection->dirExists($parsed) ? 'dir' : $connection->fileExists($parsed) ? 'file' : null);
         }
         foreach ($pckg['checkout']['symlink']['file'] ?? [] as $dir) {
             $parsed = $this->replaceVars($htdocsDir . $dir);
             $checks['dirs'][$parsed] = $connection->fileExists($parsed)
-                ? 'ok:file'
-                : ($connection->dirExists($parsed)
-                    ? 'dir'
-                    : $connection->symlinkExists($parsed)
-                        ? 'symlink'
-                        : null);
+                ? 'ok:file' : ($connection->dirExists($parsed)
+                    ? 'dir' : $connection->symlinkExists($parsed) ? 'symlink' : null);
         }
         foreach ($pckg['services']['storage']['dir'] ?? [] as $dir) {
             $parsed = $this->replaceVars($storageDir . $dir);
             $checks['dirs'][$parsed] = $connection->dirExists($parsed)
-                ? 'ok:dir'
-                : ($connection->symlinkExists($parsed)
-                    ? 'symlink'
-                    : $connection->fileExists($parsed)
-                        ? 'file'
-                        : null);
+                ? 'ok:dir' : ($connection->symlinkExists($parsed)
+                    ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
         }
         foreach ($pckg['services']['web']['mount'] ?? [] as $link => $dir) {
             $checks['dirs'][$storageDir . $link] = $connection->symlinkExists($htdocsDir . $link)
-                ? 'ok:symlink'
-                : ($connection->dirExists($htdocsDir . $link)
-                    ? 'dir'
-                    : $connection->fileExists($htdocsDir . $link)
-                        ? 'file'
-                        : null);
+                ? 'ok:symlink' : ($connection->dirExists($htdocsDir . $link)
+                    ? 'dir' : $connection->fileExists($htdocsDir . $link)
+                        ? 'file' : null);
         }
 
         return $checks;
@@ -773,10 +744,8 @@ class Site extends Record
      */
     public function copyOldConfig(Server $server)
     {
-        $server->getConnection()->exec(
-            'cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
-            $this->getHtdocsPath() . 'config/env.php'
-        );
+        $server->getConnection()->exec('cp ' . $this->getHtdocsOldPath() . 'config/env.php ' . $this->getHtdocsPath() .
+                                       'config/env.php');
     }
 
     /**
@@ -824,12 +793,10 @@ class Site extends Record
         /**
          * Checkout platform.
          */
-        $connection->execMultiple(
-            [
-                'git clone ' . $pckg['repository'] . ' .',
-                'git checkout ' . $pckg['branch'],
-            ], $output, $error, $aliasDir
-        );
+        $connection->execMultiple([
+                                      'git clone ' . $pckg['repository'] . ' .',
+                                      'git checkout ' . $pckg['branch'],
+                                  ], $output, $error, $aliasDir);
 
         /**
          * Init platform.
@@ -839,14 +806,14 @@ class Site extends Record
 
     public function getLinkedDir($pckg)
     {
-        return '/www/_linked/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' .
-            $pckg['branch'] . '/';
+        return '/www/_linked/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' . $pckg['branch'] .
+            '/';
     }
 
     public function getBlueGreenDir($pckg)
     {
-        return '/www/_ab/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' .
-            $pckg['branch'] . '/a|b|giTcommit' . '/';
+        return '/www/_ab/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' . $pckg['branch'] .
+            '/a|b|giTcommit' . '/';
     }
 
     /**
@@ -960,10 +927,8 @@ class Site extends Record
                 /**
                  * Transfer contents.
                  */
-                $connection->exec(
-                    'rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath .
-                    $storageDir . '/ --stats'
-                );
+                $connection->exec('rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath . $storageDir .
+                                  '/ --stats');
                 continue;
             }
 
@@ -999,9 +964,7 @@ class Site extends Record
 
         $escaped = [];
         foreach ($replaces as $key => $value) {
-            $escaped[] = $key != '$password'
-                ? $value
-                : escapeshellarg($value);
+            $escaped[] = $key != '$password' ? $value : escapeshellarg($value);
         }
 
         return str_replace(array_keys($replaces), $escaped, $command);
@@ -1042,12 +1005,10 @@ class Site extends Record
                 /**
                  * Create mysql database, user and set privileges.
                  */
-                $database = Database::createFromPost(
-                    [
-                        'name'      => $dbname,
-                        'server_id' => $server->id,
-                    ]
-                );
+                $database = Database::createFromPost([
+                                                         'name'      => $dbname,
+                                                         'server_id' => $server->id,
+                                                     ]);
 
                 /**
                  * Manually call backup and replication.
@@ -1058,17 +1019,12 @@ class Site extends Record
                 /**
                  * For configuration.
                  */
-                $this->vars = array_merge(
-                    $this->vars,
-                    ['$dbname' => $dbname, '$dbpass' => $dbpass]
-                );
+                $this->vars = array_merge($this->vars, ['$dbname' => $dbname, '$dbpass' => $dbpass]);
             } elseif ($config['type'] == 'search') {
-                $database = Database::gets(
-                    [
-                        'server_id' => $server->id,
-                        'name'      => $config['name'],
-                    ]
-                );
+                $database = Database::gets([
+                                               'server_id' => $server->id,
+                                               'name'      => $config['name'],
+                                           ]);
             }
 
             /**
@@ -1083,15 +1039,13 @@ class Site extends Record
                 if (!isset($this->vars['$dbuser'])) {
                     $this->vars['$dbuser'] = $dbuser;
                 }
-                DatabaseUser::createFromPost(
-                    [
-                        'username'  => $dbuser,
-                        'password'  => $dbpass,
-                        'server_id' => 2,
-                        'database'  => $database->id,
-                        'privilege' => $privilege,
-                    ]
-                );
+                DatabaseUser::createFromPost([
+                                                 'username'  => $dbuser,
+                                                 'password'  => $dbpass,
+                                                 'server_id' => 2,
+                                                 'database'  => $database->id,
+                                                 'privilege' => $privilege,
+                                             ]);
             }
         }
     }
@@ -1103,8 +1057,7 @@ class Site extends Record
          */
         $this->vars['$securityKey'] = Key::createNewRandomKey()->saveToAsciiSafeString();
 
-        return $this->replaceVars(
-            '<?php
+        return $this->replaceVars('<?php
 
 return [
     \'identifier\' => \'$identifier\',
@@ -1141,8 +1094,7 @@ return [
         ],
     ],
 ];
-'
-        );
+');
     }
 
     public function hasServiceOnServer(Server $server, $service)

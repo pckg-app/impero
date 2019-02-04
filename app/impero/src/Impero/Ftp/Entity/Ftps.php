@@ -22,9 +22,7 @@ class Ftps extends Entity implements MaestroEntity
 
     public function user()
     {
-        return $this->belongsTo(Users::class)
-                    ->foreignKey('user_id')
-                    ->fill('user');
+        return $this->belongsTo(Users::class)->foreignKey('user_id')->fill('user');
     }
 
 }

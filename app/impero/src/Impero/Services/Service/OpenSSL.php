@@ -43,10 +43,9 @@ class OpenSSL extends AbstractService implements ServiceInterface
      */
     public function getKeysDir()
     {
-        $root = $this->getConnection() instanceof LocalConnection
-            ? path('private')
-            : '/home/impero/impero/';
+        $root = $this->getConnection() instanceof LocalConnection ? path('private') : '/home/impero/impero/';
         $dir = $root . 'service/random/';
+
         return $dir;
     }
 
@@ -98,8 +97,8 @@ class OpenSSL extends AbstractService implements ServiceInterface
         /**
          * Generate private key.
          */
-        $command = 'openssl genrsa -out ' . $out . '.private.pem 4096'
-            . ' -subj "/C=SI/ST=Pckg/L=Impero/O=Dis/CN=impero.foobar.si"';
+        $command = 'openssl genrsa -out ' . $out . '.private.pem 4096' .
+            ' -subj "/C=SI/ST=Pckg/L=Impero/O=Dis/CN=impero.foobar.si"';
         $this->getConnection()->exec($command);
     }
 

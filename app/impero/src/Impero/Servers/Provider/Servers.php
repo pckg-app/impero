@@ -2,8 +2,6 @@
 
 use Impero\Servers\Controller\Servers as ServersController;
 use Impero\Servers\Resolver\Server;
-use Impero\Sites\Controller\Sites;
-use Impero\Sites\Resolver\Site;
 use Pckg\Framework\Provider;
 use Pckg\Framework\Router\Route\Group;
 use Pckg\Framework\Router\Route\Route;

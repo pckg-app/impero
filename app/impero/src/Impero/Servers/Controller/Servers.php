@@ -56,10 +56,9 @@ class Servers
     {
         vueManager()->addView('Impero/Servers:servers/add.vue', ['serverForm' => $serverForm]);
 
-        $genericService->touchBlock('left')
-                       ->addAction(new CallableAction(function() {
-                           return view('servers/add_sidebar');
-                       }));
+        $genericService->touchBlock('left')->addAction(new CallableAction(function() {
+                return view('servers/add_sidebar');
+            }));
 
         return view('servers/add');
     }

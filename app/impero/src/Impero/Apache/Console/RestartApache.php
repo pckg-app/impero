@@ -14,8 +14,7 @@ class RestartApache extends Command
 
     protected function configure()
     {
-        $this->setName('apache:restart')
-             ->setDescription('Restart apache via scheduler');
+        $this->setName('apache:restart')->setDescription('Restart apache via scheduler');
     }
 
 }

@@ -62,6 +62,7 @@ class Server extends Record implements Connectable
     public function readFile($file)
     {
         $connection = $this->server->getConnection();
+
         return $connection->sftpRead($file);
     }
 
@@ -128,17 +129,13 @@ class Server extends Record implements Connectable
                 $command = implode(' ', array_slice(explode(' ', $line), 5));
                 $frequency = substr($line, 0, strlen($line) - strlen($command));
 
-                Job::create(
-                    [
-                        'server_id' => $this->id,
-                        'name'      => '',
-                        'status'    => $inactive
-                            ? 'inactive'
-                            : 'active',
-                        'command'   => $command,
-                        'frequency' => $frequency,
-                    ]
-                );
+                Job::create([
+                                'server_id' => $this->id,
+                                'name'      => '',
+                                'status'    => $inactive ? 'inactive' : 'active',
+                                'command'   => $command,
+                                'frequency' => $frequency,
+                            ]);
             }
         }
 
@@ -147,17 +144,14 @@ class Server extends Record implements Connectable
 
     public function logCommand($command, $info, $error, $e)
     {
-        return ServerCommand::create(
-            [
-                'server_id'   => $this->id,
-                'command'     => $command,
-                'info'        => $info,
-                'error'       => ($e ? 'EXCEPTION: ' . exception($e) . "\n" : null) .
-                    $error,
-                'executed_at' => date('Y-m-d H:i:s'),
-                'code'        => null,
-            ]
-        );
+        return ServerCommand::create([
+                                         'server_id'   => $this->id,
+                                         'command'     => $command,
+                                         'info'        => $info,
+                                         'error'       => ($e ? 'EXCEPTION: ' . exception($e) . "\n" : null) . $error,
+                                         'executed_at' => date('Y-m-d H:i:s'),
+                                         'code'        => null,
+                                     ]);
     }
 
     public function addCronjob($command)
@@ -211,12 +205,11 @@ class Server extends Record implements Connectable
 
     public function getSettingValue($slug, $default = null)
     {
-        return (new SettingsMorphs())
-                ->joinSetting()
-                ->where('morph_id', Servers::class)
-                ->where('poly_id', $this->id)
-                ->where('settings.slug', $slug)
-                ->one()->value ?? $default;
+        return (new SettingsMorphs())->joinSetting()
+                                     ->where('morph_id', Servers::class)
+                                     ->where('poly_id', $this->id)
+                                     ->where('settings.slug', $slug)
+                                     ->one()->value ?? $default;
     }
 
     public function getMysqlConfig()
@@ -240,21 +233,17 @@ class Server extends Record implements Connectable
         /**
          * Get all sites for web service on this server.
          */
-        $sites = (new SitesServers())->where('server_id', $this->id)
-                                     ->where('type', 'web')
-                                     ->all();
+        $sites = (new SitesServers())->where('server_id', $this->id)->where('type', 'web')->all();
 
         $server = $this;
-        $sites->each(
-            function(SitesServer $sitesServer) use (&$virtualhosts, $server) {
-                /**
-                 * Apache: apache port
-                 * Nginx: nginx port
-                 * Haproxy: haproxy port
-                 */
-                $virtualhosts[] = $sitesServer->site->getVirtualhost($server);
-            }
-        );
+        $sites->each(function(SitesServer $sitesServer) use (&$virtualhosts, $server) {
+            /**
+             * Apache: apache port
+             * Nginx: nginx port
+             * Haproxy: haproxy port
+             */
+            $virtualhosts[] = $sitesServer->site->getVirtualhost($server);
+        });
 
         return implode("\n\n", $virtualhosts);
     }

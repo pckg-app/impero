@@ -23,8 +23,7 @@ class Ufw extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('ufw version');
+        $response = $this->getConnection()->exec('ufw version');
 
         $start = strpos($response, 'ufw ') + strlen('ufw ');
         $end = strpos($response, "\n");

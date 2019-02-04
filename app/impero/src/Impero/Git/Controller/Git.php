@@ -16,12 +16,9 @@ class Git extends Controller
             }
 
             if ($change->old->type == 'branch' && $change->old->name == 'preprod') {
-                queue()->create(
-                    'git:pull',
-                    [
-                        'dir' => $site->getHtdocsPath(),
-                    ]
-                );
+                queue()->create('git:pull', [
+                                              'dir' => $site->getHtdocsPath(),
+                                          ]);
 
                 break;
             }

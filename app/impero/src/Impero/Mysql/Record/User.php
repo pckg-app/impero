@@ -77,10 +77,10 @@ class User extends Record
         $sql = null;
         if ($data['privilege'] !== 'admin') {
             $sql = 'GRANT ' . $permissions[$data['privilege']] . ' ON `' . $data['database'] . '`.* TO `' .
-                   $data['username'] . '`@`localhost`';
+                $data['username'] . '`@`localhost`';
         } else {
             $sql = 'GRANT ' . $permissions[$data['privilege']] . ' ON *.* TO `' . $data['username'] .
-                   '`@`localhost` REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0';
+                '`@`localhost` REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0';
         }
 
         $sql .= ' IDENTIFIED BY "' . $data['password'] . '"';

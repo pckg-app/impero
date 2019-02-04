@@ -74,7 +74,7 @@ class Impero extends Provider
     public function assets()
     {
         return [
-            'main'  => [
+            'main'        => [
                 '/app/impero/src/Pckg/Generic/public/app.js',
             ],
             'footerFirst' => [

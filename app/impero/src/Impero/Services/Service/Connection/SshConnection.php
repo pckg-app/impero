@@ -133,7 +133,8 @@ class SshConnection implements ConnectionInterface, Connectable
          * Throw exception on misconfiguration.
          */
         if (!$auth) {
-            $this->server->logCommand('Cannot authenticate: ' . $type . ' ' . $user . ' ' . $key . ' ' . $host . ' ' . $port, null, null, null);
+            $this->server->logCommand('Cannot authenticate: ' . $type . ' ' . $user . ' ' . $key . ' ' . $host . ' ' .
+                                      $port, null, null, null);
             throw new Exception("Cannot authenticate with key");
         } else {
             $this->server->logCommand('Authenticated with SSH', null, null, null);
@@ -218,26 +219,22 @@ class SshConnection implements ConnectionInterface, Connectable
             $errorStreamContent = stream_get_contents($errorStream);
             $infoStreamContent = stream_get_contents($stream);
         } catch (Throwable $e) {
-            $serverCommand->setAndSave(
-                [
-                    'command' => 'Error executing command ' . $command,
-                    'info'    => $infoStreamContent,
-                    'error'   => $errorStreamContent,
-                ]
-            );
+            $serverCommand->setAndSave([
+                                           'command' => 'Error executing command ' . $command,
+                                           'info'    => $infoStreamContent,
+                                           'error'   => $errorStreamContent,
+                                       ]);
 
             return null;
         } finally {
             $output = $infoStreamContent;
             $error = $errorStreamContent;
-            $serverCommand->setAndSave(
-                [
-                    'command' => 'Command executed ' . $command,
-                    'info'    => $infoStreamContent,
-                    'error'   => $errorStreamContent,
-                    'code'    => 1,
-                ]
-            );
+            $serverCommand->setAndSave([
+                                           'command' => 'Command executed ' . $command,
+                                           'info'    => $infoStreamContent,
+                                           'error'   => $errorStreamContent,
+                                           'code'    => 1,
+                                       ]);
         }
 
         return $infoStreamContent;
@@ -344,8 +341,8 @@ password = s0m3p4ssw0rd';*/
              */
             $this->tunnelPort = 3307; // @T00D00
             $command = 'ssh -p ' . $this->port . ' -i ' . $this->key . ' -f -L ' . $this->tunnelPort .
-                ':127.0.0.1:3306 ' . $this->user . '@' . $this->host . ' sleep 10 >> /tmp/tunnel.' .
-                $this->host . '.' . $this->port . '.log';
+                ':127.0.0.1:3306 ' . $this->user . '@' . $this->host . ' sleep 10 >> /tmp/tunnel.' . $this->host . '.' .
+                $this->port . '.log';
             shell_exec($command);
         }
 

@@ -47,7 +47,7 @@ class Crypto
     /**
      * Crypto constructor.
      *
-     * @param string      $file
+     * @param string $file
      * @param Server|null $from
      * @param Server|null $to
      */
@@ -234,7 +234,9 @@ class Crypto
          */
         $toConnection = $this->to
             ? $this->to->getConnection()
-            : context()->getOrCreate(ConnectionManager::class)->createConnection();
+            : context()
+                ->getOrCreate(ConnectionManager::class)
+                ->createConnection();
         $toGpgService = (new GPG($toConnection));
         $decryptedFile = $toGpgService->decrypt($this);
         $this->replaceFile($this->to, $decryptedFile);
@@ -270,9 +272,7 @@ class Crypto
     protected function prepareDirectory($dir)
     {
 
-        $root = $this->getConnection() instanceof LocalConnection
-            ? path('private')
-            : '/home/impero/impero/';
+        $root = $this->getConnection() instanceof LocalConnection ? path('private') : '/home/impero/impero/';
         $dir = $root . 'service/random';// . $dir;
 
         if ($this->from->getConnection()->dirExists($dir)) {

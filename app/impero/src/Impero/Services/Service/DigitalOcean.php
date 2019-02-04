@@ -52,18 +52,16 @@ class DigitalOcean extends AbstractService implements ServiceInterface
              *         or how to
              */
             $connectionConfig = $connection->getConnectionConfig();
-            $adapter = new SftpAdapter(
-                [
-                    'host'          => $connectionConfig['host'],
-                    'port'          => $connectionConfig['port'],
-                    'username'      => $connectionConfig['user'],
-                    'privateKey'    => $connectionConfig['key'],
-                    'password'      => null,
-                    'root'          => '/',
-                    'timeout'       => 10,
-                    'directoryPerm' => 0755,
-                ]
-            );
+            $adapter = new SftpAdapter([
+                                           'host'          => $connectionConfig['host'],
+                                           'port'          => $connectionConfig['port'],
+                                           'username'      => $connectionConfig['user'],
+                                           'privateKey'    => $connectionConfig['key'],
+                                           'password'      => null,
+                                           'root'          => '/',
+                                           'timeout'       => 10,
+                                           'directoryPerm' => 0755,
+                                       ]);
             $remoteFilesystem = new Filesystem($adapter);
             $coldFilesystem->writeStream($coldName, $remoteFilesystem->readStream($file));
         }
@@ -87,6 +85,7 @@ class DigitalOcean extends AbstractService implements ServiceInterface
         $contents = stream_get_contents($stream);
         fclose($stream);
         file_put_contents($output, $contents);
+
         return $output;
     }
 
@@ -99,20 +98,17 @@ class DigitalOcean extends AbstractService implements ServiceInterface
         /**
          * Create bucket config.
          */
-        $config = only(
-            config('impero.service.digitalocean.spaces', []), ['endpoint', 'key', 'secret', 'region', 'bucket']
-        );
-        $client = new S3Client(
-            [
-                'endpoint'    => $config['endpoint'],
-                'version'     => 'latest',
-                'credentials' => [
-                    'key'    => $config['key'],
-                    'secret' => $config['secret'],
-                ],
-                'region'      => $config['region'],
-            ]
-        );
+        $config = only(config('impero.service.digitalocean.spaces', []),
+                       ['endpoint', 'key', 'secret', 'region', 'bucket']);
+        $client = new S3Client([
+                                   'endpoint'    => $config['endpoint'],
+                                   'version'     => 'latest',
+                                   'credentials' => [
+                                       'key'    => $config['key'],
+                                       'secret' => $config['secret'],
+                                   ],
+                                   'region'      => $config['region'],
+                               ]);
         $adapter = new AwsS3Adapter($client, $config['bucket']);
         $filesystem = new Filesystem($adapter);
 

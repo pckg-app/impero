@@ -45,36 +45,29 @@ class MakeMysqlBackup extends Command
          * As soon as possible we have to implement fully automated restore strategy.
          * Also, filter only master servers.
          */
-        $servers->each(
-            function(Server $server) {
-                try {
-                    $pid = Fork::fork(
-                        function() use ($server) {
-                            $this->outputDated('Started #' . $server->id . ' cold backup');
-                            return;
-                            /**
-                             * Make backup of each database separately.
-                             */
-                            $server->databases->each(
-                                function(Database $database) {
-                                    $database->backup();
-                                }
-                            );
-                            $this->outputDated('Ended #' . $server->id . ' cold backup');
-                        },
-                        function() use ($server) {
-                            return 'impero:backup:mysql:' . $server->id;
-                        },
-                        function() {
-                            throw new Exception('Cannot run mysql backup in parallel');
-                        }
-                    );
-                    Fork::waitFor($pid);
-                } catch (Throwable $e) {
-                    $this->outputDated('EXCEPTION: ' . exception($e));
-                }
+        $servers->each(function(Server $server) {
+            try {
+                $pid = Fork::fork(function() use ($server) {
+                    $this->outputDated('Started #' . $server->id . ' cold backup');
+
+                    return;
+                    /**
+                     * Make backup of each database separately.
+                     */
+                    $server->databases->each(function(Database $database) {
+                        $database->backup();
+                    });
+                    $this->outputDated('Ended #' . $server->id . ' cold backup');
+                }, function() use ($server) {
+                    return 'impero:backup:mysql:' . $server->id;
+                }, function() {
+                    throw new Exception('Cannot run mysql backup in parallel');
+                });
+                Fork::waitFor($pid);
+            } catch (Throwable $e) {
+                $this->outputDated('EXCEPTION: ' . exception($e));
             }
-        );
+        });
 
         /**
          * Wait for regular backups to be made.
@@ -85,37 +78,32 @@ class MakeMysqlBackup extends Command
          * Make "binlog" live backups.
          * We can process each server simultaniosly.
          */
-        $servers->each(
-            function(Server $server) {
-                /**
-                 * @T00D00 - find which server should we sync binlogs to ...
-                 *         each service on server should probably have it's 'backup:passive' server
-                 *         mysql on zero.gonparty.eu will have it's backup:passive server set as one.gonparty.eu
-                 * @T00D00 - in case of mysql outage on zero.gonparty.eu we:
-                 *           - reconfigure haproxy mysql balancer
-                 *           - reconfigure slave as master (allow write connections)
-                 */
-                try {
-                    $pid = Fork::fork(
-                        function() use ($server) {
-                            $this->outputDated('Started #' . $server->id . ' binlog backup');
-                            return;
-                            $server->binlogBackup();
-                            $this->outputDated('Ended #' . $server->id . ' binlog backup');
-                        },
-                        function() use ($server) {
-                            return 'impero:backup:mysqlBinlog:' . $server->id;
-                        },
-                        function() {
-                            throw new Exception('Cannot run mysql binlog backup in parallel');
-                        }
-                    );
-                    Fork::waitFor($pid);
-                } catch (Throwable $e) {
-                    $this->outputDated('EXCEPTION: ' . exception($e));
-                }
+        $servers->each(function(Server $server) {
+            /**
+             * @T00D00 - find which server should we sync binlogs to ...
+             *         each service on server should probably have it's 'backup:passive' server
+             *         mysql on zero.gonparty.eu will have it's backup:passive server set as one.gonparty.eu
+             * @T00D00 - in case of mysql outage on zero.gonparty.eu we:
+             *           - reconfigure haproxy mysql balancer
+             *           - reconfigure slave as master (allow write connections)
+             */
+            try {
+                $pid = Fork::fork(function() use ($server) {
+                    $this->outputDated('Started #' . $server->id . ' binlog backup');
+
+                    return;
+                    $server->binlogBackup();
+                    $this->outputDated('Ended #' . $server->id . ' binlog backup');
+                }, function() use ($server) {
+                    return 'impero:backup:mysqlBinlog:' . $server->id;
+                }, function() {
+                    throw new Exception('Cannot run mysql binlog backup in parallel');
+                });
+                Fork::waitFor($pid);
+            } catch (Throwable $e) {
+                $this->outputDated('EXCEPTION: ' . exception($e));
             }
-        );
+        });
 
         /**
          * Wait for binlog backups to be made.

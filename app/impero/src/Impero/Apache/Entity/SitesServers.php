@@ -11,14 +11,12 @@ class SitesServers extends Entity
 
     public function site()
     {
-        return $this->belongsTo(Sites::class)
-                    ->foreignKey('site_id');
+        return $this->belongsTo(Sites::class)->foreignKey('site_id');
     }
 
     public function server()
     {
-        return $this->belongsTo(Servers::class)
-                    ->foreignKey('server_id');
+        return $this->belongsTo(Servers::class)->foreignKey('server_id');
     }
 
 }

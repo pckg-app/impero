@@ -128,17 +128,13 @@ class Database extends Record implements Connectable
          *         Additionally we'll encrypt private key with password file.
          */
 
-        Secret::create(
-            [
-                'file' => $coldFile,
-                'keys' => json_encode(
-                    [
-                        'private' => $coldPrivate,
-                        'cert'    => $coldCert,
-                    ]
-                ),
-            ]
-        );
+        Secret::create([
+                           'file' => $coldFile,
+                           'keys' => json_encode([
+                                                     'private' => $coldPrivate,
+                                                     'cert'    => $coldCert,
+                                                 ]),
+                       ]);
 
         return true;
     }

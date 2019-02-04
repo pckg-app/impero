@@ -25,6 +25,7 @@ class LocalConnection implements ConnectionInterface, Connectable
     public function exec($command, &$output = null, &$error = null)
     {
         $return = exec($command . ' 2>&1', $output, $error);
+
         return $return;
     }
 
@@ -50,9 +51,11 @@ class LocalConnection implements ConnectionInterface, Connectable
         $mode = 0755;
         try {
             $ok = mkdir($dir, $mode, $recursive);
+
             return $ok;
         } catch (\Throwable $e) {
             throw $e;
+
             return false;
         }
     }
@@ -83,6 +86,7 @@ class LocalConnection implements ConnectionInterface, Connectable
         if (!is_dir($dir)) {
             mkdir($dir, 777, true);
         }
+
         return file_put_contents($file, $content);
     }
 

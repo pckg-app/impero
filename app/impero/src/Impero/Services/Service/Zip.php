@@ -40,6 +40,7 @@ class Zip extends AbstractService implements ServiceInterface
         }
         $command = 'zip ' . $output . ' ' . $file . ' && mv ' . $output . '.zip ' . $output;
         $this->exec($command);
+
         return $output;
     }
 
@@ -55,8 +56,8 @@ class Zip extends AbstractService implements ServiceInterface
             $output = $this->prepareDirectory('random') . sha1random();
         }
 
-        $command = 'zip ' . $output . ' -y -x "live/*/*/storage/tmp/*" -x "live/*/*/storage/cache/*" -r '
-            . $input . ' && mv ' . $output . '.zip ' . $output;
+        $command = 'zip ' . $output . ' -y -x "live/*/*/storage/tmp/*" -x "live/*/*/storage/cache/*" -r ' . $input .
+            ' && mv ' . $output . '.zip ' . $output;
         $this->exec($command);
 
         return $output;
@@ -76,6 +77,7 @@ class Zip extends AbstractService implements ServiceInterface
         }
         $command = 'unzip ' . $file . ' ' . $output;
         $this->exec($command);
+
         return $output;
     }
 
@@ -92,6 +94,7 @@ class Zip extends AbstractService implements ServiceInterface
         }
         $command = 'unzip ' . $file . ' ' . $output;
         $this->exec($command);
+
         return $output;
     }
 
