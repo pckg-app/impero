@@ -112,14 +112,16 @@ class SshConnection implements ConnectionInterface, Connectable
         /**
          * Authenticate with public and private key.
          */
-        if (!is_readable($key . '.pub')) {
-            $this->server->logCommand('Not readable public key: ' . $key . '.pub', null, null, null);
-            throw new Exception("Cannot authenticate with key");
-        }
+        if ($type == 'key') {
+            if (!is_readable($key . '.pub')) {
+                $this->server->logCommand('Not readable public key: ' . $key . '.pub', null, null, null);
+                throw new Exception("Cannot authenticate with key");
+            }
 
-        if (!is_readable($key)) {
-            $this->server->logCommand('Not readable private key: ' . $key, null, null, null);
-            throw new Exception("Cannot authenticate with key");
+            if (!is_readable($key)) {
+                $this->server->logCommand('Not readable private key: ' . $key, null, null, null);
+                throw new Exception("Cannot authenticate with key");
+            }
         }
 
         $auth = null;
@@ -135,7 +137,7 @@ class SshConnection implements ConnectionInterface, Connectable
         if (!$auth) {
             $this->server->logCommand('Cannot authenticate: ' . $type . ' ' . $user . ' ' . $key . ' ' . $host . ' ' .
                                       $port, null, null, null);
-            throw new Exception("Cannot authenticate with key");
+            throw new Exception("Cannot authenticate with " . $type);
         } else {
             $this->server->logCommand('Authenticated with SSH', null, null, null);
         }
@@ -216,6 +218,9 @@ class SshConnection implements ConnectionInterface, Connectable
         } finally {
             $output = $infoStreamContent;
             $error = $errorStreamContent;
+
+            //d($command, $output, $error);
+
             $serverCommand->setAndSave([
                                            'command' => 'Command executed ' . $command,
                                            'info'    => $infoStreamContent,
@@ -284,9 +289,26 @@ password = s0m3p4ssw0rd';*/
             throw new Exception('Cannot open stream');
         }
 
-        $content = fread($stream, filesize("ssh2.sftp://" . intval($sftp) . $file));
+        $tmp = '/tmp/' . sha1(microtime());
+        if (!$localStream = @fopen($tmp, 'w')) {
+            throw new Exception('Unable to open local file for writing: ' . $tmp);
+        }
 
-        @fclose($stream);
+        $read = 0;
+        $fileSize = filesize('ssh2.sftp://' . intval($sftp) . $file);
+        while ($read < $fileSize && ($buffer = fread($stream, $fileSize - $read))) {
+            $read += strlen($buffer);
+
+            if (fwrite($localStream, $buffer) === false) {
+                throw new Exception('Unable to write to local file: ' . $tmp);
+            }
+        }
+
+        fclose($localStream);
+        fclose($stream);
+
+        $content = file_get_contents($tmp);
+        unlink($tmp);
 
         return $content;
     }
@@ -348,6 +370,7 @@ password = s0m3p4ssw0rd';*/
     public function createDir($dir, $mode, $recursive)
     {
         $sftp = $this->openSftp();
+        $this->server->logCommand('Creating dir ' . $dir);
 
         return ssh2_sftp_mkdir($sftp, $dir, $mode, $recursive);
     }
@@ -356,7 +379,7 @@ password = s0m3p4ssw0rd';*/
     {
         $sftp = $this->openSftp();
 
-        //return ssh2_sftp_unlink($sftp, $file);
+        return ssh2_sftp_unlink($sftp, $file);
     }
 
     /**
@@ -395,7 +418,8 @@ password = s0m3p4ssw0rd';*/
         if (!$to->getConnection()->dirExists($dir)) {
             $to->getConnection()->exec('mkdir -p ' . $dir);
         }
-        $this->exec('rsync -a ' . $file . ' impero@' . $to->privateIp . ':' . $file);
+        $this->exec('rsync -a ' . $file . ' impero@' . $to->privateIp . ':' . $file . ' -e \'ssh -p ' . $to->port .
+                    '\'');
     }
 
     /**
@@ -408,7 +432,8 @@ password = s0m3p4ssw0rd';*/
             /**
              * We are copying for example some file from impero to $this connection.
              */
-            $command = 'rsync -a ' . $file . ' impero@' . $this->host . ':' . $file;
+            $command = 'rsync -a ' . $file . ' impero@' . $this->host . ':' . $file . ' -e \'ssh -p ' . $this->port .
+                '\'';
 
             /**
              * @T00D00 ... how to do this transparent?
@@ -421,7 +446,8 @@ password = s0m3p4ssw0rd';*/
         /**
          * We are copying for example some file from $this connection to remote $from
          */
-        $command = 'rsync -a impero@' . $from->privateIp . ':' . $file . ' ' . $file;
+        $command = 'rsync -a impero@' . $from->privateIp . ':' . $file . ' ' . $file . ' -e \'ssh -p ' . $from->port .
+            '\'';
         $this->exec($command);
     }
 
@@ -435,16 +461,19 @@ password = s0m3p4ssw0rd';*/
          * Save content to temporary file.
          */
         $tmp = tempnam('/tmp', 'tmp');
+        $this->server->logCommand('Saving content to ' . $tmp);
         file_put_contents($tmp, $content);
 
         /**
          * Send file to remote server.
          */
+        $this->server->logCommand('Sending content to ' . $file);
         $this->sftpSend($tmp, $file);
 
         /**
          * Remove temporary file.
          */
+        $this->server->logCommand('Removing ' . $tmp);
         unlink($tmp);
     }
 
@@ -477,6 +506,15 @@ password = s0m3p4ssw0rd';*/
     public function getConnection() : SshConnection
     {
         return $this;
+    }
+
+    public function sendFileTo($local, $remote, Server $to)
+    {
+        try {
+            $to->getConnection()->sftpSend($local, $remote);
+        } catch (\Throwable $e) {
+            ddd(exception($e));
+        }
     }
 
 }

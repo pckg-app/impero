@@ -1,18 +1,38 @@
 repository: git@github.com:pckg-app/impero.git
 branch: master
+
+settings:
+  sync: manual
+  orchestration: manual
+
+system:
+  _default:
+    image: schtr4jh/pckg-web-dynamic:latest
+
+resources:
+
+  database:
+    system: database
+    mysql:
+      type: search
+      name: pckg_impero
+      user:
+        pckg_impero: basic
+
+  queue:
+    system: queue
+    rabbitmq:
+      vhost: mailo
+
 services:
-  storage:
-    dir:
-      - storage
-      - storage/cache
-      - storage/cache/framework
-      - storage/cache/view
+
   web:
+    system: web
     https: true
+
   cron:
-    commands:
-      sth:
-        command: php $webDirconsole cron:run >> $logsDircron.log
+    system: cron
+    command: php $webDirconsole cron:run >> $logsDircron.log
 
 checkout:
   type: standalone

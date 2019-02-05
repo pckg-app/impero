@@ -21,20 +21,20 @@
 
         {% if _auth.isLoggedIn() %}
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                {{ _menuService.build('admin') | raw }}
+                {#{ _menuService.build('admin') | raw }#}
 
-                {{ _pluginService.make('Pckg\\Auth\\Controller\\Auth', 'getUserHeader') | raw }}
+                {#{ _pluginService.make('Pckg\\Auth\\Controller\\Auth', 'getUserHeader') | raw }#}
             </div>
         {% endif %}
     </div>
 </nav>
 
-<div class="container" id="vue-app">
+<div class="container container-narrow" id="vue-app">
     <div class="row">
         <div class="col-md-12">
             <ol class="breadcrumb">
                 <li><a href="/">Impero</a></li>
-                <li><a href="/impero/servers">Servers</a></li>
+                <li><a href="/servers">Servers</a></li>
                 <li class="active">Add</li>
             </ol>
         </div>

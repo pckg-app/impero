@@ -1,6 +1,5 @@
 <?php namespace Impero\Apache\Console;
 
-use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
 use Pckg\Framework\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
@@ -10,53 +9,60 @@ class DumpMysql extends Command
 
     public function handle()
     {
-        return;
-        if (!$this->option('server')) {
-            $this->output('No server selected');
+        /**
+         * Master server.
+         * Slave server.
+         */
+        $server = Server::getOrFail($this->option('server'));
 
-            return;
+        /**
+         * Collect configuration.
+         */
+        $this->output('Collecting configuration');
+        $configuration = $server->getMysqlConfig();
+
+        /**
+         * Dump files.
+         */
+        $sshConnection = $server->getConnection();
+        foreach ($configuration as $file => $contents) {
+            /**
+             * Generate locally.
+             */
+            $localFile = '/tmp/server.' . $server->id . '.mysql.' . sha1($file);
+            file_put_contents($localFile, $contents);
+
+            /**
+             * Skip sending when dry.
+             */
+            if ($this->option('dry')) {
+                return;
+            }
+
+            /**
+             * Dump file.
+             */
+            $this->outputDated('Dumping ' . $file);
+            $sshConnection->sftpSend($localFile, $file);
+            unlink($localFile);
         }
 
         /**
-         * Get server.
+         * Done.
          */
-        $server = (new Servers())->where('id', $this->option('server'))->oneOrFail();
-
-        /**
-         * Get server services: web and lb.
-         */
-
-        $this->output('Building mysql');
-        $mysqlConfig = $server->getMysqlConfig();
-
-        $this->output('Dumping apache');
-        $this->storeMysqlConfig($server, $mysqlConfig);
-
-        $this->output('Done');
-    }
-
-    protected function storeMysqlConfig(Server $server, $virtualhosts)
-    {
-        return;
-        $local = '/tmp/server.' . $server->id . '.virtualhosts';
-        $remote = '/etc/apache2/sites-enabled/002-impero.conf';
-        file_put_contents($local, $virtualhosts);
-        $sshConnection = $server->getConnection();
-        $sshConnection->sftpSend($local, $remote);
-        unlink($local);
-
-        /**
-         * @T00D00 - check if apache is offline and apply previous configuration.
-         */
-        $sshConnection->exec('sudo service apache2 graceful');
+        $this->output('Done.');
     }
 
     protected function configure()
     {
-        $this->setName('mysql:dump')->setDescription('Dump mysql configuration')->addOptions([
-                                                                                                 'server' => 'Server ID',
-                                                                                             ],
-                                                                                             InputOption::VALUE_REQUIRED);
+        $this->setName('mysql:dump')
+             ->setDescription('Dump mysql configuration')
+             ->addOptions([
+                              'server' => 'Server ID',
+                          ], InputOption::VALUE_REQUIRED)
+             ->addOptions([
+                              'dry' => 'Do not dump on remote',
+                          ], InputOption::VALUE_NONE);
     }
 
 }

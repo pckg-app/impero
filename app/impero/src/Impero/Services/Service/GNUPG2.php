@@ -23,6 +23,16 @@ class GNUPG2 extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
+        //sudo apt-get install gnupg2 -y
+        // sudo apt-get install gnupg2 -y
+        // apt-get install haveged -y
+        // /etc/default/haveged
+        // DAEMON_ARGS="-w 1024"
+        // sudo update-rc.d haveged defaults
+        // rm -rf ~/.gnupg
+        // mkdir ~/.gnupg
+        // chmod 0700 ~/.gnupg
+        // mkdir /var/www/.gnupg
         $response = $this->getConnection()->exec('ufw version');
 
         $start = strpos($response, 'ufw ') + strlen('ufw ');

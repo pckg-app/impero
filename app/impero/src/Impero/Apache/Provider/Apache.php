@@ -5,10 +5,10 @@ use Impero\Apache\Console\DumpVirtualhosts;
 use Impero\Apache\Console\LetsEncryptRenew;
 use Impero\Apache\Console\RestartApache;
 use Impero\Apache\Controller\Apache as ApacheController;
-use Impero\Apache\Record\Site\Resolver as SiteResolver;
 use Impero\Controller\Impero;
 use Impero\Servers\Resolver\Server;
 use Impero\Sites\Controller\Sites;
+use Impero\Sites\Resolver\Site as SiteResolver;
 use Pckg\Framework\Provider;
 use Pckg\Framework\Router\Route\Group;
 use Pckg\Framework\Router\Route\Route;
@@ -24,7 +24,8 @@ class Apache extends Provider
             (new Group([
                            'controller' => Sites::class,
                            'urlPrefix'  => '/api/site',
-                           'namePrefix' => 'api.impero.site',
+                           'namePrefix' => 'api.site',
+                           'tags'       => ['auth:in'],
                        ]))->routes([
                                        '.cronjob'    => (new Route('/[site]/cronjob', 'cronjob'))->resolvers([
                                                                                                                  'site' => SiteResolver::class,

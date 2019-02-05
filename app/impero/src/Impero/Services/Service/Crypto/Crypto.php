@@ -1,6 +1,7 @@
 <?php namespace Impero\Services\Service\Crypto;
 
 use Impero\Servers\Record\Server;
+use Impero\Servers\Record\Task;
 use Impero\Servers\Service\ConnectionManager;
 use Impero\Services\Service\Connection\LocalConnection;
 use Impero\Services\Service\GPG;
@@ -119,21 +120,25 @@ class Crypto
      */
     public function processFullTransfer()
     {
-        /**
-         * Compress, encrypt, and delete all unused copies.
-         * We know that we'll transfer file from $from to $to server.
-         */
-        $this->compressAndEncrypt();
+        $task = Task::create('Transferring file');
 
-        /**
-         * Transfer backup.
-         */
-        $this->transfer();
+        return $task->make(function() {
+            /**
+             * Compress, encrypt, and delete all unused copies.
+             * We know that we'll transfer file from $from to $to server.
+             */
+            $this->compressAndEncrypt();
 
-        /**
-         * Decrypt, decompress, and delete all unused copies.
-         */
-        $this->decryptAndDecompress();
+            /**
+             * Transfer backup.
+             */
+            $this->transfer();
+
+            /**
+             * Decrypt, decompress, and delete all unused copies.
+             */
+            return $this->decryptAndDecompress();
+        });
     }
 
     /**
@@ -153,11 +158,12 @@ class Crypto
         $compressedFile = $zipService->compressFile($this->file);
         $this->replaceFile($this->from, $compressedFile);
 
+        return $compressedFile;
+
         /**
          * Encrypt compressed file.
          */
-        $encryptedFile = $this->encrypt();
-        $this->replaceFile($this->from, $encryptedFile);
+        return $encryptedFile = $this->encrypt();
     }
 
     /**
@@ -183,15 +189,19 @@ class Crypto
      */
     public function encrypt()
     {
-        /**
-         * File is then encrypted with gpg service.
-         * Delete original after usage.
-         */
-        $fromGpgService = new GPG($this->from);
-        $encryptedFile = $fromGpgService->encrypt($this);
-        $this->replaceFile($this->from, $encryptedFile);
+        $task = Task::create('Encrypting file');
 
-        return $encryptedFile;
+        return $task->make(function() {
+            /**
+             * File is then encrypted with gpg service.
+             * Delete original after usage.
+             */
+            $fromGpgService = new GPG($this->from);
+            $encryptedFile = $fromGpgService->encrypt($this);
+            $this->replaceFile($this->from, $encryptedFile);
+
+            return $encryptedFile;
+        });
     }
 
     /**
@@ -208,7 +218,7 @@ class Crypto
     {
         $encryptedCopy = $this->prepareDirectory('random') . sha1random();
         $this->from->transferFile($this->file, $encryptedCopy, $this->to);
-        $this->replaceFile($this->from, $this->file);
+        $this->replaceFile($this->from, $encryptedCopy);
 
         return $encryptedCopy;
     }
@@ -222,16 +232,16 @@ class Crypto
     protected function prepareDirectory($dir)
     {
 
-        $root = $this->getConnection() instanceof LocalConnection ? path('private') : '/home/impero/impero/';
+        $root = $this->to->getConnection() instanceof LocalConnection ? path('private') : '/home/impero/impero/';
         $dir = $root . 'service/random';// . $dir;
 
-        if ($this->from->getConnection()->dirExists($dir)) {
-            return $dir;
+        if ($this->to->getConnection()->dirExists($dir)) {
+            return $dir . '/';
         }
 
-        $this->from->getConnection()->exec('mkdir -p ' . $dir);
+        $this->to->getConnection()->exec('mkdir -p ' . $dir);
 
-        return $dir;
+        return $dir . '/';
     }
 
     /**
@@ -249,7 +259,6 @@ class Crypto
          * Delete original after usage.
          */
         $compressedFile = $this->decrypt();
-        $this->replaceFile($this->to, $compressedFile);
 
         /**
          * Decompress file with Zip service.

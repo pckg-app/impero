@@ -1,6 +1,7 @@
 <?php namespace Impero\Services\Service;
 
 use Aws\S3\S3Client;
+use Impero\Servers\Record\Task;
 use Impero\Services\Service\Connection\LocalConnection;
 use Impero\Services\Service\Connection\SshConnection;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
@@ -29,9 +30,8 @@ class DigitalOcean extends AbstractService implements ServiceInterface
      * @throws \InvalidArgumentException
      * @throws \League\Flysystem\FileExistsException
      */
-    public function uploadToSpaces($file)
+    public function uploadToSpaces($file, $delete = true)
     {
-        d('to spaced', $file);
         /**
          * Create spaces filesystem.
          */
@@ -39,31 +39,47 @@ class DigitalOcean extends AbstractService implements ServiceInterface
         $connection = $this->getConnection();
         $coldName = 'backup/impero/' . filename($file);
         if ($connection instanceof LocalConnection) {
-            /**
-             * Transfer image to digital ocean spaces?
-             * We need to be authenticated as
-             */
-            $stream = fopen($file, 'r+');
-            $coldFilesystem->writeStream($coldName, $stream);
+            $task = Task::create('Uploading to spaces via local connection');
+
+            $task->make(function() use ($file, $coldFilesystem, $coldName, $connection, $delete) {
+                /**
+                 * Transfer image to digital ocean spaces?
+                 * We need to be authenticated as
+                 */
+                $stream = fopen($file, 'r+');
+                $coldFilesystem->writeStream($coldName, $stream);
+
+                if ($delete) {
+                    $connection->deleteFile($file);
+                }
+            });
         } elseif ($connection instanceof SshConnection) {
-            /**
-             * @T00D00 - solve remote transfer (remote -> s3), it should be direct
-             *         the problem is, how to configure s3ctl script remotely?
-             *         or how to
-             */
-            $connectionConfig = $connection->getConnectionConfig();
-            $adapter = new SftpAdapter([
-                                           'host'          => $connectionConfig['host'],
-                                           'port'          => $connectionConfig['port'],
-                                           'username'      => $connectionConfig['user'],
-                                           'privateKey'    => $connectionConfig['key'],
-                                           'password'      => null,
-                                           'root'          => '/',
-                                           'timeout'       => 10,
-                                           'directoryPerm' => 0755,
-                                       ]);
-            $remoteFilesystem = new Filesystem($adapter);
-            $coldFilesystem->writeStream($coldName, $remoteFilesystem->readStream($file));
+            $task = Task::create('Uploading to spaces via ssh connection');
+
+            $task->make(function() use ($connection, $coldFilesystem, $coldName, $file, $delete) {
+                /**
+                 * @T00D00 - solve remote transfer (remote -> s3), it should be direct
+                 *         the problem is, how to configure s3ctl script remotely?
+                 *         or how to
+                 */
+                $connectionConfig = $connection->getConnectionConfig();
+                $adapter = new SftpAdapter([
+                                               'host'          => $connectionConfig['host'],
+                                               'port'          => $connectionConfig['port'],
+                                               'username'      => $connectionConfig['user'],
+                                               'privateKey'    => $connectionConfig['key'],
+                                               'password'      => null,
+                                               'root'          => '/',
+                                               'timeout'       => 10,
+                                               'directoryPerm' => 0755,
+                                           ]);
+                $remoteFilesystem = new Filesystem($adapter);
+                $coldFilesystem->writeStream($coldName, $remoteFilesystem->readStream($file));
+
+                if ($delete) {
+                    $connection->deleteFile($file);
+                }
+            });
         }
 
         return $coldName;

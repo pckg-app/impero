@@ -63,4 +63,9 @@ class Sites extends Entity implements MaestroEntity
         return $this->belongsTo(Servers::class)->foreignKey('server_id');
     }
 
+    public function sitesServers()
+    {
+        return $this->hasMany(SitesServers::class)->foreignKey('site_id');
+    }
+
 }

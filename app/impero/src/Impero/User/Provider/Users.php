@@ -15,6 +15,7 @@ class Users extends Provider
                            'urlPrefix'  => '/api/',
                            'namePrefix' => 'api',
                            'controller' => UsersController::class,
+                           'tags'       => ['auth:in'],
                        ], [
                            '.user.create' => route('user', 'create'),
                            '.user'        => route('user/[user]', 'user')->resolvers(['user' => User::class]),

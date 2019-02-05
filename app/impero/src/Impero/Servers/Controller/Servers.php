@@ -33,8 +33,6 @@ class Servers
 
     public function getViewServerAction(ServersDataset $serversDataset)
     {
-        vueManager()->addView('Impero/Servers:servers/one.vue');
-
         return view('servers/one');
     }
 
@@ -45,10 +43,38 @@ class Servers
         ];
     }
 
-    public function getServerServicesAction(ServersDataset $serversDataset, $server)
+    public function getServerServicesAction(ServersDataset $serversDataset, Server $server)
     {
         return [
-            'services' => $serversDataset->getServerServices(),
+            'services' => $serversDataset->getServerServices($server),
+        ];
+    }
+
+    public function getServerDependenciesAction(ServersDataset $serversDataset, Server $server)
+    {
+        return [
+            'dependencies' => $serversDataset->getServerDependencies($server),
+        ];
+    }
+
+    public function getServerWebsitesAction(ServersDataset $serversDataset, Server $server)
+    {
+        return [
+            'websites' => $serversDataset->getServerApplications($server),
+        ];
+    }
+
+    public function getNetworkInterfacesAction(ServersDataset $serversDataset, Server $server)
+    {
+        return [
+            'networkInterfaces' => $serversDataset->getServerNetworkInterfaces($server),
+        ];
+    }
+
+    public function getFirewallSettingsAction(ServersDataset $serversDataset, Server $server)
+    {
+        return [
+            'firewallSettings' => $serversDataset->getServerFirewallSettings($server),
         ];
     }
 
@@ -126,7 +152,7 @@ class Servers
         $ip = server('REMOTE_ADDR', null);
         $port = post('port', 22);
         $user = 'impero';
-        //d("pass", $password);
+        //dd("pass", $password);
 
         /**
          * Create new server.
@@ -159,24 +185,28 @@ class Servers
         /**
          * Change permissions.
          */
-        /*d("chown", chown($privateKey, $user));
-        d("chown", chown($privateKey . '.pub', $user));
-        d("chmod", chmod($privateKey, 0775));
-        d("chmod", chmod($privateKey . '.pub', 0775));*/
+        chown($privateKey, $user);
+        chown($privateKey . '.pub', $user);
+        chmod($privateKey, 0775);
+        chmod($privateKey . '.pub', 0775);
 
         /**
          * Then we will transfer key to remote.
          * If this fails (firewall), notify user.
          */
         $output = $return_var = null;
-        /*$command = 'sshpass -p ' . $password . ' ssh-copy-id -p ' . $port . ' -i ' . $privateKey . '.pub ' . $user .
-                   '@' . $ip . ' 2>&1';
-        $passfile = '/tmp/pass.tmp.' . sha1(microtime());
-        file_put_contents($passfile, $password);
-        $command = 'sshpass -f "' . $passfile . '" scp -r ' . $user . '@' . $hostname .
-                   ':/some/remote/path /some/local/path';
-        exec($command, $output, $return_var);
-        d("copied", $command, $output, $return_var);*/
+
+        /*if ($server->status == 'new') {
+            $command = 'sshpass -p ' . $password . ' ssh-copy-id -p ' . $port . ' -i ' . $privateKey . '.pub ' . $user .
+                       '@' . $ip . ' 2>&1';
+            $passfile = '/tmp/pass.tmp.' . sha1(microtime());
+            file_put_contents($passfile, $password);
+
+            $command = 'sshpass -f "' . $passfile . '" scp -r ' . $user . '@' . $hostname . ':/some/remote/path /some/local/path';
+            exec($command, $output, $return_var);
+
+            d("copied", $command, $output, $return_var);
+        }*/
 
         $connection = null;
         try {
@@ -220,14 +250,14 @@ class Servers
             echo "Add known hosts manually:\n";
             echo "ssh-keyscan -t rsa impero.foobar.si >> /home/impero/.ssh/known_hosts";
 
-            dd('error', exception($e));
+            die('error ' . exception($e));
 
             return response()->respondWithError([
                                                     'error' => exception($e),
                                                 ]);
         }
 
-        dd('success');
+        die('success');
 
         return response()->respondWithSuccess();
         /**

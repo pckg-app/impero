@@ -63,6 +63,14 @@ class AbstractService
     }
 
     /**
+     * @return mixed
+     */
+    public function getService()
+    {
+        return $this->service;
+    }
+
+    /**
      * @param      $command
      * @param null $output
      * @param null $error
@@ -72,6 +80,14 @@ class AbstractService
     public function exec($command, &$output = null, &$error = null)
     {
         return $this->getConnection()->exec($command, $output, $error);
+    }
+
+    /**
+     * @return ConnectionInterface
+     */
+    public function getConnection()
+    {
+        return $this->connection;
     }
 
     /**
@@ -115,6 +131,14 @@ class AbstractService
     }
 
     /**
+     * @return mixed|null
+     */
+    public function getVersion()
+    {
+        return null;
+    }
+
+    /**
      * @return string
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
@@ -141,14 +165,6 @@ class AbstractService
         $connection->exec('mkdir -p ' . $dir);
 
         return $dir . '/';
-    }
-
-    /**
-     * @return ConnectionInterface
-     */
-    public function getConnection()
-    {
-        return $this->connection;
     }
 
 }

@@ -53,7 +53,7 @@
             fetchServers: function () {
                 this.loading = true;
                 this.fetchingServers = true;
-                http.getJSON('{{ url('api.impero.servers') }}', function (data) {
+                http.getJSON('{{ url('api.servers') }}', function (data) {
                     this.fetchingServers = false;
                     this.loading = false;
                     this.servers = data.servers;

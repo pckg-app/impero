@@ -18,8 +18,9 @@ class Servers extends Provider
              */
             (new Group([
                            'controller' => ServersController::class,
-                           'urlPrefix'  => '/impero/servers',
+                           'urlPrefix'  => '/servers',
                            'namePrefix' => 'impero.servers',
+                           'tags'       => ['auth:in'],
                        ]))->routes([
                                        ''                                => new Route('', 'index'),
                                        '.server'                         => (new Route('/server/[server]',
@@ -59,26 +60,47 @@ class Servers extends Provider
              */
             (new Group([
                            'controller' => ServersController::class,
-                           'urlPrefix'  => '/api/impero/servers',
-                           'namePrefix' => 'api.impero.servers',
+                           'urlPrefix'  => '/api/servers',
+                           'namePrefix' => 'api.servers',
                        ]))->routes([
-                                       ''                 => new Route('', 'servers'),
-                                       '.server'          => (new Route('/[server]', 'server'))->resolvers([
-                                                                                                               'server' => Server::class,
-                                                                                                           ]),
-                                       '.server.services' => new Route('/[server]/services', 'serverServices'),
-                                       '.server.connect'  => (new Route('/[server]/connect', 'connect'))->resolvers([
+                                       ''                          => new Route('', 'servers'),
+                                       '.server'                   => (new Route('/[server]', 'server'))->resolvers([
                                                                                                                         'server' => Server::class,
                                                                                                                     ]),
+                                       '.server.services'          => (new Route('/[server]/services',
+                                                                                 'serverServices'))->resolvers([
+                                                                                                                   'server' => Server::class,
+                                                                                                               ]),
+                                       '.server.dependencies'      => (new Route('/[server]/dependencies',
+                                                                                 'serverDependencies'))->resolvers([
+                                                                                                                       'server' => Server::class,
+                                                                                                                   ]),
+                                       '.server.websites'          => (new Route('/[server]/websites',
+                                                                                 'serverWebsites'))->resolvers([
+                                                                                                                   'server' => Server::class,
+                                                                                                               ]),
+                                       '.server.networkInterfaces' => (new Route('/[server]/network-interfaces',
+                                                                                 'networkInterfaces'))->resolvers([
+                                                                                                                      'server' => Server::class,
+                                                                                                                  ]),
+                                       '.server.firewallSettings'  => (new Route('/[server]/firewall-settings',
+                                                                                 'firewallSettings'))->resolvers([
+                                                                                                                     'server' => Server::class,
+                                                                                                                 ]),
+                                       '.server.connect'           => (new Route('/[server]/connect',
+                                                                                 'connect'))->resolvers([
+                                                                                                            'server' => Server::class,
+                                                                                                        ]),
                                    ]),
             (new Group([
                            'controller' => ServersController::class,
                            'urlPrefix'  => '/api/server',
                            'namePrefix' => 'api.server',
+                           'tags'       => ['auth:in'],
                        ]))->routes([
-                                       '.cronjob' => (new Route('/[server]/cronjob', 'cronjob'))->resolvers([
-                                                                                                                'server' => Server::class,
-                                                                                                            ]),
+                                       '.cronjob'        => (new Route('/[server]/cronjob', 'cronjob'))->resolvers([
+                                                                                                                       'server' => Server::class,
+                                                                                                                   ]),
                                    ]),
         ];
     }

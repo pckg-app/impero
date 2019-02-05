@@ -22,11 +22,11 @@ logs/**
 # ENV
 app/*/config/env.php
 config/env.php
+.npmrc
 
 # DEV -.-
 sublime
 .idea
-phinx.yml
 
 # TESTS ;-)
 tests/_output/*

@@ -7,6 +7,7 @@ use Impero\Mysql\Migration\CreateDatabaseTable;
 use Impero\Mysql\Migration\CreateUserTable;
 use Impero\Servers\Migration\CreateServersTables;
 use Impero\Storage\Migration\CreateStorageTables;
+use Pckg\Api\Migration\CreateApiTables;
 use Pckg\Auth\Migration\CreateAuthTables;
 use Pckg\Dynamic\Migration\CreateDynamicTables;
 use Pckg\Generic\Migration\CreateGenericTables;
@@ -24,4 +25,5 @@ return [
     CreateServersTables::class,
     CreateListTables::class,
     CreateStorageTables::class,
+    CreateApiTables::class,
 ];

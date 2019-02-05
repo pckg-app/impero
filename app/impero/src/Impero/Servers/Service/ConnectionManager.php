@@ -41,7 +41,11 @@ class ConnectionManager
     public function __destruct()
     {
         foreach ($this->connections as $connection) {
-            $connection->close();
+            try {
+                $connection->close();
+            } catch (\Throwable $e) {
+                // soft fail
+            }
         }
     }
 

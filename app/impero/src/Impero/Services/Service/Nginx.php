@@ -11,7 +11,7 @@ class Nginx extends AbstractService implements ServiceInterface
     /**
      * @var string
      */
-    protected $service = 'ngingx';
+    protected $service = 'nginx';
 
     /**
      * @var string
@@ -30,6 +30,11 @@ class Nginx extends AbstractService implements ServiceInterface
         $length = $end - $start;
 
         return substr($response, $start, $length);
+    }
+
+    public function reload()
+    {
+        $this->exec('sudo service nginx reload');
     }
 
 }

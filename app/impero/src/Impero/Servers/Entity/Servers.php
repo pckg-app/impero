@@ -7,6 +7,7 @@ use Impero\Mysql\Entity\Databases;
 use Impero\Servers\Record\Server;
 use Impero\Services\Entity\Services;
 use Pckg\Database\Entity;
+use Pckg\Database\Relation\HasAndBelongsTo;
 use Pckg\Generic\Entity\ListItems;
 use Pckg\Generic\Entity\Settings;
 use Pckg\Generic\Entity\SettingsMorphs;
@@ -57,7 +58,12 @@ class Servers extends Entity
 
     public function settings()
     {
-        return $this->morphsMany(Settings::class)->over(SettingsMorphs::class)->foreignKey('server_id');
+        return $this->morphsMany(Settings::class)->over(SettingsMorphs::class)->rightForeignKey('setting_id');
+    }
+
+    public function serversMorphs(callable $callable = null)
+    {
+        return $this->hasMany(ServersMorphs::class, $callable)->foreignKey('server_id');
     }
 
     public function masterDatabases()
@@ -67,7 +73,14 @@ class Servers extends Entity
 
     public function slaveDatabases()
     {
-        return $this->morphsMany(Databases::class)->over(DatabasesMorphs::class)->foreignKey('database_id');
+        return $this->hasAndBelongsTo(Databases::class)
+                    ->over(ServersMorphs::class, function(HasAndBelongsTo $databases) {
+                        $databases->getMiddleEntity()
+                                  ->where('morph_id', Databases::class)
+                                  ->where('type', 'database:slave');
+                    })
+                    ->leftForeignKey('server_id')
+                    ->rightForeignKey('poly_id');
     }
 
     public function sites()

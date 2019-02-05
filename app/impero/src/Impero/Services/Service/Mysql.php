@@ -2,6 +2,7 @@
 
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
+use Impero\Servers\Record\Task;
 use Pckg\Collection;
 
 /**
@@ -27,6 +28,7 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
+        // /etc/mysql/conf.d/impero.cnf
         $response = $this->getConnection()->exec('mysql -V');
 
         $start = strpos($response, 'Ver ') + strlen('Ver ');
@@ -41,7 +43,11 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function startSlave()
     {
-        $this->getMysqlConnection()->execute('START SLAVE;');
+        $task = Task::create('Starting slave');
+
+        return $task->make(function() {
+            return $this->getMysqlConnection()->execute('START SLAVE;');
+        });
     }
 
     /**
@@ -49,7 +55,7 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function getMysqlConnection()
     {
-        return new MysqlConnection($this->connection);
+        return new MysqlConnection($this->getConnection());
     }
 
     /**
@@ -57,7 +63,11 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function stopSlave()
     {
-        $this->getMysqlConnection()->execute('STOP SLAVE;');
+        $task = Task::create('Stopping slave');
+
+        return $task->make(function() {
+            $this->getMysqlConnection()->execute('STOP SLAVE;');
+        });
     }
 
     /**
@@ -105,16 +115,30 @@ class Mysql extends AbstractService implements ServiceInterface
     {
         dd('Slave replication is not yet enabled?');
         $file = $this->getReplicationConfigLocation();
-        $lines[] = '[mysqld]';
-        $lines[] = 'server-id = 2';
-        $lines[] = 'relay-log = /var/log/mysql/mysql-relay-bin.log';
-        $lines[] = 'log_bin = /var/log/mysql/mysql-bin.log';
+        $content = $this->getSlaveReplicationConfig();
 
         /**
          * Save changes and restart mysql server.
          */
-        $this->getConnection()->sftpSend($file, implode("\n", $lines));
+        $this->getConnection()->sftpSend($file, $content);
         $this->getConnection()->exec('sudo service mysql restart');
+    }
+
+    public function getSlaveReplicationConfig()
+    {
+        return '[mysqld]
+server-id = 2
+log_bin = /var/log/mysql/mysql-bin.log
+relay-log = /var/log/mysql/mysql-relay-bin.log';
+    }
+
+    public function getMasterReplicationConfig()
+    {
+        return '[mysqld]
+server-id = 1
+log_bin = /var/log/mysql/mysql-bin.log
+expire_logs_days = 5
+max_binlog_size = 100M';
     }
 
     /**
@@ -165,6 +189,18 @@ class Mysql extends AbstractService implements ServiceInterface
          */
         $this->getConnection()->sftpSend($replicationFile, implode("\n", $replications));
         $this->getConnection()->exec('sudo service mysql restart');
+    }
+
+    public function dumpSlaveReplicationFilter(Collection $databases)
+    {
+        $task = Task::create('Dumping mysql slave replication configuration');
+
+        return $task->make(function() {
+            /**
+             * Dump original slave filter and list of replicated tables.
+             * If restart is needed that server is restarted manually.
+             */
+        });
     }
 
     /**
@@ -268,11 +304,15 @@ class Mysql extends AbstractService implements ServiceInterface
      */
     public function refreshSlaveReplicationFilter(Collection $databases)
     {
-        $dbString = $databases->map(function(Database $database) {
-            return '`' . $database->name . '.%`';
-        })->implode(',');
-        $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
-        $this->getMysqlConnection()->execute($sql);
+        $task = Task::create('Refresing slave replication filter');
+
+        return $task->make(function() use ($databases) {
+            $dbString = $databases->map(function(Database $database) {
+                return '`' . $database->name . '.%`';
+            })->implode(',');
+            $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
+            $this->getMysqlConnection()->execute($sql);
+        });
     }
 
     public function syncBinlog(Server $to)
@@ -280,8 +320,22 @@ class Mysql extends AbstractService implements ServiceInterface
         /**
          * Get last synced binlog location.
          */
-        $lastBinLog = 'binlog.000999';
-        $command = 'mysqlbinlog --read-from-remote-server --host=host_name --raw --stop-never ' . $lastBinLog;
+        $startLog = 'mysql-bin.002904';
+        $host = '10.135.61.34';
+        $authFile = '/etc/mysql/conf.d/impero-zero.cnf';
+        $resultDir = '/tmp/test-dump/';
+        $command = 'mysqlbinlog --defaults-file=' . $authFile . ' --read-from-remote-server --host=' . $host .
+            ' --raw --stop-never --result-file=' . $resultDir . ' ' . $startLog;
+
+        /**
+         * We've built a command, now we need to check that its properly configured in supervisor?
+         * For example, we have a master (zero.gonparty.eu) and backup (one.gonparty.eu) servers.
+         * We would like to copy binlog from master to backup server.
+         * On master server we create backup user (impero) with privileges to connect from backup server.
+         * On backup server we dump authentication details and protect file for access
+         * (/etc/mysql/mysql.cnf/impero-mysqlbinlog-zero.gonparty.eu.cnf).
+         * On backup server we configure supervisor service to make sure binlog is backed up at every time.
+         */
     }
 
     public function syncDatabaseToBinlogLocation(Database $database, $binlogLocation)

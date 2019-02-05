@@ -23,7 +23,8 @@ class Mysql extends Provider
             (new Group([
                            'controller' => DatabaseApi::class,
                            'urlPrefix'  => '/api/database',
-                           'namePrefix' => 'api.impero.database',
+                           'namePrefix' => 'api.database',
+                           'tags'       => ['auth:in'],
                        ]))->routes([
                                        ''            => (new Route('', 'database')),
                                        '.search'     => (new Route('/search', 'search')),
@@ -43,7 +44,8 @@ class Mysql extends Provider
             (new Group([
                            'controller' => DatabaseUserApi::class,
                            'urlPrefix'  => '/api/databaseUser',
-                           'namePrefix' => 'api.impero.databaseUser',
+                           'namePrefix' => 'api.databaseUser',
+                           'tags'       => ['auth:in'],
                        ]))->routes([
                                        '' => (new Route('', 'user'))->resolvers(),
                                    ]),

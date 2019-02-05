@@ -32,4 +32,9 @@ class Apache extends AbstractService implements ServiceInterface
         return substr($response, $start, $length);
     }
 
+    public function restart()
+    {
+        $this->exec('sudo service apache2 graceful');
+    }
+
 }

@@ -3,8 +3,9 @@ Impero.Servers = Impero.Servers || {};
 Impero.Servers.Record = Impero.Servers.Record || {};
 Impero.Servers.Entity = Impero.Servers.Entity || {};
 Impero.Servers.Entity.Servers = class extends Pckg.Database.Entity {
+
     static id(id, callback) {
-        return http.getJSON(utils.url('@api.impero.servers.server', {server: id}), function (data) {
+        return http.getJSON(utils.url('@api.servers.server', {server: id}), function (data) {
             callback(new Impero.Servers.Record.Server(data.server));
         });
     }
@@ -49,7 +50,7 @@ Impero.Servers.Entity.Services = class extends Pckg.Database.Entity {
     }
 
     static by(key, value, callback) {
-        return http.getJSON(utils.url('@api.impero.servers.server.services', {server: value}), function (data) {
+        return http.getJSON(utils.url('@api.servers.server.services', {server: value}), function (data) {
             callback(Pckg.Collection.collect(data.services, Impero.Servers.Record.Service));
         });
     }
@@ -77,7 +78,7 @@ Impero.Servers.Entity.Services = class extends Pckg.Database.Entity {
     }
 
     static getAllServices() {
-        return $store.state.impero.services;
+        return $store.getters.services;
     }
 };
 Impero.Servers.Entity.Dependencies = class extends Pckg.Database.Entity {
@@ -86,7 +87,7 @@ Impero.Servers.Entity.Dependencies = class extends Pckg.Database.Entity {
     }
 
     static by(key, value, callback) {
-        return http.getJSON(utils.url('@api.impero.servers.server.dependencies', {server: value}), function (data) {
+        return http.getJSON(utils.url('@api.servers.server.dependencies', {server: value}), function (data) {
             callback(Pckg.Collection.collect(data.dependencies, Impero.Servers.Record.Dependency));
         });
     }
@@ -147,12 +148,6 @@ Impero.Servers.Record.Server = class extends Pckg.Database.Record {
         }
     }
 
-    getUrl(type) {
-        if (type == 'insert') {
-            return utils.url('@impero.servers.addServer', {server: this.id});
-        }
-    }
-
 };
 
 Impero.Servers.Record.ServersService = class extends Pckg.Database.Record {
@@ -193,34 +188,8 @@ Impero.Servers.Record.Service = class extends Pckg.Database.Record {
         }
     }
 
-    getInstallOnServerUrl(server) {
-        return utils.url('@api.services.install', {server: server.id, service: this.id});
-    }
-
-    isInstalledOnServer(server) {
-        return (server.services || []).filter(function (service) {
-            return service.id == this.id;
-        }.bind(this)).length > 0;
-    }
-
     getEntity() {
         return new Impero.Servers.Entity.Services();
-    }
-
-    getStatus() {
-        if (!(this.pivot && this.pivot.status && this.pivot.status.value)) {
-            return '';
-        }
-
-        return this.pivot.status.value;
-    }
-
-    getVersion() {
-        if (!(this.pivot && this.pivot.version)) {
-            return '';
-        }
-
-        return this.pivot.version;
     }
 
 };

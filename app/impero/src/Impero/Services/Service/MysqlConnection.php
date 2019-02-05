@@ -1,6 +1,7 @@
 <?php namespace Impero\Services\Service;
 
 use Exception;
+use Impero\Services\Service\Connection\SshConnection;
 use PDO;
 
 /**
@@ -44,7 +45,7 @@ class MysqlConnection
      */
     public function execute($sql, &$error = null)
     {
-        $command = 'mysql -u impero -e' . escapeshellarg($sql . ';');
+        $command = 'mysql -u impero -e ' . escapeshellarg($sql . ';');
 
         $result = $this->sshConnection->exec($command, $error);
 
@@ -59,13 +60,17 @@ class MysqlConnection
      * @return array
      * @throws Exception
      */
-    public function query($database, $sql, $binds = [])
+    public function query($database = null, $sql = null, $binds = [])
     {
         if (!$this->pdo) {
             $tunnelPort = $this->sshConnection->tunnel();
 
-            $p = "mysql:host=127.0.0.1:" . $tunnelPort . ";charset=utf8;dbname=" . $database;
+            $p = "mysql:host=127.0.0.1:" . $tunnelPort . ";charset=utf8" . ($database ? ";dbname=" . $database : '');
             $this->pdo = new PDO($p, 'impero', $this->getMysqlPassword());
+        }
+
+        if (!$sql) {
+            return null;
         }
 
         $prepared = $this->pdo->prepare($sql);

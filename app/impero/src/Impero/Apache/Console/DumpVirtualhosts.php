@@ -2,6 +2,9 @@
 
 use Impero\Servers\Entity\Servers;
 use Impero\Servers\Record\Server;
+use Impero\Services\Service\Apache;
+use Impero\Services\Service\HAProxy;
+use Impero\Services\Service\Nginx;
 use Pckg\Framework\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -36,12 +39,20 @@ class DumpVirtualhosts extends Command
         $this->output('Building haproxy');
         $virtualhostsHaproxy = $server->getHaproxyConfig();
 
+        $this->output('Building nginx');
+        $virtualhostsNginx = $server->getNginxConfig();
+
         $this->output('Dumping apache');
         $this->storeVirtualhosts($server, $virtualhosts);
 
         if ($server->getSettingValue('service.haproxy.active')) {
             $this->output('Dumping haproxy');
             $this->storeVirtualhostsHaproxy($server, $virtualhostsHaproxy);
+        }
+
+        if ($server->getSettingValue('service.nginx.active')) {
+            $this->output('Dumping nginx');
+            $this->storeVirtualhostsNginx($server, $virtualhostsNginx);
         }
 
         $this->output('Done');
@@ -55,21 +66,39 @@ class DumpVirtualhosts extends Command
      */
     protected function storeVirtualhosts(Server $server, $virtualhosts)
     {
+        /**
+         * Virtualhosts.
+         */
         $local = '/tmp/server.' . $server->id . '.virtualhosts';
         $remote = '/etc/apache2/sites-enabled/002-impero.conf';
         file_put_contents($local, $virtualhosts);
+
+        /**
+         * Ports.
+         */
+        $localPorts = '/tmp/server.' . $server->id . '.ports';
+        $remotePorts = '/etc/apache2/ports.conf';
+        $portsConfig = $server->getApachePortsConfig();
+        file_put_contents($localPorts, $portsConfig);
+
+        /**
+         * Skip sending when dry.
+         */
         if ($this->option('dry')) {
             return;
         }
+
         $this->outputDated('Dumping and restarting (apache)');
         $sshConnection = $server->getConnection();
         $sshConnection->sftpSend($local, $remote);
+        $sshConnection->sftpSend($localPorts, $remotePorts);
         unlink($local);
+        unlink($localPorts);
 
         /**
          * @T00D00 - check if apache is offline and apply previous configuration.
          */
-        $sshConnection->exec('sudo service apache2 graceful');
+        (new Apache($sshConnection))->restart();
     }
 
     /**
@@ -81,7 +110,7 @@ class DumpVirtualhosts extends Command
     protected function storeVirtualhostsHaproxy(Server $server, $virtualhosts)
     {
         $local = '/tmp/server.' . $server->id . '.haproxy';
-        $remote = '/etc/haproxy/haproxy.cnf';
+        $remote = '/etc/haproxy/haproxy.cfg';
         file_put_contents($local, $virtualhosts);
         if ($this->option('dry')) {
             return;
@@ -91,7 +120,35 @@ class DumpVirtualhosts extends Command
         $sshConnection->sftpSend($local, $remote);
         unlink($local);
 
-        $sshConnection->exec('sudo service haproxy restart');
+        (new HAProxy($sshConnection))->reload();
+    }
+
+    /**
+     * @param Server $server
+     * @param        $virtualhosts
+     */
+    protected function storeVirtualhostsNginx(Server $server, $virtualhosts)
+    {
+        /**
+         * Virtualhosts.
+         */
+        $local = '/tmp/server.' . $server->id . '.nginx.virtualhosts';
+        $remote = '/etc/nginx/sites-enabled/002-impero';
+        file_put_contents($local, $virtualhosts);
+
+        /**
+         * Skip sending when dry.
+         */
+        if ($this->option('dry')) {
+            return;
+        }
+
+        $this->outputDated('Dumping and restarting (nginx)');
+        $sshConnection = $server->getConnection();
+        $sshConnection->sftpSend($local, $remote);
+        unlink($local);
+
+        (new Nginx($sshConnection))->reload();
     }
 
     /**
@@ -107,29 +164,6 @@ class DumpVirtualhosts extends Command
              ->addOptions([
                               'dry' => 'Do not dump or restart',
                           ], InputOption::VALUE_NONE);
-    }
-
-    /**
-     * @param Server $server
-     * @param        $virtualhosts
-     */
-    protected function storeVirtualhostsNginx(Server $server, $virtualhosts)
-    {
-        $local = '/tmp/server.' . $server->id . '.virtualhosts';
-        $remote = '/etc/apache2/sites-enabled/002-impero.conf';
-        file_put_contents($local, $virtualhosts);
-        if ($this->option('dry')) {
-            return;
-        }
-        $this->outputDated('Dumping and restarting (nginx)');
-        $sshConnection = $server->getConnection();
-        $sshConnection->sftpSend($local, $remote);
-        unlink($local);
-
-        /**
-         * @T00D00 - check if apache is offline and apply previous configuration.
-         */
-        $sshConnection->exec('sudo service nginx restart');
     }
 
 }

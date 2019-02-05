@@ -1,6 +1,8 @@
 <?php namespace Impero\Services\Service;
 
+use Exception;
 use Impero\Servers\Record\Server;
+use Impero\Servers\Record\Task;
 use Impero\Servers\Service\ConnectionManager;
 use Impero\Services\Service\Connection\LocalConnection;
 use Impero\Services\Service\Crypto\Crypto;
@@ -12,8 +14,6 @@ use Impero\Services\Service\Crypto\Crypto;
  */
 class GPG extends AbstractService implements ServiceInterface
 {
-
-    // sudo apt-get install gnupg2 -y
 
     /**
      * @var string
@@ -58,17 +58,26 @@ class GPG extends AbstractService implements ServiceInterface
          * When decrypting replication backup we already hold private key.
          * When decrypting regular backup (backup restore) we decrypt on target server with private key from impero.
          */
+        $command = 'gpg2 --output ' . $output . ' --decrypt ' . $input;
+        if ($to) {
+            $this->exec($command);
+
+            return $output;
+        }
+        die("why is this used?");
         $toGpgService = new GPG($to);
         $toGpgService->tempUseFile($crypto->getKeys()['public'], $from,
             function() use ($toGpgService, $from, $input, $output, $keyFiles) {
-                $toGpgService->tempUsePrivateKey($keyFiles, $from, function() use ($keyFiles, $input, $output) {
+                //$toGpgService->tempUsePrivateKey(
+                //  $keyFiles, $from, function() use ($keyFiles, $input, $output) {
 
-                    /**
-                     * Decrypt file.
-                     */
-                    $command = 'gpg2 --output ' . $output . ' --decrypt ' . $input;
-                    $this->exec($command);
-                });
+                /**
+                 * Decrypt file.
+                 */
+                $command = 'gpg2 --output ' . $output . ' --decrypt ' . $input;
+                $this->exec($command);
+                //}
+                //);
             });
 
         return $output;
@@ -108,46 +117,17 @@ class GPG extends AbstractService implements ServiceInterface
          * Copy public key from impero to $to.
          * Copy public key from $from to $to.
          */
-        $this->getConnection()->sendFileTo($file, $target ?? $file, $to);
-    }
-
-    /**
-     * @param          $keyFiles
-     * @param Server   $from
-     * @param callable $call
-     *
-     * @throws \Exception
-     */
-    public function tempUsePrivateKey($keyFiles, Server $from, callable $call)
-    {
-        /**
-         * Import public key to gpg service.
-         *
-         * @T00D00 - see option --recipient-file
-         *         - see option --hidden-recipient
-         */
-        $fromGpgService = (new GPG($from->getConnection()));
-        $fromGpgService->importPrivateKey($keyFiles['private']);
-
-        /**
-         * Call inner things.
-         */
-        $call();
-
-        /**
-         * Remove public key from gpg service.
-         */
-        $fromGpgService->deletePrivateKey($keyFiles);
-    }
-
-    /**
-     * @param $hash
-     */
-    public function deletePrivateKey($hash)
-    {
-        return;
-        $command = 'gpg2 --batch --yes --delete-secret-keys ' . $hash;
-        $this->exec($command);
+        $connection = $this->getConnection();
+        if ($connection instanceof LocalConnection) {
+            $connection->exec('rsync -a ' . $file . ' impero@' . $to->ip . ':' . ($target ?? $file) . ' -e \'ssh -p ' .
+                              $to->port . ' -i ' . path('private') . 'keys/id_rsa_' . $to->id . '\'');
+        } else {
+            /**
+             * Remotes are synced.
+             */
+            $connection->exec('rsync -a ' . $file . ' impero@' . $to->ip . ':' . ($target ?? $file) . ' -e \'ssh -p ' .
+                              $to->port . '\'');
+        }
     }
 
     /**
@@ -158,7 +138,7 @@ class GPG extends AbstractService implements ServiceInterface
      *
      * @return null|string
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
-     * @throws \Exception
+     * @throws Exception
      */
     public function encrypt(Crypto $crypto, $output = null)
     {
@@ -223,7 +203,7 @@ class GPG extends AbstractService implements ServiceInterface
          */
         $destination = $this->getKeysDir();
         if (!$this->getConnection()->dirExists($destination)) {
-            $this->getConnection()->createDir($destination, 0400, true);
+            $this->getConnection()->createDir($destination, 0755, true);
         }
 
         /**
@@ -234,8 +214,7 @@ class GPG extends AbstractService implements ServiceInterface
         $cert = $destination . sha1random();
         $recipient = sha1random();
 
-        $this->generateKey($private, $public, $recipient);
-        $this->generateRevokeCertificate($recipient . '@impero', $cert);
+        $this->generateKey($private, $public, $recipient, $cert);
 
         return [
             'private'   => $private,
@@ -246,17 +225,31 @@ class GPG extends AbstractService implements ServiceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getKeysDir()
+    {
+        $root = $this->getConnection() instanceof LocalConnection ? path('private') : '/home/impero/impero/';
+        $dir = $root . 'service/random/';
+
+        return $dir;
+    }
+
+    /**
      * @return null
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
-    public function generateKey($sec, $pub, $random)
+    public function generateKey($sec, $pub, $random, $cert)
     {
-        /**
-         * Set key config.
-         */
-        $keyLength = 4096;
-        $keyLength = 1024;
-        $keyBatch = '%echo Generating a basic OpenPGP key
+        $task = Task::create('Generating key threesome');
+
+        return $task->make(function() use ($sec, $pub, $random, $cert) {
+            /**
+             * Set key config.
+             */
+            $keyLength = 4096;
+            $keyLength = 2048;
+            $keyBatch = '%echo Generating a basic OpenPGP key
      Key-Type: RSA
      Key-Length: ' . $keyLength . '
      Subkey-Type: ELG-E
@@ -274,38 +267,34 @@ class GPG extends AbstractService implements ServiceInterface
      %commit
      %echo done';
 
-        /**
-         * Create config file.
-         */
-        $filename = $this->getKeysDir() . sha1random();
-        $this->getConnection()->saveContent($filename, $keyBatch);
+            /**
+             * Create config file.
+             */
+            $filename = $this->getKeysDir() . sha1random();
+            d('creating ' . $filename, get_class($this->getConnection()));
+            $this->getConnection()->saveContent($filename, $keyBatch);
 
-        /**
-         * Generate key.
-         */
-        $command = 'gpg2 --batch --gen-key ' . $filename;
-        $this->exec($command);
+            /**
+             * Generate key.
+             */
+            $command = 'gpg2 --batch --gen-key ' . $filename;
+            $this->exec($command);
 
-        /**
-         * Import private key.
-         */
-        $this->importPrivateKey($pub);
+            /**
+             * Import private key.
+             */
+            $this->importPrivateKey($pub);
 
-        /**
-         * Export private key.
-         */
-        $this->exportPrivateKey($random . '@impero', $sec);
-    }
-
-    /**
-     * @return string
-     */
-    public function getKeysDir()
-    {
-        $root = $this->getConnection() instanceof LocalConnection ? path('private') : '/home/impero/impero/';
-        $dir = $root . 'service/random/';
-
-        return $dir;
+            /**
+             * Export private key if we need to export it.
+             *
+             * @T00D00
+             */
+            if ($this->getConnection() instanceof LocalConnection) {
+                $this->exportPrivateKey($random . '@impero', $sec);
+                $this->generateRevokeCertificate($random . '@impero', $cert);
+            }
+        });
     }
 
     /**
@@ -313,13 +302,15 @@ class GPG extends AbstractService implements ServiceInterface
      */
     public function importPrivateKey($file)
     {
-        $command = 'gpg --import ' . $file;
+        $command = 'gpg2 --allow-secret-key-import --import ' . $file;
         $this->exec($command);
     }
 
     /**
      * @param $name
      * @param $output
+     *
+     * @throws Exception
      */
     public function exportPrivateKey($name, $output = null)
     {
@@ -327,8 +318,62 @@ class GPG extends AbstractService implements ServiceInterface
             $output = $this->prepareDirectory('random') . sha1random();
         }
 
-        $command = 'gpg --export-secret-keys -a ' . $name . ' > ' . $output;
+        $keys = $this->listKeys(2);
+        $key = collect($keys)->first(function($key) use ($name) {
+            return $key['receiver'] == $name;
+        });
+
+        if (!$key) {
+            throw new Exception('Key doesnot exist');
+        }
+
+        $command = 'gpg2 --export-secret-keys -a ' . $key['hash'] . ' > ' . $output;
         $this->exec($command);
+    }
+
+    /**
+     * @return array
+     */
+    public function listKeys($gpg = '')
+    {
+        $command = 'gpg' . $gpg . ' --fingerprint';
+        $this->exec($command, $output);
+        if (is_array($output)) {
+            $output = implode("\n", $output);
+        }
+
+        $keys = [];
+        $key = [];
+        if (!$output) {
+            return $keys;
+        }
+        foreach (explode("\n", $output) as $line) {
+            if (strpos($line, 'sub') === 0) {
+                $key['sub'] = $line;
+                $keys[] = $key;
+                $key = [];
+                continue;
+            }
+
+            if (strpos($line, 'pub') === 0) {
+                $key['pub'] = $line;
+                continue;
+            }
+
+            if (strpos($line, 'uid') === 0) {
+                $key['uid'] = $line;
+                $key['receiver'] = substr($line, strrpos($line, ' ') + 2, -1);
+                continue;
+            }
+
+            $hash = trim(str_replace(' ', '', $line));
+            if ($equals = strpos($hash, '=')) {
+                $hash = substr($hash, $equals + 1);
+            }
+            $key['hash'] = $hash;
+        }
+
+        return $keys;
     }
 
     /**
@@ -349,7 +394,7 @@ class GPG extends AbstractService implements ServiceInterface
      * @param Server   $from
      * @param callable $call
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function tempUsePublicKey($publicKey, $keyFiles, Server $from, callable $call)
     {
@@ -387,49 +432,49 @@ class GPG extends AbstractService implements ServiceInterface
      */
     public function deletePublicKey($hash)
     {
-        $keys = $this->listKeys();
-
+        //$keys = $this->listKeys();
         return;
         $command = 'gpg2 --batch --yes --delete-keys ' . $hash;
         $this->exec($command);
     }
 
     /**
-     * @return array
+     * @param          $keyFiles
+     * @param Server   $from
+     * @param callable $call
+     *
+     * @throws Exception
      */
-    public function listKeys()
+    public function tempUsePrivateKey($keyFiles, Server $from, callable $call)
     {
-        $command = 'gpg --list-keys --fingerprint';
-        $this->exec($command, $output);
+        /**
+         * Import public key to gpg service.
+         *
+         * @T00D00 - see option --recipient-file
+         *         - see option --hidden-recipient
+         */
+        $fromGpgService = (new GPG($from->getConnection()));
+        $fromGpgService->importPrivateKey($keyFiles['private']);
 
-        $keys = [];
-        $key = [];
-        if (!$output) {
-            return $keys;
-        }
-        foreach (explode("\n", $output) as $line) {
-            if (strpos($line, 'sub') === 0) {
-                $key['sub'] = $line;
-                $keys[] = $key;
-                $key = [];
-                continue;
-            }
+        /**
+         * Call inner things.
+         */
+        $call();
 
-            if (strpos($line, 'pub') === 0) {
-                $key['pub'] = $line;
-                continue;
-            }
+        /**
+         * Remove public key from gpg service.
+         */
+        $fromGpgService->deletePrivateKey($keyFiles);
+    }
 
-            if (strpos($line, 'uid') === 0) {
-                $key['uid'] = $line;
-                $key['receiver'] = substr($line, strrpos($line, ' ') + 1, -1);
-                continue;
-            }
-
-            $key['hash'] = trim(str_replace(' ', '', $line));
-        }
-
-        return $keys;
+    /**
+     * @param $hash
+     */
+    public function deletePrivateKey($hash)
+    {
+        return;
+        $command = 'gpg2 --batch --yes --delete-secret-keys ' . $hash;
+        $this->exec($command);
     }
 
     /**
@@ -439,15 +484,6 @@ class GPG extends AbstractService implements ServiceInterface
     {
         $this->deletePrivateKey($hash);
         $this->deletePublicKey($hash);
-    }
-
-    /**
-     * @param $name
-     */
-    public function exportKeys($name)
-    {
-        $this->exportPublicKey($name);
-        $this->exportPrivateKey($name);
     }
 
     /**

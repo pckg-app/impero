@@ -1,6 +1,6 @@
-<script type="text/x-template" id="impero-servers-one-template">
+<template>
     <div class="impero-servers-one-component">
-        <h1>${ server.name } / ${ server.ip } / ${ server.status }</h1>
+        <h1>{{ server.name }} / {{ server.ip }} / {{ server.status }}</h1>
         <h6>#web + #db + #cron + #mail</h6>
         <span v-for="tag in server.tags">#${ tag.tag } </span>
 
@@ -29,6 +29,9 @@
                 <li role="presentation">
                     <a href="#network" aria-controls="network" role="tab" data-toggle="tab">Network and firewall</a>
                 </li>
+                <li role="presentation">
+                    <a href="#tasks" aria-controls="tasks" role="tab" data-toggle="tab">Tasks</a>
+                </li>
             </ul>
 
             <!-- Tab panes -->
@@ -37,35 +40,39 @@
                     <button class="btn btn-success btn-xs"
                             title="Refresh services"
                             @click="server.refreshServicesStatuses()"><i
-                                class="fa fa-refresh"></i></button>
+                            class="fa fa-refresh"></i></button>
 
                     <button class="btn btn-success btn-xs"
                             title="Install services"
                             @click.prevent="openInstallServicesPopup"><i
-                                class="fa fa-plus"></i></button>
+                            class="fa fa-plus"></i></button>
 
                     <div class="row">
                         <div class="col-md-6">
 
                             <div>
-                                {% embed 'Pckg/Generic/View/modal.twig' with {close: true, id: 'installServicesModal'} %}
-                                    {% block header %}
+                                <pckg-bootstrap-modal :visible="installServicesModal"
+                                                      @close="installServicesModal = false">
+                                    <div slot="header">
                                         <h4>Install services</h4>
-                                    {% endblock %}
-                                    {% block body %}
+                                    </div>
+                                    <div slot="body">
                                         <p>Select services you wish to install.</p>
                                         <ul>
-                                            <li v-for="service in allServices" v-if="!service.isInstalledOnServer(server)">
-                                            ${ service.name } <a class="btn btn-xs" :href="service.getInstallOnServerUrl(server)">
-                                            <i class="fa fa-plus"></i>
+                                            <li v-for="service in allServices"
+                                                v-if="!service.isInstalledOnServer(server)">
+                                                {{ service.name }} <a class="btn btn-xs"
+                                                                      :href="service.getInstallOnServerUrl(server)">
+                                                <i class="fa fa-plus"></i>
                                             </a>
                                             </li>
                                         </ul>
-                                    {% endblock %}
-                                {% endembed %}
+                                    </div>
+                                </pckg-bootstrap-modal>
                             </div>
 
                             <h3>Services</h3>
+
                             <table class="table table-condensed table-striped">
                                 <thead>
                                 <tr>
@@ -76,12 +83,28 @@
                                 </thead>
                                 <tbody>
                                 <tr v-for="service in server.services">
-                                    <td>${ service.name }</td>
-                                    <td>${ service.getVersion() }</td>
+                                    <td>{{ service.name }}</td>
+                                    <td>{{ service.version }}</td>
                                     <td>
-                                        <button class="btn btn-warning btn-xs"
-                                                @click="service.configure()"><i class="fa fa-cogs"></i></button>
-                                        ${ service.getStatus() }
+
+                                        <template
+                                                v-if="true || hasComponent('impero-service-configure-' + service.service)">
+
+                                            <button class="btn btn-warning btn-xs"
+                                                    @click="configureModal = service.service"><i class="fa fa-cogs"></i></button>
+
+                                            <pckg-bootstrap-modal :visible="configureModal == service.service"
+                                                                  @close="configureModal == service.service ? configureModal = null : null">
+                                                <div slot="body" v-if="configureModal == service.service">
+                                                    <component :is="'impero-service-configure-' + service.service"
+                                                               :server="server"
+                                                               :service="service"></component>
+                                                </div>
+                                            </pckg-bootstrap-modal>
+
+                                        </template>
+
+                                        {{ service.status }}
                                     </td>
                                 </tr>
                                 </tbody>
@@ -99,13 +122,13 @@
                                 </thead>
                                 <tbody>
                                 <tr v-for="dependency in server.dependencies">
-                                    <td>${ dependency.name }</td>
-                                    <td>${ dependency.pivot.version }</td>
+                                    <td>{{ dependency.name }}</td>
+                                    <td>{{ dependency.version }}</td>
                                     <td>
-                                        <button class="btn btn-success btn-xs"
+                                        <!--<button class="btn btn-success btn-xs"
                                                 @click="dependency.refreshStatus()"><i
-                                                    class="fa fa-refresh"></i></button>
-                                        ${ dependency.pivot.status_id }
+                                                class="fa fa-refresh"></i></button>-->
+                                        {{ dependency.status_id }}
                                     </td>
                                 </tr>
                                 </tbody>
@@ -115,33 +138,9 @@
                 </div>
                 <div role="tabpanel" class="tab-pane" id="applications">
                     <div class="row">
-                        <table class="table table-condensed table-striped">
-                            <thead>
-                            <tr>
-                                <th>Website</th>
-                                <th>Application</th>
-                                <th>Url</th>
-                                <th>Https</th>
-                                <th>Source</th>
-                                <th>Version</th>
-                                <th>Status</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr v-for="website in server.websites">
-                                <td>${ website.name }</td>
-                                <td>${ website.application.name }</td>
-                                <td>
-                                    ${ website.url }<br/>
-                                    <span v-for="url in website.urls">${ url } </span>
-                                </td>
-                                <td>${ website.https }</td>
-                                <td>${ website.source }</td>
-                                <td>${ website.version }</td>
-                                <td>${ website.status }</td>
-                            </tr>
-                            </tbody>
-                        </table>
+
+                        <impero-servers-one-applications :server="server"></impero-servers-one-applications>
+
                     </div>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="deployments">
@@ -226,33 +225,26 @@
                     <div class="row">
                         <div class="col-md-6">
                             <h3>Network interfaces</h3>
+
                             <table class="table table-condensed table-striped">
                                 <thead>
                                 <tr>
                                     <th>Interface</th>
                                     <th>IP</th>
-                                    <th>DNS</th>
-                                    <th>Gateway</th>
-                                    <th>Network</th>
+                                    <th>Transfer (D/U)</th>
+                                    <th>Mask</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr>
-                                    <td>eth0</td>
-                                    <td>8.8.8.8</td>
-                                    <td>8.8.8.8<br/>8.8.4.4</td>
-                                    <td>192.168.1.1</td>
-                                    <td>255.255.255.0</td>
-                                </tr>
-                                <tr>
-                                    <td>eth1</td>
-                                    <td>8.8.8.8</td>
-                                    <td>8.8.8.8<br/>8.8.4.4</td>
-                                    <td>192.168.1.1</td>
-                                    <td>255.255.255.0</td>
+                                <tr v-for="iface in server.networkInterfaces">
+                                    <td>{{ iface.name }}</td>
+                                    <td>{{ iface.ipv4 }}<br/>{{ iface.ipv6 }}</td>
+                                    <td>{{ iface.downloaded }} / {{ iface.uploaded }}</td>
+                                    <td>{{ iface.mask }}</td>
                                 </tr>
                                 </tbody>
                             </table>
+
                         </div>
                         <div class="col-md-6">
                             <h3>Firewall settings</h3>
@@ -262,30 +254,23 @@
                                     <th>Rule</th>
                                     <th>From</th>
                                     <th>Service / Port</th>
-                                    <th>Direction</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr>
-                                    <td>allow</td>
-                                    <td>*</td>
-                                    <td>80</td>
-                                    <td>in</td>
-                                </tr>
-                                <tr>
-                                    <td>allow</td>
-                                    <td>*</td>
-                                    <td>443</td>
-                                    <td>in</td>
-                                </tr>
-                                <tr>
-                                    <td>allow</td>
-                                    <td>1.2.3.4</td>
-                                    <td>22</td>
-                                    <td>in</td>
+                                <tr v-for="rule in server.firewallSettings">
+                                    <td>{{ rule.rule }}</td>
+                                    <td>{{ rule.from }}</td>
+                                    <td>{{ rule.port }}</td>
                                 </tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="tasks">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3>Tasks</h3>
                         </div>
                     </div>
                 </div>
@@ -293,24 +278,34 @@
 
         </div>
     </div>
-</script>
+</template>
 
 <script>
-    Vue.component('impero-servers-one', {
+    import {Server, Servers} from "../../../../Pckg/Generic/public/impero";
+
+    export default {
+        name: 'impero-servers-one',
         mixins: [pckgDelimiters],
-        template: '#impero-servers-one-template',
         props: {
             id: Number
         },
         data: function () {
             return {
-                server: {}
+                server: new Server(),
+                installServicesModal: false,
+                configureModal: null
             };
         },
         methods: {
+            hasComponent(comp) {
+                return this.$root.$options.components[comp] || false;
+            },
             fetchServer: function () {
-                Impero.Servers.Entity.Servers.id(this.id, function (server) {
+                (new Servers()).one(this.id).then(function (server) {
+                    console.log('got server', server, JSON.parse(server.toJSON()));
+                    // this.server = server;
                     this.server = server;
+                    console.log("fetched", this, this.$root, $vue);
                 }.bind(this));
             },
             openInstallServicesPopup: function () {
@@ -318,16 +313,17 @@
                  * Get and show list of available services to install.
                  * Start flow for each separate service (haproxy requires one flow, mysql requires another, ...).
                  */
-                $('#installServicesModal').modal('show');
+                this.installServicesModal = true;
             }
         },
         computed: {
-            allServices: function(){
+            allServices: function () {
                 /**
-                * @T00D00 - how to
+                 * @T00D00 - how to
                  */
-                console.log('calling allServices');
-                return Impero.Servers.Entity.Services.getAllServices();
+                // console.log('calling allServices');
+                return $store.getters.services;
+                // return Impero.Servers.Entity.Services.getAllServices();
             },
             services: function () {
                 return this.server.services
@@ -347,7 +343,7 @@
         },
         created: function () {
             this.fetchServer();
-            $store.commit('prepareServices');
+            $store.dispatch('prepareServices');
         }
-    });
+    }
 </script>
