@@ -17,10 +17,10 @@ class Services extends Provider
                            'namePrefix' => 'api.services',
                        ], [
                            ''         => route('', 'services'),
-                           '.install' => route('/[service]/install/[server]',
-                                               'install')->resolvers(['server'  => Server::class,
-                                                                      'service' => Service::class,
-                                                                     ]),
+                           '.install' => route('/[service]/install/[server]', 'install')->resolvers([
+                                                                                                        'server'  => Server::class,
+                                                                                                        'service' => Service::class,
+                                                                                                    ]),
                        ]),
         ];
     }

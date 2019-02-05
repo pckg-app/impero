@@ -15,14 +15,6 @@ use Throwable;
 class MakeConfigBackup extends Command
 {
 
-    /**
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
-     */
-    protected function configure()
-    {
-        $this->setName('service:config:backup')->setDescription('Make backup of config/env.php files');
-    }
-
     public function handle()
     {
         /**
@@ -58,6 +50,14 @@ class MakeConfigBackup extends Command
         Fork::waitWaiting();
 
         $this->outputDated('Config backed up');
+    }
+
+    /**
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     */
+    protected function configure()
+    {
+        $this->setName('service:config:backup')->setDescription('Make backup of config/env.php files');
     }
 
 }

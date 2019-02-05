@@ -57,8 +57,8 @@ class Servers
         vueManager()->addView('Impero/Servers:servers/add.vue', ['serverForm' => $serverForm]);
 
         $genericService->touchBlock('left')->addAction(new CallableAction(function() {
-                return view('servers/add_sidebar');
-            }));
+            return view('servers/add_sidebar');
+        }));
 
         return view('servers/add');
     }
@@ -99,6 +99,11 @@ class Servers
         return response()->respondWithSuccess(['jobs' => $server->jobs]);
     }
 
+    public function postWebhookAction()
+    {
+        return $this->getWebhookAction();
+    }
+
     public function getWebhookAction()
     {
         /**
@@ -108,11 +113,6 @@ class Servers
         //$server->getConnection()->exec('cd /www/gnpdev/gnpdev.gonparty.eu/htdocs/ && php console project:pull');
 
         return 'ok';
-    }
-
-    public function postWebhookAction()
-    {
-        return $this->getWebhookAction();
     }
 
     public function postInstallNewServerAction()

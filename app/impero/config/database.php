@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'default'  => [
+    'default' => [
         'driver'  => 'mysql',
         'host'    => '127.0.0.1',
         'user'    => 'pckg_impero',
@@ -9,7 +9,7 @@ return [
         'db'      => 'pckg_impero',
         'charset' => 'utf8',
     ],
-    'dynamic'  => [
+    'dynamic' => [
         'driver'  => 'mysql',
         'host'    => '127.0.0.1',
         'user'    => 'pckg_impero',

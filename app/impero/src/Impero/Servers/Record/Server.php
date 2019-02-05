@@ -32,18 +32,22 @@ class Server extends Record implements Connectable
      */
     protected $mysqlService;
 
+    public function readFile($file)
+    {
+        $connection = $this->server->getConnection();
+
+        return $connection->sftpRead($file);
+    }
+
     /**
-     * @return mixed|SshConnection
+     * @param null $command
+     *
+     * @return bool|null|string
      * @throws \Exception
      */
-    public function getConnection() : ConnectionInterface
+    public function execSql($sql)
     {
-        if (!$this->connection) {
-            $connectionManager = context()->getOrCreate(ConnectionManager::class);
-            $this->connection = $connectionManager->createConnection($this);
-        }
-
-        return $this->connection;
+        return $this->getMysqlConnection()->execute($sql);
     }
 
     /**
@@ -59,33 +63,18 @@ class Server extends Record implements Connectable
         return $this->mysqlConnection;
     }
 
-    public function readFile($file)
-    {
-        $connection = $this->server->getConnection();
-
-        return $connection->sftpRead($file);
-    }
-
     /**
-     * @param null $command
-     *
-     * @return bool|null|string
+     * @return mixed|SshConnection
      * @throws \Exception
      */
-    public function exec($command)
+    public function getConnection() : ConnectionInterface
     {
-        return $this->getConnection()->exec($command);
-    }
+        if (!$this->connection) {
+            $connectionManager = context()->getOrCreate(ConnectionManager::class);
+            $this->connection = $connectionManager->createConnection($this);
+        }
 
-    /**
-     * @param null $command
-     *
-     * @return bool|null|string
-     * @throws \Exception
-     */
-    public function execSql($sql)
-    {
-        return $this->getMysqlConnection()->execute($sql);
+        return $this->connection;
     }
 
     /**
@@ -356,6 +345,17 @@ frontend all_https
     {
         $command = 'rsync -a ' . $file . ' impero@' . $toServer->ip . ':' . $destination;
         $this->exec($command);
+    }
+
+    /**
+     * @param null $command
+     *
+     * @return bool|null|string
+     * @throws \Exception
+     */
+    public function exec($command)
+    {
+        return $this->getConnection()->exec($command);
     }
 
     /**

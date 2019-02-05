@@ -16,15 +16,6 @@ use Throwable;
 class MakeStorageBackup extends Command
 {
 
-    /**
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
-     */
-    protected function configure()
-    {
-        $this->setName('service:storage:backup')
-             ->setDescription('Make cold storage backup and live sync to passive server');
-    }
-
     public function handle()
     {
         /**
@@ -104,6 +95,15 @@ class MakeStorageBackup extends Command
         Fork::waitWaiting();
 
         $this->outputDated('Storage backed up');
+    }
+
+    /**
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     */
+    protected function configure()
+    {
+        $this->setName('service:storage:backup')
+             ->setDescription('Make cold storage backup and live sync to passive server');
     }
 
 }

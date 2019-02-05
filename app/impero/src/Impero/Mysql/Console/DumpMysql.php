@@ -8,14 +8,6 @@ use Symfony\Component\Console\Input\InputOption;
 class DumpMysql extends Command
 {
 
-    protected function configure()
-    {
-        $this->setName('mysql:dump')->setDescription('Dump mysql configuration')->addOptions([
-                                                                                                 'server' => 'Server ID',
-                                                                                             ],
-                                                                                             InputOption::VALUE_REQUIRED);
-    }
-
     public function handle()
     {
         return;
@@ -57,6 +49,14 @@ class DumpMysql extends Command
          * @T00D00 - check if apache is offline and apply previous configuration.
          */
         $sshConnection->exec('sudo service apache2 graceful');
+    }
+
+    protected function configure()
+    {
+        $this->setName('mysql:dump')->setDescription('Dump mysql configuration')->addOptions([
+                                                                                                 'server' => 'Server ID',
+                                                                                             ],
+                                                                                             InputOption::VALUE_REQUIRED);
     }
 
 }

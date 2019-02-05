@@ -37,6 +37,14 @@ class Mysql extends AbstractService implements ServiceInterface
     }
 
     /**
+     *
+     */
+    public function startSlave()
+    {
+        $this->getMysqlConnection()->execute('START SLAVE;');
+    }
+
+    /**
      * @return MysqlConnection
      */
     public function getMysqlConnection()
@@ -47,25 +55,9 @@ class Mysql extends AbstractService implements ServiceInterface
     /**
      *
      */
-    public function startSlave()
-    {
-        $this->getMysqlConnection()->execute('START SLAVE;');
-    }
-
-    /**
-     *
-     */
     public function stopSlave()
     {
         $this->getMysqlConnection()->execute('STOP SLAVE;');
-    }
-
-    /**
-     * @return string
-     */
-    public function getReplicationConfigLocation()
-    {
-        return '/etc/mysql/conf.d/replication.cnf';
     }
 
     /**
@@ -80,6 +72,30 @@ class Mysql extends AbstractService implements ServiceInterface
         }
 
         $this->replicateMysqlSlave();
+    }
+
+    /**
+     * @return bool
+     * @throws \Exception
+     */
+    public function isMysqlSlaveReplicated()
+    {
+        /**
+         * Check that mysql is properly configured.
+         */
+        $file = $this->getReplicationConfigLocation();
+        $replicationConfig = $this->getConnection()->sftpRead($file);
+        $lines = explode("\n", $replicationConfig);
+
+        return in_array('[mysqld]', $lines);
+    }
+
+    /**
+     * @return string
+     */
+    public function getReplicationConfigLocation()
+    {
+        return '/etc/mysql/conf.d/replication.cnf';
     }
 
     /**
@@ -99,22 +115,6 @@ class Mysql extends AbstractService implements ServiceInterface
          */
         $this->getConnection()->sftpSend($file, implode("\n", $lines));
         $this->getConnection()->exec('sudo service mysql restart');
-    }
-
-    /**
-     * @return bool
-     * @throws \Exception
-     */
-    public function isMysqlSlaveReplicated()
-    {
-        /**
-         * Check that mysql is properly configured.
-         */
-        $file = $this->getReplicationConfigLocation();
-        $replicationConfig = $this->getConnection()->sftpRead($file);
-        $lines = explode("\n", $replicationConfig);
-
-        return in_array('[mysqld]', $lines);
     }
 
     /**
@@ -168,30 +168,6 @@ class Mysql extends AbstractService implements ServiceInterface
     }
 
     /**
-     * @param Collection $databases
-     */
-    public function refreshMasterReplicationFilter(Collection $databases)
-    {
-        $dbString = $databases->map(function(Database $database) {
-            return '`' . $database->name . '`';
-        })->implode(',');
-        $sql = 'CHANGE REPLICATION FILTER REPLICATE_DO_DB = (' . $dbString . ');';
-        $this->getMysqlConnection()->execute($sql);
-    }
-
-    /**
-     * @param Collection $databases
-     */
-    public function refreshSlaveReplicationFilter(Collection $databases)
-    {
-        $dbString = $databases->map(function(Database $database) {
-            return '`' . $database->name . '.%`';
-        })->implode(',');
-        $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
-        $this->getMysqlConnection()->execute($sql);
-    }
-
-    /**
      * @param Database $database
      *
      * @throws \Exception
@@ -228,6 +204,18 @@ class Mysql extends AbstractService implements ServiceInterface
          * We just need to collect all databases that are replicated to this server.
          */
         $this->refreshMasterReplicationFilter($database->server->masterDatabases);
+    }
+
+    /**
+     * @param Collection $databases
+     */
+    public function refreshMasterReplicationFilter(Collection $databases)
+    {
+        $dbString = $databases->map(function(Database $database) {
+            return '`' . $database->name . '`';
+        })->implode(',');
+        $sql = 'CHANGE REPLICATION FILTER REPLICATE_DO_DB = (' . $dbString . ');';
+        $this->getMysqlConnection()->execute($sql);
     }
 
     /**
@@ -273,6 +261,18 @@ class Mysql extends AbstractService implements ServiceInterface
          * @T00D00 - how to get all slave databases on this server?
          */
         $this->refreshSlaveReplicationFilter(new Collection());
+    }
+
+    /**
+     * @param Collection $databases
+     */
+    public function refreshSlaveReplicationFilter(Collection $databases)
+    {
+        $dbString = $databases->map(function(Database $database) {
+            return '`' . $database->name . '.%`';
+        })->implode(',');
+        $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
+        $this->getMysqlConnection()->execute($sql);
     }
 
     public function syncBinlog(Server $to)

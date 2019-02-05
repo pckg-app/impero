@@ -45,8 +45,8 @@ class Resolver implements ResolverInterface
 
         return $this->users->where('id', $id)//->userIsAuthorized()
                            ->oneOrFail(function() {
-                $this->response->unauthorized('User not found');
-            });
+            $this->response->unauthorized('User not found');
+        });
     }
 
     public function parametrize($record)

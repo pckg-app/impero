@@ -183,19 +183,6 @@ class SshConnection implements ConnectionInterface, Connectable
     }
 
     /**
-     * @param        $dir
-     * @param string $group
-     * @param string $permissions
-     */
-    public function makeAndAllow($dir, $group = 'www-data', $permissions = 'g+rwx')
-    {
-        $this->exec('mkdir -p ' . $dir);
-        $this->exec('chown www-data:www-data ' . $dir);
-        $this->exec('chgrp ' . $group . ' ' . $dir);
-        $this->exec('chmod ' . $permissions . ' ' . $dir);
-    }
-
-    /**
      * @param      $command
      * @param null $output
      * @param null $error
@@ -241,6 +228,19 @@ class SshConnection implements ConnectionInterface, Connectable
     }
 
     /**
+     * @param        $dir
+     * @param string $group
+     * @param string $permissions
+     */
+    public function makeAndAllow($dir, $group = 'www-data', $permissions = 'g+rwx')
+    {
+        $this->exec('mkdir -p ' . $dir);
+        $this->exec('chown www-data:www-data ' . $dir);
+        $this->exec('chgrp ' . $group . ' ' . $dir);
+        $this->exec('chmod ' . $permissions . ' ' . $dir);
+    }
+
+    /**
      *
      */
     public function open()
@@ -261,29 +261,6 @@ class SshConnection implements ConnectionInterface, Connectable
         }
 
         return $this;
-    }
-
-    /**
-     * @param      $local
-     * @param      $remote
-     * @param null $mode
-     * @param bool $isFile
-     *
-     * @return bool
-     */
-    public function sftpSend($local, $remote, $mode = null, $isFile = true)
-    {
-        $this->server->logCommand('Copying local ' . $local . ' to remote ' . $remote, null, null, null);
-
-        $sftp = $this->openSftp();
-
-        $stream = fopen("ssh2.sftp://" . intval($sftp) . $remote, '+w');
-
-        $ok = @fwrite($stream, $isFile ? file_get_contents($local) : $local);
-
-        @fclose($stream);
-
-        return !!$ok;
     }
 
     /**
@@ -469,6 +446,29 @@ password = s0m3p4ssw0rd';*/
          * Remove temporary file.
          */
         unlink($tmp);
+    }
+
+    /**
+     * @param      $local
+     * @param      $remote
+     * @param null $mode
+     * @param bool $isFile
+     *
+     * @return bool
+     */
+    public function sftpSend($local, $remote, $mode = null, $isFile = true)
+    {
+        $this->server->logCommand('Copying local ' . $local . ' to remote ' . $remote, null, null, null);
+
+        $sftp = $this->openSftp();
+
+        $stream = fopen("ssh2.sftp://" . intval($sftp) . $remote, '+w');
+
+        $ok = @fwrite($stream, $isFile ? file_get_contents($local) : $local);
+
+        @fclose($stream);
+
+        return !!$ok;
     }
 
     /**

@@ -17,14 +17,6 @@ class Site extends Record
     protected $vars = [];
 
     /**
-     * @return SshConnection
-     */
-    public function getServerConnection()
-    {
-        return $this->server->getConnection();
-    }
-
-    /**
      * Build edit url.
      *
      * @return string
@@ -53,72 +45,61 @@ class Site extends Record
         return $this;
     }
 
-    /**
-     * @param Server $server
-     *
-     * @throws \Exception
-     */
-    public function createOnFilesystem(Server $server)
-    {
-        $connection = $server->getConnection();
-
-        $connection->exec('mkdir -p ' . $this->getHtdocsPath());
-        $connection->exec('mkdir -p ' . $this->getLogPath());
-        $connection->exec('mkdir -p ' . $this->getSslPath());
-    }
-
-    public function getMountpoint()
-    {
-        /**
-         * volume1 - /www/ /backups/ /logs/
-         * volume2 - /www/ /backups/ /logs/
-         * zero - /www/ -> /volume1/www/
-         * We should change this so on every server storage path is the same. We won't use www folder anymore.
-         * Sites will point to /mnt/$volume/www/.
-         * Volumes are mounted on one server and shared over nfs on other servers, locations are the same.
-         * When there's no volume attached we create /www/ folder and mount /mnt/www/ to it.
-         */
-        return '/www/';
-    }
-
-    public function getUserPath()
-    {
-        return $this->getMountpoint() . $this->user->username . '/';
-    }
-
-    public function getDomainPath()
-    {
-        return $this->getUserPath() . $this->document_root . '/';
-    }
-
-    public function getLogPath()
-    {
-        return $this->getDomainPath() . 'logs/';
-    }
-
-    public function getHtdocsPath()
-    {
-        return $this->getDomainPath() . 'htdocs/';
-    }
-
-    public function getHtdocsOldPath()
-    {
-        return $this->getDomainPath() . 'htdocs-old/';
-    }
-
-    public function getHtdocsOlderPath()
-    {
-        return $this->getDomainPath() . 'htdocs-old-' . date('YmdHis') . '/';
-    }
-
-    public function getSslPath()
-    {
-        return $this->getDomainPath() . 'ssl/';
-    }
-
     public function getVirtualhost(Server $server)
     {
         return $this->getInsecureVirtualhost($server) . "\n\n" . $this->getSecureVirtualhost($server);
+    }
+
+    public function getInsecureVirtualhost(Server $server)
+    {
+        $directives = $this->getBasicDirectives();
+
+        $port = $server->getSettingValue('service.apache2.httpPort', 80);
+
+        $return = '<VirtualHost *:' . $port . '>' . "\n\t" . implode("\n\t", $directives) . "\n" . '</VirtualHost>';
+
+        return $return;
+    }
+
+    public function getBasicDirectives()
+    {
+        $directives = [
+            'ServerName ' . $this->server_name,
+            'DocumentRoot ' . $this->getHtdocsPath(),
+        ];
+
+        if ($this->server_alias) {
+            $directives[] = 'ServerAlias ' . $this->server_alias;
+        }
+
+        if ($this->error_log) {
+            $directives[] = 'ErrorLog ' . $this->getLogPath() . 'error.log';
+        }
+
+        if ($this->access_log) {
+            $directives[] = 'CustomLog ' . $this->getLogPath() . 'access.log combined';
+        }
+
+        return $directives;
+    }
+
+    public function getSecureVirtualhost(Server $server)
+    {
+        if (!$this->ssl) {
+            return;
+        }
+
+        $directives = $this->getBasicDirectives();
+        $directives[] = 'SSLEngine on';
+        $directives[] = 'SSLCertificateFile ' . $this->getSslPath() . $this->ssl_certificate_file;
+        $directives[] = 'SSLCertificateKeyFile ' . $this->getSslPath() . $this->ssl_certificate_key_file;
+        $directives[] = 'SSLCertificateChainFile ' . $this->getSslPath() . $this->ssl_certificate_chain_file;
+
+        $port = $server->getSettingValue('service.apache2.httpsPort', 443);
+
+        return '<VirtualHost *:' . $port . '>
+    ' . implode("\n\t", $directives) . '
+</VirtualHost>';
     }
 
     public function getServiceServers($service)
@@ -219,165 +200,9 @@ class Site extends Record
         return '/www/USER/' . $this->document_root . '/htdocs/';
     }
 
-    public function getBasicDirectives()
-    {
-        $directives = [
-            'ServerName ' . $this->server_name,
-            'DocumentRoot ' . $this->getHtdocsPath(),
-        ];
-
-        if ($this->server_alias) {
-            $directives[] = 'ServerAlias ' . $this->server_alias;
-        }
-
-        if ($this->error_log) {
-            $directives[] = 'ErrorLog ' . $this->getLogPath() . 'error.log';
-        }
-
-        if ($this->access_log) {
-            $directives[] = 'CustomLog ' . $this->getLogPath() . 'access.log combined';
-        }
-
-        return $directives;
-    }
-
-    public function getInsecureVirtualhost(Server $server)
-    {
-        $directives = $this->getBasicDirectives();
-
-        $port = $server->getSettingValue('service.apache2.httpPort', 80);
-
-        $return = '<VirtualHost *:' . $port . '>' . "\n\t" . implode("\n\t", $directives) . "\n" . '</VirtualHost>';
-
-        return $return;
-    }
-
-    public function getSecureVirtualhost(Server $server)
-    {
-        if (!$this->ssl) {
-            return;
-        }
-
-        $directives = $this->getBasicDirectives();
-        $directives[] = 'SSLEngine on';
-        $directives[] = 'SSLCertificateFile ' . $this->getSslPath() . $this->ssl_certificate_file;
-        $directives[] = 'SSLCertificateKeyFile ' . $this->getSslPath() . $this->ssl_certificate_key_file;
-        $directives[] = 'SSLCertificateChainFile ' . $this->getSslPath() . $this->ssl_certificate_chain_file;
-
-        $port = $server->getSettingValue('service.apache2.httpsPort', 443);
-
-        return '<VirtualHost *:' . $port . '>
-    ' . implode("\n\t", $directives) . '
-</VirtualHost>';
-    }
-
     public function addCronjob($command)
     {
         $this->server->addCronjob($command);
-    }
-
-    public function getUniqueDomains()
-    {
-        return collect([$this->server_name])->pushArray(explode(' ', $this->server_alias))->unique()->removeEmpty();
-    }
-
-    public function letsencrypt()
-    {
-        /**
-         * Generate certificate only, agree with tos, run in non interactive mode, set rsa key size,
-         * set admin email, default webroot path, certificate name, domains, usage with apache
-         * and auto expansion.
-         */
-        $command = 'sudo /opt/letsencrypt/certbot-auto certonly';
-        $email = 'letsencrypt.zero.gonparty.eu@schtr4jh.net';
-        $webroot = '/var/www/default';
-        $domain = $this->server_name;
-        $domains = $this->getUniqueDomains();
-
-        $ip = null;
-        $realDomains = [];
-        $skipped = [];
-        foreach ($domains as $d) {
-            $i = gethostbyname($d);
-            if (!$ip) {
-                /**
-                 * First ip is real ip.
-                 */
-                $ip = $i;
-            } elseif ($i != $ip) {
-                /**
-                 * Skip domains on invalid ip.
-                 */
-                $skipped[] = $d;
-                continue;
-            }
-
-            $realDomains[] = $d;
-        }
-
-        if ($skipped) {
-            $this->server->logCommand('Skipping obtaining certificate(s) for domains ' .
-                                      collect($skipped)->implode(', ') . ' on ip ' . $ip, null, null, null);
-        }
-
-        if ($realDomains) {
-            $this->server->logCommand('Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') .
-                                      ' on ip ' . $ip, null, null, null);
-        }
-
-        $realDomains = implode(',', $realDomains);
-        $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email . ' --webroot-path ' .
-            $webroot . ' --cert-name ' . $domain . ' --domains "' . $realDomains . '" --webroot --expand';
-
-        /**
-         * Execute command.
-         */
-        $connection = $this->getServerConnection();
-        $response = $connection->exec($command . ' ' . $params);
-
-        if (strpos($response, 'Congratulations! Your certificate and chain have been saved at:') === false &&
-            strpos($response, 'Certificate not yet due for renewal') === false) {
-            return false;
-        }
-
-        /**
-         * If command is successful update site, dump config and restart apache.
-         */
-        $dir = '/etc/letsencrypt/live/' . $domain . '/';
-
-        /**
-         * Create symlinks.
-         */
-        $files = ['cert.pem', 'privkey.pem', 'fullchain.pem'];
-        $sslPath = $this->getSslPath();
-        foreach ($files as $file) {
-            if ($connection->symlinkExists($sslPath . $file)) {
-                continue;
-            }
-
-            $connection->exec('ln -s ' . $dir . $file . ' ' . $sslPath . $file);
-        }
-
-        /**
-         * Update site in impero.
-         */
-        $this->setAndSave([
-                              'ssl'                        => 'letsencrypt',
-                              'ssl_certificate_file'       => 'cert.pem',
-                              'ssl_certificate_key_file'   => 'privkey.pem',
-                              'ssl_certificate_chain_file' => 'fullchain.pem',
-                              'ssl_letsencrypt_autorenew'  => true,
-                          ]);
-
-        /**
-         * Dump virtualhosts and restart apache.
-         */
-        $this->restartApache();
-    }
-
-    public function restartApache()
-    {
-        (new DumpVirtualhosts())->executeManually(['--server' => $this->server_id]);
     }
 
     public function hasSiteDir($dir)
@@ -516,39 +341,6 @@ class Site extends Record
     }
 
     /**
-     * @param Server $server
-     * @param        $pckg
-     *
-     * @throws \Exception
-     */
-    public function preparePlatform(Server $server, $pckg)
-    {
-        /**
-         * Execute prepare commands.
-         */
-        $commands = [];
-        foreach ($pckg['prepare'] ?? [] as $command) {
-            $commands[] = $this->replaceVars($command);
-        }
-        $connection = $server->getConnection();
-        $connection->execMultiple($commands);
-    }
-
-    /**
-     * @param Server $server
-     * @param        $pckg
-     *
-     * @throws \Exception
-     */
-    public function copyConfig(Server $server, $pckg)
-    {
-        $connection = $server->getConnection();
-        foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
-            $connection->saveContent($dest, $this->getConfigContent());
-        }
-    }
-
-    /**
      * @param     $pckg
      *
      * @return Site
@@ -588,232 +380,169 @@ class Site extends Record
         }
     }
 
-    public function createNewHtdocsPath(Server $server)
-    {
-        $connection = $server->getConnection();
-
-        /**
-         * Move existent htdocs-old to htdocs-old-$datetime
-         */
-        if ($connection->dirExists($this->getHtdocsOldPath())) {
-            $connection->exec('mv ' . $this->getHtdocsOldPath() . ' ' . $this->getHtdocsOlderPath());
-        }
-
-        /**
-         * Move existent htdocs to htdocs-old
-         */
-        $connection->exec('mv ' . $this->getHtdocsPath() . ' ' . $this->getHtdocsOldPath());
-
-        /**
-         * Create new htdocs path
-         */
-        $connection->exec('mkdir ' . $this->getHtdocsPath());
-    }
-
-    public function check($pckg, $fix = false)
-    {
-        /**
-         * Checks:
-         *  - htdocs path exists
-         */
-        $htdocsDir = $this->getHtdocsPath();
-        $storageDir = $this->getStorageDir();
-        $checks = [];
-        $connection = $this->getServerConnection();
-
-        $checkDirs = [$htdocsDir, $storageDir];
-        foreach ($checkDirs as $dir) {
-            $checks['dirs'][$dir] = $connection->dirExists($dir) ? 'ok:dir' : null;
-        }
-
-        foreach ($pckg['checkout']['create']['dir'] ?? [] as $dir) {
-            $parsed = $this->replaceVars($htdocsDir . $dir);
-            $checks['dirs'][$storageDir . $dir] = $connection->dirExists($parsed) ? 'ok:dir'
-                : ($connection->symlinkExists($parsed) ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
-        }
-        foreach ($pckg['checkout']['symlink']['dir'] ?? [] as $dir) {
-            $parsed = $this->replaceVars($htdocsDir . $dir);
-            $checks['dirs'][$parsed] = $connection->symlinkExists($parsed) ? 'ok:symlink'
-                : ($connection->dirExists($parsed) ? 'dir' : $connection->fileExists($parsed) ? 'file' : null);
-        }
-        foreach ($pckg['checkout']['symlink']['file'] ?? [] as $dir) {
-            $parsed = $this->replaceVars($htdocsDir . $dir);
-            $checks['dirs'][$parsed] = $connection->fileExists($parsed)
-                ? 'ok:file' : ($connection->dirExists($parsed)
-                    ? 'dir' : $connection->symlinkExists($parsed) ? 'symlink' : null);
-        }
-        foreach ($pckg['services']['storage']['dir'] ?? [] as $dir) {
-            $parsed = $this->replaceVars($storageDir . $dir);
-            $checks['dirs'][$parsed] = $connection->dirExists($parsed)
-                ? 'ok:dir' : ($connection->symlinkExists($parsed)
-                    ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
-        }
-        foreach ($pckg['services']['web']['mount'] ?? [] as $link => $dir) {
-            $checks['dirs'][$storageDir . $link] = $connection->symlinkExists($htdocsDir . $link)
-                ? 'ok:symlink' : ($connection->dirExists($htdocsDir . $link)
-                    ? 'dir' : $connection->fileExists($htdocsDir . $link)
-                        ? 'file' : null);
-        }
-
-        return $checks;
-    }
-
     /**
      * @param Server $server
-     * @param        $pckg
-     * @param        $vars
      *
      * @throws \Exception
      */
-    public function recheckout(Server $server, $pckg, $vars)
+    public function createOnFilesystem(Server $server)
     {
-        $this->vars = $vars;
-        $this->prepareSite($server, $pckg);
-        $this->createNewHtdocsPath($server);
-        $this->checkoutPlatform($server, $pckg);
-        $this->preparePlatformDirs($server, $pckg);
-        $this->copyOldConfig($server);
+        $connection = $server->getConnection();
 
-        /**
-         * Everything is ready, we may enable cronjobs.
-         */
-        $this->enableCronjobs($server, $pckg);
+        $connection->exec('mkdir -p ' . $this->getHtdocsPath());
+        $connection->exec('mkdir -p ' . $this->getLogPath());
+        $connection->exec('mkdir -p ' . $this->getSslPath());
     }
 
-    /**
-     * @param Server $server
-     * @param        $pckg
-     * @param        $vars
-     * @param bool   $isAlias
-     * @param bool   $checkAlias
-     *
-     * @throws \Exception
-     */
-    public function deploy(Server $server, $pckg, $vars, $isAlias = false, $checkAlias = false)
+    public function getHtdocsPath()
     {
-        $this->vars = $vars;
-        $connection = $server->getConnection();
-        $htdocsDir = $this->getHtdocsPath();
-        $blueGreen = ($pckg['checkout']['type'] ?? null) == 'ab';
+        return $this->getDomainPath() . 'htdocs/';
+    }
 
-        $errorStream = null;
-        $deployDir = null;
-        if ($blueGreen) {
-            /**
-             * We should also support blue-green (or a-b deployments).
-             * This would mean that we checkout code in new directory (/www/_ab/[repository]/[branch]/[a|b|gitCommit].
-             * And then change symlink of /www/_abc/[repository]/[branch] to /www/_ab/[repository]/[branch]/[a|b|gitCommit].
-             * ln -sfn /www/_ab/[repository]/[branch]/[a|b|gitCommit] /www/_abc/[repository]/[branch]
-             * Sites are still linked to /www/_abc/[repository]/[branch] and gets updated immediately after symlink change.
-             */
-            $deployDir = $this->getBlueGreenDir($pckg);
-        } elseif ($checkAlias) {
-            /**
-             * Aliased platforms are checkout in _linked directory.
-             */
-            $deployDir = $this->getLinkedDir($pckg);
-        } elseif (!$isAlias) {
-            /**
-             * Standalone platforms are checkout in site's htdocs dir.
-             */
-            $deployDir = $htdocsDir;
-        }
+    public function getDomainPath()
+    {
+        return $this->getUserPath() . $this->document_root . '/';
+    }
 
-        if ($deployDir) {
-            foreach ($pckg['deploy'] ?? [] as $command) {
-                $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
-                $finalCommand .= $this->replaceVars($command);
-                $connection->exec($finalCommand);
+    public function getUserPath()
+    {
+        return $this->getMountpoint() . $this->user->username . '/';
+    }
+
+    public function getMountpoint()
+    {
+        /**
+         * volume1 - /www/ /backups/ /logs/
+         * volume2 - /www/ /backups/ /logs/
+         * zero - /www/ -> /volume1/www/
+         * We should change this so on every server storage path is the same. We won't use www folder anymore.
+         * Sites will point to /mnt/$volume/www/.
+         * Volumes are mounted on one server and shared over nfs on other servers, locations are the same.
+         * When there's no volume attached we create /www/ folder and mount /mnt/www/ to it.
+         */
+        return '/www/';
+    }
+
+    public function getLogPath()
+    {
+        return $this->getDomainPath() . 'logs/';
+    }
+
+    public function getSslPath()
+    {
+        return $this->getDomainPath() . 'ssl/';
+    }
+
+    public function letsencrypt()
+    {
+        /**
+         * Generate certificate only, agree with tos, run in non interactive mode, set rsa key size,
+         * set admin email, default webroot path, certificate name, domains, usage with apache
+         * and auto expansion.
+         */
+        $command = 'sudo /opt/letsencrypt/certbot-auto certonly';
+        $email = 'letsencrypt.zero.gonparty.eu@schtr4jh.net';
+        $webroot = '/var/www/default';
+        $domain = $this->server_name;
+        $domains = $this->getUniqueDomains();
+
+        $ip = null;
+        $realDomains = [];
+        $skipped = [];
+        foreach ($domains as $d) {
+            $i = gethostbyname($d);
+            if (!$ip) {
+                /**
+                 * First ip is real ip.
+                 */
+                $ip = $i;
+            } elseif ($i != $ip) {
+                /**
+                 * Skip domains on invalid ip.
+                 */
+                $skipped[] = $d;
+                continue;
             }
+
+            $realDomains[] = $d;
+        }
+
+        if ($skipped) {
+            $this->server->logCommand('Skipping obtaining certificate(s) for domains ' .
+                                      collect($skipped)->implode(', ') . ' on ip ' . $ip, null, null, null);
+        }
+
+        if ($realDomains) {
+            $this->server->logCommand('Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') .
+                                      ' on ip ' . $ip, null, null, null);
+        }
+
+        $realDomains = implode(',', $realDomains);
+        $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email . ' --webroot-path ' .
+            $webroot . ' --cert-name ' . $domain . ' --domains "' . $realDomains . '" --webroot --expand';
+
+        /**
+         * Execute command.
+         */
+        $connection = $this->getServerConnection();
+        $response = $connection->exec($command . ' ' . $params);
+
+        if (strpos($response, 'Congratulations! Your certificate and chain have been saved at:') === false &&
+            strpos($response, 'Certificate not yet due for renewal') === false) {
+            return false;
         }
 
         /**
-         * Standalone and aliased platforms are migrated in their htdocs directory.
+         * If command is successful update site, dump config and restart apache.
          */
-        foreach ($pckg['migrate'] ?? [] as $command) {
-            $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
-            $finalCommand .= $this->replaceVars($command);
-            $connection->exec($finalCommand);
+        $dir = '/etc/letsencrypt/live/' . $domain . '/';
+
+        /**
+         * Create symlinks.
+         */
+        $files = ['cert.pem', 'privkey.pem', 'fullchain.pem'];
+        $sslPath = $this->getSslPath();
+        foreach ($files as $file) {
+            if ($connection->symlinkExists($sslPath . $file)) {
+                continue;
+            }
+
+            $connection->exec('ln -s ' . $dir . $file . ' ' . $sslPath . $file);
         }
+
+        /**
+         * Update site in impero.
+         */
+        $this->setAndSave([
+                              'ssl'                        => 'letsencrypt',
+                              'ssl_certificate_file'       => 'cert.pem',
+                              'ssl_certificate_key_file'   => 'privkey.pem',
+                              'ssl_certificate_chain_file' => 'fullchain.pem',
+                              'ssl_letsencrypt_autorenew'  => true,
+                          ]);
+
+        /**
+         * Dump virtualhosts and restart apache.
+         */
+        $this->restartApache();
+    }
+
+    public function getUniqueDomains()
+    {
+        return collect([$this->server_name])->pushArray(explode(' ', $this->server_alias))->unique()->removeEmpty();
     }
 
     /**
-     * @param Server $server
-     *
-     * @throws \Exception
+     * @return SshConnection
      */
-    public function copyOldConfig(Server $server)
+    public function getServerConnection()
     {
-        $server->getConnection()->exec('cp ' . $this->getHtdocsOldPath() . 'config/env.php ' . $this->getHtdocsPath() .
-                                       'config/env.php');
+        return $this->server->getConnection();
     }
 
-    /**
-     * @param Server $server
-     * @param        $pckg
-     */
-    public function enableCronjobs(Server $server, $pckg)
+    public function restartApache()
     {
-        /**
-         * Link database to site.
-         */
-        SitesServer::getOrCreate(['site_id' => $this->id, 'server_id' => $server->id, 'type' => 'cron']);
-
-        /**
-         * Add cronjob, we also perform uniqueness check.
-         */
-        foreach ($pckg['services']['cron']['commands'] ?? [] as $cron) {
-            $server->addCronjob($this->replaceVars($cron['command']));
-        }
-    }
-
-    /**
-     * @param Server $server
-     * @param        $pckg
-     * @param        $aliasDir
-     *
-     * @throws \Exception
-     */
-    public function prepareLinkedCheckout(Server $server, $pckg, $aliasDir)
-    {
-        $connection = $server->getConnection();
-        if ($connection->dirExists($aliasDir)) {
-            /**
-             * Linked checkout is already prepared.
-             */
-            return;
-        }
-
-        /**
-         * Create dir, checkout, init and prepare platform.
-         */
-        $errorStream = null;
-        $connection->exec('mkdir -p ' . $aliasDir);
-
-        /**
-         * Checkout platform.
-         */
-        $connection->execMultiple([
-                                      'git clone ' . $pckg['repository'] . ' .',
-                                      'git checkout ' . $pckg['branch'],
-                                  ], $output, $error, $aliasDir);
-
-        /**
-         * Init platform.
-         */
-        $connection->execMultiple($pckg['init'], $output, $error, $aliasDir);
-    }
-
-    public function getLinkedDir($pckg)
-    {
-        return '/www/_linked/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' . $pckg['branch'] .
-            '/';
-    }
-
-    public function getBlueGreenDir($pckg)
-    {
-        return '/www/_ab/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' . $pckg['branch'] .
-            '/a|b|giTcommit' . '/';
+        (new DumpVirtualhosts())->executeManually(['--server' => $this->server_id]);
     }
 
     /**
@@ -878,13 +607,47 @@ class Site extends Record
         }
     }
 
-    public function getStorageDir()
+    public function getLinkedDir($pckg)
     {
+        return '/www/_linked/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' . $pckg['branch'] .
+            '/';
+    }
+
+    /**
+     * @param Server $server
+     * @param        $pckg
+     * @param        $aliasDir
+     *
+     * @throws \Exception
+     */
+    public function prepareLinkedCheckout(Server $server, $pckg, $aliasDir)
+    {
+        $connection = $server->getConnection();
+        if ($connection->dirExists($aliasDir)) {
+            /**
+             * Linked checkout is already prepared.
+             */
+            return;
+        }
+
         /**
-         * @T00D00 - storage path stays hardcoded for now.
-         * We will get it by selecting storage server for platform on platform creation.
+         * Create dir, checkout, init and prepare platform.
          */
-        return '/mnt/volume-fra1-01/live/' . $this->user->username . '/' . $this->document_root . '/';
+        $errorStream = null;
+        $connection->exec('mkdir -p ' . $aliasDir);
+
+        /**
+         * Checkout platform.
+         */
+        $connection->execMultiple([
+                                      'git clone ' . $pckg['repository'] . ' .',
+                                      'git checkout ' . $pckg['branch'],
+                                  ], $output, $error, $aliasDir);
+
+        /**
+         * Init platform.
+         */
+        $connection->execMultiple($pckg['init'], $output, $error, $aliasDir);
     }
 
     /**
@@ -952,6 +715,20 @@ class Site extends Record
         }
     }
 
+    public function getStorageDir()
+    {
+        /**
+         * @T00D00 - storage path stays hardcoded for now.
+         * We will get it by selecting storage server for platform on platform creation.
+         */
+        return '/mnt/volume-fra1-01/live/' . $this->user->username . '/' . $this->document_root . '/';
+    }
+
+    public function getHtdocsOldPath()
+    {
+        return $this->getDomainPath() . 'htdocs-old/';
+    }
+
     public function replaceVars($command, $vars = [])
     {
         $defaults = [
@@ -968,11 +745,6 @@ class Site extends Record
         }
 
         return str_replace(array_keys($replaces), $escaped, $command);
-    }
-
-    public function createFile($file, $content)
-    {
-        $this->getServerConnection()->sftpSend($content, $this->getHtdocsPath() . $file, null, false);
     }
 
     /**
@@ -1050,6 +822,20 @@ class Site extends Record
         }
     }
 
+    /**
+     * @param Server $server
+     * @param        $pckg
+     *
+     * @throws \Exception
+     */
+    public function copyConfig(Server $server, $pckg)
+    {
+        $connection = $server->getConnection();
+        foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
+            $connection->saveContent($dest, $this->getConfigContent());
+        }
+    }
+
     public function getConfigContent()
     {
         /**
@@ -1095,6 +881,220 @@ return [
     ],
 ];
 ');
+    }
+
+    /**
+     * @param Server $server
+     * @param        $pckg
+     *
+     * @throws \Exception
+     */
+    public function preparePlatform(Server $server, $pckg)
+    {
+        /**
+         * Execute prepare commands.
+         */
+        $commands = [];
+        foreach ($pckg['prepare'] ?? [] as $command) {
+            $commands[] = $this->replaceVars($command);
+        }
+        $connection = $server->getConnection();
+        $connection->execMultiple($commands);
+    }
+
+    /**
+     * @param Server $server
+     * @param        $pckg
+     */
+    public function enableCronjobs(Server $server, $pckg)
+    {
+        /**
+         * Link database to site.
+         */
+        SitesServer::getOrCreate(['site_id' => $this->id, 'server_id' => $server->id, 'type' => 'cron']);
+
+        /**
+         * Add cronjob, we also perform uniqueness check.
+         */
+        foreach ($pckg['services']['cron']['commands'] ?? [] as $cron) {
+            $server->addCronjob($this->replaceVars($cron['command']));
+        }
+    }
+
+    public function check($pckg, $fix = false)
+    {
+        /**
+         * Checks:
+         *  - htdocs path exists
+         */
+        $htdocsDir = $this->getHtdocsPath();
+        $storageDir = $this->getStorageDir();
+        $checks = [];
+        $connection = $this->getServerConnection();
+
+        $checkDirs = [$htdocsDir, $storageDir];
+        foreach ($checkDirs as $dir) {
+            $checks['dirs'][$dir] = $connection->dirExists($dir) ? 'ok:dir' : null;
+        }
+
+        foreach ($pckg['checkout']['create']['dir'] ?? [] as $dir) {
+            $parsed = $this->replaceVars($htdocsDir . $dir);
+            $checks['dirs'][$storageDir . $dir] = $connection->dirExists($parsed) ? 'ok:dir'
+                : ($connection->symlinkExists($parsed) ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
+        }
+        foreach ($pckg['checkout']['symlink']['dir'] ?? [] as $dir) {
+            $parsed = $this->replaceVars($htdocsDir . $dir);
+            $checks['dirs'][$parsed] = $connection->symlinkExists($parsed) ? 'ok:symlink'
+                : ($connection->dirExists($parsed) ? 'dir' : $connection->fileExists($parsed) ? 'file' : null);
+        }
+        foreach ($pckg['checkout']['symlink']['file'] ?? [] as $dir) {
+            $parsed = $this->replaceVars($htdocsDir . $dir);
+            $checks['dirs'][$parsed] = $connection->fileExists($parsed)
+                ? 'ok:file' : ($connection->dirExists($parsed)
+                    ? 'dir' : $connection->symlinkExists($parsed) ? 'symlink' : null);
+        }
+        foreach ($pckg['services']['storage']['dir'] ?? [] as $dir) {
+            $parsed = $this->replaceVars($storageDir . $dir);
+            $checks['dirs'][$parsed] = $connection->dirExists($parsed)
+                ? 'ok:dir' : ($connection->symlinkExists($parsed)
+                    ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
+        }
+        foreach ($pckg['services']['web']['mount'] ?? [] as $link => $dir) {
+            $checks['dirs'][$storageDir . $link] = $connection->symlinkExists($htdocsDir . $link)
+                ? 'ok:symlink' : ($connection->dirExists($htdocsDir . $link)
+                    ? 'dir' : $connection->fileExists($htdocsDir . $link)
+                        ? 'file' : null);
+        }
+
+        return $checks;
+    }
+
+    /**
+     * @param Server $server
+     * @param        $pckg
+     * @param        $vars
+     *
+     * @throws \Exception
+     */
+    public function recheckout(Server $server, $pckg, $vars)
+    {
+        $this->vars = $vars;
+        $this->prepareSite($server, $pckg);
+        $this->createNewHtdocsPath($server);
+        $this->checkoutPlatform($server, $pckg);
+        $this->preparePlatformDirs($server, $pckg);
+        $this->copyOldConfig($server);
+
+        /**
+         * Everything is ready, we may enable cronjobs.
+         */
+        $this->enableCronjobs($server, $pckg);
+    }
+
+    public function createNewHtdocsPath(Server $server)
+    {
+        $connection = $server->getConnection();
+
+        /**
+         * Move existent htdocs-old to htdocs-old-$datetime
+         */
+        if ($connection->dirExists($this->getHtdocsOldPath())) {
+            $connection->exec('mv ' . $this->getHtdocsOldPath() . ' ' . $this->getHtdocsOlderPath());
+        }
+
+        /**
+         * Move existent htdocs to htdocs-old
+         */
+        $connection->exec('mv ' . $this->getHtdocsPath() . ' ' . $this->getHtdocsOldPath());
+
+        /**
+         * Create new htdocs path
+         */
+        $connection->exec('mkdir ' . $this->getHtdocsPath());
+    }
+
+    public function getHtdocsOlderPath()
+    {
+        return $this->getDomainPath() . 'htdocs-old-' . date('YmdHis') . '/';
+    }
+
+    /**
+     * @param Server $server
+     *
+     * @throws \Exception
+     */
+    public function copyOldConfig(Server $server)
+    {
+        $server->getConnection()->exec('cp ' . $this->getHtdocsOldPath() . 'config/env.php ' . $this->getHtdocsPath() .
+                                       'config/env.php');
+    }
+
+    /**
+     * @param Server $server
+     * @param        $pckg
+     * @param        $vars
+     * @param bool   $isAlias
+     * @param bool   $checkAlias
+     *
+     * @throws \Exception
+     */
+    public function deploy(Server $server, $pckg, $vars, $isAlias = false, $checkAlias = false)
+    {
+        $this->vars = $vars;
+        $connection = $server->getConnection();
+        $htdocsDir = $this->getHtdocsPath();
+        $blueGreen = ($pckg['checkout']['type'] ?? null) == 'ab';
+
+        $errorStream = null;
+        $deployDir = null;
+        if ($blueGreen) {
+            /**
+             * We should also support blue-green (or a-b deployments).
+             * This would mean that we checkout code in new directory (/www/_ab/[repository]/[branch]/[a|b|gitCommit].
+             * And then change symlink of /www/_abc/[repository]/[branch] to /www/_ab/[repository]/[branch]/[a|b|gitCommit].
+             * ln -sfn /www/_ab/[repository]/[branch]/[a|b|gitCommit] /www/_abc/[repository]/[branch]
+             * Sites are still linked to /www/_abc/[repository]/[branch] and gets updated immediately after symlink change.
+             */
+            $deployDir = $this->getBlueGreenDir($pckg);
+        } elseif ($checkAlias) {
+            /**
+             * Aliased platforms are checkout in _linked directory.
+             */
+            $deployDir = $this->getLinkedDir($pckg);
+        } elseif (!$isAlias) {
+            /**
+             * Standalone platforms are checkout in site's htdocs dir.
+             */
+            $deployDir = $htdocsDir;
+        }
+
+        if ($deployDir) {
+            foreach ($pckg['deploy'] ?? [] as $command) {
+                $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
+                $finalCommand .= $this->replaceVars($command);
+                $connection->exec($finalCommand);
+            }
+        }
+
+        /**
+         * Standalone and aliased platforms are migrated in their htdocs directory.
+         */
+        foreach ($pckg['migrate'] ?? [] as $command) {
+            $finalCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
+            $finalCommand .= $this->replaceVars($command);
+            $connection->exec($finalCommand);
+        }
+    }
+
+    public function getBlueGreenDir($pckg)
+    {
+        return '/www/_ab/' . str_replace(['.', '@', '/', ':'], '-', $pckg['repository']) . '/' . $pckg['branch'] .
+            '/a|b|giTcommit' . '/';
+    }
+
+    public function createFile($file, $content)
+    {
+        $this->getServerConnection()->sftpSend($content, $this->getHtdocsPath() . $file, null, false);
     }
 
     public function hasServiceOnServer(Server $server, $service)

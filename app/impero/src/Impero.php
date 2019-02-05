@@ -50,18 +50,12 @@ class Impero extends Provider
     public function jobs()
     {
         return [
-            Cron::createJob(MakeMysqlBackup::class, 'Make database backups')
-                ->at(['6:00', '18:00'])
-                ->background(),
-            Cron::createJob(MakeStorageBackup::class, 'Make storage backups')
-                ->at(['3:00', '15:00'])
-                ->background(),
+            Cron::createJob(MakeMysqlBackup::class, 'Make database backups')->at(['6:00', '18:00'])->background(),
+            Cron::createJob(MakeStorageBackup::class, 'Make storage backups')->at(['3:00', '15:00'])->background(),
             Cron::createJob(MakeSystemBackup::class, 'Make system services backups')
                 ->at(['9:00', '21:00'])
                 ->background(),
-            Cron::createJob(MakeConfigBackup::class, 'Make config backups')
-                ->at(['10:00', '22:00'])
-                ->background(),
+            Cron::createJob(MakeConfigBackup::class, 'Make config backups')->at(['10:00', '22:00'])->background(),
         ];
     }
 
@@ -83,38 +77,35 @@ function maestro_urls($class, $slug, $record, $resolver, $alterslug = null)
         $alterslug = $slug;
     }
 
-    return array_merge_array(
-        [
-            'controller' => $class,
-            '',
-        ],
-        [
-            '/' . $alterslug                               => [
-                'name' => $slug . '.list',
-                'view' => 'index',
-                //'tags' => ['auth:in'],
-            ],
-            '/' . $alterslug . '/add'                      => [
-                'name' => $slug . '.add',
-                'view' => 'add',
-                //'tags' => ['auth:in'],
-            ],
-            '/' . $alterslug . '/edit/[' . $record . ']'   => [
-                'name'      => $slug . '.edit',
-                'view'      => 'edit',
-                'resolvers' => [
-                    $record => $resolver,
-                ],
-                //'tags'      => ['auth:in'],
-            ],
-            '/' . $alterslug . '/delete/[' . $record . ']' => [
-                'name'      => $slug . '.delete',
-                'view'      => 'delete',
-                'resolvers' => [
-                    $record => $resolver,
-                ],
-                'tags'      => ['auth:in'],
-            ],
-        ]
-    );
+    return array_merge_array([
+                                 'controller' => $class,
+                                 '',
+                             ], [
+                                 '/' . $alterslug                               => [
+                                     'name' => $slug . '.list',
+                                     'view' => 'index',
+                                     //'tags' => ['auth:in'],
+                                 ],
+                                 '/' . $alterslug . '/add'                      => [
+                                     'name' => $slug . '.add',
+                                     'view' => 'add',
+                                     //'tags' => ['auth:in'],
+                                 ],
+                                 '/' . $alterslug . '/edit/[' . $record . ']'   => [
+                                     'name'      => $slug . '.edit',
+                                     'view'      => 'edit',
+                                     'resolvers' => [
+                                         $record => $resolver,
+                                     ],
+                                     //'tags'      => ['auth:in'],
+                                 ],
+                                 '/' . $alterslug . '/delete/[' . $record . ']' => [
+                                     'name'      => $slug . '.delete',
+                                     'view'      => 'delete',
+                                     'resolvers' => [
+                                         $record => $resolver,
+                                     ],
+                                     'tags'      => ['auth:in'],
+                                 ],
+                             ]);
 }
