@@ -22,14 +22,6 @@ class Site extends Record
     protected $vars = [];
 
     /**
-     * @return SshConnection
-     */
-    public function getServerConnection()
-    {
-        return $this->server->getConnection();
-    }
-
-    /**
      * Build edit url.
      *
      * @return string
@@ -270,6 +262,14 @@ class Site extends Record
         $connection = $this->getServerConnection();
 
         return $connection->dirExists($this->getHtdocsPath() . $dir);
+    }
+
+    /**
+     * @return SshConnection
+     */
+    public function getServerConnection()
+    {
+        return $this->server->getConnection();
     }
 
     public function hasRootDir($dir)

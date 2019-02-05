@@ -83,6 +83,14 @@ class AbstractService
     }
 
     /**
+     * @return ConnectionInterface
+     */
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
+    /**
      * @return bool
      */
     public function isInstalled()
@@ -157,14 +165,6 @@ class AbstractService
         $connection->exec('mkdir -p ' . $dir);
 
         return $dir . '/';
-    }
-
-    /**
-     * @return ConnectionInterface
-     */
-    public function getConnection()
-    {
-        return $this->connection;
     }
 
 }

@@ -225,6 +225,17 @@ class GPG extends AbstractService implements ServiceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getKeysDir()
+    {
+        $root = $this->getConnection() instanceof LocalConnection ? path('private') : '/home/impero/impero/';
+        $dir = $root . 'service/random/';
+
+        return $dir;
+    }
+
+    /**
      * @return null
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
@@ -284,17 +295,6 @@ class GPG extends AbstractService implements ServiceInterface
                 $this->generateRevokeCertificate($random . '@impero', $cert);
             }
         });
-    }
-
-    /**
-     * @return string
-     */
-    public function getKeysDir()
-    {
-        $root = $this->getConnection() instanceof LocalConnection ? path('private') : '/home/impero/impero/';
-        $dir = $root . 'service/random/';
-
-        return $dir;
     }
 
     /**
