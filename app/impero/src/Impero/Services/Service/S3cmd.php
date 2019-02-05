@@ -45,8 +45,8 @@ class S3cmd extends AbstractService implements ServiceInterface
 
     public function dumpConfiguration()
     {
-        $accessKey = '7U6AMJKT5I4VMPZALOQV';
-        $secretKey = '4L/yOuRu1v41SoPYG6LY5ZZ+SvhNuReXPLIV9ID1xfc';
+        $accessKey = dotenv('DO_ACCESS_KEY');
+        $secretKey = dotenv('DO_SECRET_KEY');
         $space = 'ams3';
         $hostBase = $space . '.digitaloceanspaces.com';
         $hostBucket = '%(bucket)s.' . $space . '.digitaloceanspaces.com';
