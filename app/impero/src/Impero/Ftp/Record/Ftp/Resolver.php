@@ -52,8 +52,8 @@ class Resolver implements ResolverInterface
          */
         return $this->ftps->where('id', $id)//->userIsAuthorized()
                           ->oneOrFail(function() {
-                $this->response->unauthorized('Ftp account not found');
-            });
+            $this->response->unauthorized('Ftp account not found');
+        });
     }
 
     public function parametrize($record)

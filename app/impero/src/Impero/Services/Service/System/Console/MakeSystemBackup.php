@@ -16,15 +16,6 @@ class MakeSystemBackup extends Command
 {
 
     /**
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
-     */
-    protected function configure()
-    {
-        $this->setName('service:system:backup')
-             ->setDescription('Make backup of other system service configuration files');
-    }
-
-    /**
      *
      */
     public function handle()
@@ -46,6 +37,15 @@ class MakeSystemBackup extends Command
                 $this->output('EXCEPTION: ' . exception($e));
             }
         });
+    }
+
+    /**
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     */
+    protected function configure()
+    {
+        $this->setName('service:system:backup')
+             ->setDescription('Make backup of other system service configuration files');
     }
 
 }

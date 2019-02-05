@@ -55,35 +55,6 @@ class AbstractService
     }
 
     /**
-     * @return string
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
-     */
-    protected function prepareRandomFile()
-    {
-        return sha1(Key::createNewRandomKey()->saveToAsciiSafeString());
-    }
-
-    /**
-     * @param $dir
-     *
-     * @return string
-     */
-    protected function prepareDirectory($dir, Server $server = null)
-    {
-        $connection = $server ? $server->getConnection() : $this->getConnection();
-        $root = $connection instanceof LocalConnection ? path('private') : '/home/impero/impero/';
-        $dir = $root . 'service/random';// . $dir;
-
-        if ($connection->dirExists($dir)) {
-            return $dir . '/';
-        }
-
-        $connection->exec('mkdir -p ' . $dir);
-
-        return $dir . '/';
-    }
-
-    /**
      * @return mixed
      */
     public function getName()
@@ -109,14 +80,6 @@ class AbstractService
     public function exec($command, &$output = null, &$error = null)
     {
         return $this->getConnection()->exec($command, $output, $error);
-    }
-
-    /**
-     * @return ConnectionInterface
-     */
-    public function getConnection()
-    {
-        return $this->connection;
     }
 
     /**
@@ -165,6 +128,43 @@ class AbstractService
     public function getVersion()
     {
         return null;
+    }
+
+    /**
+     * @return string
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     */
+    protected function prepareRandomFile()
+    {
+        return sha1(Key::createNewRandomKey()->saveToAsciiSafeString());
+    }
+
+    /**
+     * @param $dir
+     *
+     * @return string
+     */
+    protected function prepareDirectory($dir, Server $server = null)
+    {
+        $connection = $server ? $server->getConnection() : $this->getConnection();
+        $root = $connection instanceof LocalConnection ? path('private') : '/home/impero/impero/';
+        $dir = $root . 'service/random';// . $dir;
+
+        if ($connection->dirExists($dir)) {
+            return $dir . '/';
+        }
+
+        $connection->exec('mkdir -p ' . $dir);
+
+        return $dir . '/';
+    }
+
+    /**
+     * @return ConnectionInterface
+     */
+    public function getConnection()
+    {
+        return $this->connection;
     }
 
 }

@@ -19,11 +19,32 @@ class Database extends Record implements Connectable
     protected $entity = Databases::class;
 
     /**
-     * @return ConnectionInterface|Connectable
+     * @param $data
+     *
+     * @return Database|Record
+     * @throws Exception
      */
-    public function getConnection()
+    public static function createFromPost($data)
     {
-        return $this->server->getConnection();
+        /**
+         * Save database in our database.
+         */
+        $database = Database::create(['name' => $data['name'], 'server_id' => $data['server_id']]);
+
+        /**
+         * Connect to proper mysql server and execute sql.
+         */
+        $server = Server::gets(['id' => $data['server_id']]);
+
+        /**
+         * Receive mysql connection?
+         */
+        $mysqlConnection = $server->getMysqlConnection();
+
+        $sql = 'CREATE DATABASE IF NOT EXISTS `' . $data['name'] . '` CHARACTER SET `utf8` COLLATE `utf8_general_ci`';
+        $mysqlConnection->execute($sql);
+
+        return $database;
     }
 
     /**
@@ -77,6 +98,14 @@ class Database extends Record implements Connectable
              */
             $connection->exec('sudo echo "' . $this->name . '" >> ' . $backupFile);
         }
+    }
+
+    /**
+     * @return ConnectionInterface|Connectable
+     */
+    public function getConnection()
+    {
+        return $this->server->getConnection();
     }
 
     /**
@@ -420,35 +449,6 @@ class Database extends Record implements Connectable
     {
         $backupService = new Backup($server);
         $backupService->importMysqlBackup($this, $file);
-    }
-
-    /**
-     * @param $data
-     *
-     * @return Database|Record
-     * @throws Exception
-     */
-    public static function createFromPost($data)
-    {
-        /**
-         * Save database in our database.
-         */
-        $database = Database::create(['name' => $data['name'], 'server_id' => $data['server_id']]);
-
-        /**
-         * Connect to proper mysql server and execute sql.
-         */
-        $server = Server::gets(['id' => $data['server_id']]);
-
-        /**
-         * Receive mysql connection?
-         */
-        $mysqlConnection = $server->getMysqlConnection();
-
-        $sql = 'CREATE DATABASE IF NOT EXISTS `' . $data['name'] . '` CHARACTER SET `utf8` COLLATE `utf8_general_ci`';
-        $mysqlConnection->execute($sql);
-
-        return $database;
     }
 
     /**

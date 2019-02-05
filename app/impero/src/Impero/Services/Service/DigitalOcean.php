@@ -86,26 +86,6 @@ class DigitalOcean extends AbstractService implements ServiceInterface
     }
 
     /**
-     * @param $file
-     *
-     * @return string
-     * @throws \InvalidArgumentException
-     * @throws \League\Flysystem\FileNotFoundException
-     */
-    public function downloadFromSpaces($file)
-    {
-        $filesystem = $this->getFilesystem();
-
-        $output = $this->prepareDirectory('random') . sha1random();
-        $stream = $filesystem->readStream($file);
-        $contents = stream_get_contents($stream);
-        fclose($stream);
-        file_put_contents($output, $contents);
-
-        return $output;
-    }
-
-    /**
      * @return Filesystem
      * @throws \InvalidArgumentException
      */
@@ -129,6 +109,26 @@ class DigitalOcean extends AbstractService implements ServiceInterface
         $filesystem = new Filesystem($adapter);
 
         return $filesystem;
+    }
+
+    /**
+     * @param $file
+     *
+     * @return string
+     * @throws \InvalidArgumentException
+     * @throws \League\Flysystem\FileNotFoundException
+     */
+    public function downloadFromSpaces($file)
+    {
+        $filesystem = $this->getFilesystem();
+
+        $output = $this->prepareDirectory('random') . sha1random();
+        $stream = $filesystem->readStream($file);
+        $contents = stream_get_contents($stream);
+        fclose($stream);
+        file_put_contents($output, $contents);
+
+        return $output;
     }
 
 }

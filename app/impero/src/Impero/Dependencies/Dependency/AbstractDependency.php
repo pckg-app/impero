@@ -18,19 +18,14 @@ abstract class AbstractDependency implements DependencyInterface
 
     protected $via = [];
 
-    public function getName()
-    {
-        return $this->name;
-    }
-
     public function __construct(SshConnection $connection)
     {
         $this->connection = $connection;
     }
 
-    public function getConnection()
+    public function getName()
     {
-        return $this->connection;
+        return $this->name;
     }
 
     public function isInstalled()
@@ -42,6 +37,11 @@ abstract class AbstractDependency implements DependencyInterface
         }
 
         return true;
+    }
+
+    public function getConnection()
+    {
+        return $this->connection;
     }
 
     public function install()

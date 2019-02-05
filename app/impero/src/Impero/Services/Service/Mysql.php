@@ -39,14 +39,6 @@ class Mysql extends AbstractService implements ServiceInterface
     }
 
     /**
-     * @return MysqlConnection
-     */
-    public function getMysqlConnection()
-    {
-        return new MysqlConnection($this->getConnection());
-    }
-
-    /**
      *
      */
     public function startSlave()
@@ -56,6 +48,14 @@ class Mysql extends AbstractService implements ServiceInterface
         return $task->make(function() {
             return $this->getMysqlConnection()->execute('START SLAVE;');
         });
+    }
+
+    /**
+     * @return MysqlConnection
+     */
+    public function getMysqlConnection()
+    {
+        return new MysqlConnection($this->getConnection());
     }
 
     /**
@@ -71,14 +71,6 @@ class Mysql extends AbstractService implements ServiceInterface
     }
 
     /**
-     * @return string
-     */
-    public function getReplicationConfigLocation()
-    {
-        return '/etc/mysql/conf.d/replication.cnf';
-    }
-
-    /**
      * @param Server $server
      *
      * @throws \Exception
@@ -90,6 +82,30 @@ class Mysql extends AbstractService implements ServiceInterface
         }
 
         $this->replicateMysqlSlave();
+    }
+
+    /**
+     * @return bool
+     * @throws \Exception
+     */
+    public function isMysqlSlaveReplicated()
+    {
+        /**
+         * Check that mysql is properly configured.
+         */
+        $file = $this->getReplicationConfigLocation();
+        $replicationConfig = $this->getConnection()->sftpRead($file);
+        $lines = explode("\n", $replicationConfig);
+
+        return in_array('[mysqld]', $lines);
+    }
+
+    /**
+     * @return string
+     */
+    public function getReplicationConfigLocation()
+    {
+        return '/etc/mysql/conf.d/replication.cnf';
     }
 
     /**
@@ -108,15 +124,6 @@ class Mysql extends AbstractService implements ServiceInterface
         $this->getConnection()->exec('sudo service mysql restart');
     }
 
-    public function getMasterReplicationConfig()
-    {
-        return '[mysqld]
-server-id = 1
-log_bin = /var/log/mysql/mysql-bin.log
-expire_logs_days = 5
-max_binlog_size = 100M';
-    }
-
     public function getSlaveReplicationConfig()
     {
         return '[mysqld]
@@ -125,20 +132,13 @@ log_bin = /var/log/mysql/mysql-bin.log
 relay-log = /var/log/mysql/mysql-relay-bin.log';
     }
 
-    /**
-     * @return bool
-     * @throws \Exception
-     */
-    public function isMysqlSlaveReplicated()
+    public function getMasterReplicationConfig()
     {
-        /**
-         * Check that mysql is properly configured.
-         */
-        $file = $this->getReplicationConfigLocation();
-        $replicationConfig = $this->getConnection()->sftpRead($file);
-        $lines = explode("\n", $replicationConfig);
-
-        return in_array('[mysqld]', $lines);
+        return '[mysqld]
+server-id = 1
+log_bin = /var/log/mysql/mysql-bin.log
+expire_logs_days = 5
+max_binlog_size = 100M';
     }
 
     /**
@@ -189,34 +189,6 @@ relay-log = /var/log/mysql/mysql-relay-bin.log';
          */
         $this->getConnection()->sftpSend($replicationFile, implode("\n", $replications));
         $this->getConnection()->exec('sudo service mysql restart');
-    }
-
-    /**
-     * @param Collection $databases
-     */
-    public function refreshMasterReplicationFilter(Collection $databases)
-    {
-        $dbString = $databases->map(function(Database $database) {
-            return '`' . $database->name . '`';
-        })->implode(',');
-        $sql = 'CHANGE REPLICATION FILTER REPLICATE_DO_DB = (' . $dbString . ');';
-        $this->getMysqlConnection()->execute($sql);
-    }
-
-    /**
-     * @param Collection $databases
-     */
-    public function refreshSlaveReplicationFilter(Collection $databases)
-    {
-        $task = Task::create('Refresing slave replication filter');
-
-        return $task->make(function() use ($databases) {
-            $dbString = $databases->map(function(Database $database) {
-                return '`' . $database->name . '.%`';
-            })->implode(',');
-            $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
-            $this->getMysqlConnection()->execute($sql);
-        });
     }
 
     public function dumpSlaveReplicationFilter(Collection $databases)
@@ -271,6 +243,18 @@ relay-log = /var/log/mysql/mysql-relay-bin.log';
     }
 
     /**
+     * @param Collection $databases
+     */
+    public function refreshMasterReplicationFilter(Collection $databases)
+    {
+        $dbString = $databases->map(function(Database $database) {
+            return '`' . $database->name . '`';
+        })->implode(',');
+        $sql = 'CHANGE REPLICATION FILTER REPLICATE_DO_DB = (' . $dbString . ');';
+        $this->getMysqlConnection()->execute($sql);
+    }
+
+    /**
      * @param Database $database
      *
      * @throws \Exception
@@ -313,6 +297,22 @@ relay-log = /var/log/mysql/mysql-relay-bin.log';
          * @T00D00 - how to get all slave databases on this server?
          */
         $this->refreshSlaveReplicationFilter(new Collection());
+    }
+
+    /**
+     * @param Collection $databases
+     */
+    public function refreshSlaveReplicationFilter(Collection $databases)
+    {
+        $task = Task::create('Refresing slave replication filter');
+
+        return $task->make(function() use ($databases) {
+            $dbString = $databases->map(function(Database $database) {
+                return '`' . $database->name . '.%`';
+            })->implode(',');
+            $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
+            $this->getMysqlConnection()->execute($sql);
+        });
     }
 
     public function syncBinlog(Server $to)

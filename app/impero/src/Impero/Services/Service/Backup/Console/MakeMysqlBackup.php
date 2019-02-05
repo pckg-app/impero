@@ -16,15 +16,6 @@ class MakeMysqlBackup extends Command
 {
 
     /**
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
-     */
-    protected function configure()
-    {
-        $this->setName('service:mysql:backup')
-             ->setDescription('Make cold backup of mysql databases and live binlog sync');
-    }
-
-    /**
      *
      */
     public function handle()
@@ -78,6 +69,15 @@ class MakeMysqlBackup extends Command
          */
         Fork::waitWaiting();
         $this->outputDated('Mysql databases were dumped. For full backup to be made make sure that mysql binlog backup is enabled.');
+    }
+
+    /**
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     */
+    protected function configure()
+    {
+        $this->setName('service:mysql:backup')
+             ->setDescription('Make cold backup of mysql databases and live binlog sync');
     }
 
 }

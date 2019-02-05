@@ -12,21 +12,6 @@ class DumpVirtualhosts extends Command
 {
 
     /**
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
-     */
-    protected function configure()
-    {
-        $this->setName('apache:dump')
-             ->setDescription('Dump all virtualhosts')
-             ->addOptions([
-                              'server' => 'Server ID',
-                          ], InputOption::VALUE_REQUIRED)
-             ->addOptions([
-                              'dry' => 'Do not dump or restart',
-                          ], InputOption::VALUE_NONE);
-    }
-
-    /**
      * @throws \Exception
      */
     public function handle()
@@ -119,6 +104,28 @@ class DumpVirtualhosts extends Command
     /**
      * @param Server $server
      * @param        $virtualhosts
+     *
+     * @throws \Exception
+     */
+    protected function storeVirtualhostsHaproxy(Server $server, $virtualhosts)
+    {
+        $local = '/tmp/server.' . $server->id . '.haproxy';
+        $remote = '/etc/haproxy/haproxy.cfg';
+        file_put_contents($local, $virtualhosts);
+        if ($this->option('dry')) {
+            return;
+        }
+        $this->outputDated('Dumping and restarting (haproxy)');
+        $sshConnection = $server->getConnection();
+        $sshConnection->sftpSend($local, $remote);
+        unlink($local);
+
+        (new HAProxy($sshConnection))->reload();
+    }
+
+    /**
+     * @param Server $server
+     * @param        $virtualhosts
      */
     protected function storeVirtualhostsNginx(Server $server, $virtualhosts)
     {
@@ -145,25 +152,18 @@ class DumpVirtualhosts extends Command
     }
 
     /**
-     * @param Server $server
-     * @param        $virtualhosts
-     *
-     * @throws \Exception
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
-    protected function storeVirtualhostsHaproxy(Server $server, $virtualhosts)
+    protected function configure()
     {
-        $local = '/tmp/server.' . $server->id . '.haproxy';
-        $remote = '/etc/haproxy/haproxy.cfg';
-        file_put_contents($local, $virtualhosts);
-        if ($this->option('dry')) {
-            return;
-        }
-        $this->outputDated('Dumping and restarting (haproxy)');
-        $sshConnection = $server->getConnection();
-        $sshConnection->sftpSend($local, $remote);
-        unlink($local);
-
-        (new HAProxy($sshConnection))->reload();
+        $this->setName('apache:dump')
+             ->setDescription('Dump all virtualhosts')
+             ->addOptions([
+                              'server' => 'Server ID',
+                          ], InputOption::VALUE_REQUIRED)
+             ->addOptions([
+                              'dry' => 'Do not dump or restart',
+                          ], InputOption::VALUE_NONE);
     }
 
 }

@@ -53,16 +53,6 @@ class MysqlConnection
     }
 
     /**
-     * @return mixed
-     */
-    protected function getMysqlPassword()
-    {
-        $content = $this->sshConnection->sftpRead('/etc/mysql/conf.d/impero.cnf');
-
-        return parse_ini_string($content)['password'];
-    }
-
-    /**
      * @param       $database
      * @param       $sql
      * @param array $binds
@@ -101,6 +91,16 @@ class MysqlConnection
         }
 
         return $prepared->fetchAll();
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getMysqlPassword()
+    {
+        $content = $this->sshConnection->sftpRead('/etc/mysql/conf.d/impero.cnf');
+
+        return parse_ini_string($content)['password'];
     }
 
     /**

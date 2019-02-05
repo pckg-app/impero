@@ -109,18 +109,6 @@ class Crypto
     }
 
     /**
-     * @param Server $server
-     * @param        $file
-     *
-     * @throws \Exception
-     */
-    public function replaceFile(Server $server, $file)
-    {
-        $server->getConnection()->deleteFile($this->file);
-        $this->file = $file;
-    }
-
-    /**
      * @param Server $from
      * @param Server $to
      * @param        $file
@@ -181,6 +169,18 @@ class Crypto
     /**
      * @param Server $server
      * @param        $file
+     *
+     * @throws \Exception
+     */
+    public function replaceFile(Server $server, $file)
+    {
+        $server->getConnection()->deleteFile($this->file);
+        $this->file = $file;
+    }
+
+    /**
+     * @param Server $server
+     * @param        $file
      * @param        $keyFile
      *
      * @return null|string
@@ -202,55 +202,6 @@ class Crypto
 
             return $encryptedFile;
         });
-    }
-
-    /**
-     * @param Server $server
-     * @param        $file
-     * @param        $keyFile
-     *
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
-     * @throws \Throwable
-     */
-    public function decryptAndDecompress()
-    {
-        /**
-         * Decrypt encrypted file.
-         * Delete original after usage.
-         */
-        $compressedFile = $this->decrypt();
-
-        /**
-         * Decompress file with Zip service.
-         * Delete original after usage.
-         */
-        $zipService = new Zip($this->to);
-        $decompressedFile = $zipService->decompressFile($compressedFile);
-        $this->replaceFile($this->to, $decompressedFile);
-
-        return $decompressedFile;
-    }
-
-    /**
-     * @return null|string
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
-     * @throws \Exception
-     */
-    public function decrypt()
-    {
-        /**
-         * File is then decrypted with gpg service.
-         */
-        $toConnection = $this->to
-            ? $this->to->getConnection()
-            : context()
-                ->getOrCreate(ConnectionManager::class)
-                ->createConnection();
-        $toGpgService = (new GPG($toConnection));
-        $decryptedFile = $toGpgService->decrypt($this);
-        $this->replaceFile($this->to, $decryptedFile);
-
-        return $decryptedFile;
     }
 
     /**
@@ -291,6 +242,54 @@ class Crypto
         $this->to->getConnection()->exec('mkdir -p ' . $dir);
 
         return $dir . '/';
+    }
+
+    /**
+     * @param Server $server
+     * @param        $file
+     * @param        $keyFile
+     *
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
+    public function decryptAndDecompress()
+    {
+        /**
+         * Decrypt encrypted file.
+         * Delete original after usage.
+         */
+        $compressedFile = $this->decrypt();
+
+        /**
+         * Decompress file with Zip service.
+         * Delete original after usage.
+         */
+        $zipService = new Zip($this->to);
+        $decompressedFile = $zipService->decompressFile($compressedFile);
+        $this->replaceFile($this->to, $decompressedFile);
+
+        return $decompressedFile;
+    }
+
+    /**
+     * @return null|string
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Exception
+     */
+    public function decrypt()
+    {
+        /**
+         * File is then decrypted with gpg service.
+         */
+        $toConnection = $this->to
+            ? $this->to->getConnection() : context()
+                ->getOrCreate(ConnectionManager::class)
+                ->createConnection();
+        $toGpgService = (new GPG($toConnection));
+        $decryptedFile = $toGpgService->decrypt($this);
+        $this->replaceFile($this->to, $decryptedFile);
+
+        return $decryptedFile;
     }
 
 }

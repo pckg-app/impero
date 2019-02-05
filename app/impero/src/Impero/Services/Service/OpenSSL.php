@@ -39,17 +39,6 @@ class OpenSSL extends AbstractService implements ServiceInterface
     }
 
     /**
-     * @return string
-     */
-    public function getKeysDir()
-    {
-        $root = $this->getConnection() instanceof LocalConnection ? path('private') : '/home/impero/impero/';
-        $dir = $root . 'service/random/';
-
-        return $dir;
-    }
-
-    /**
      * @param $destination
      *
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
@@ -78,15 +67,14 @@ class OpenSSL extends AbstractService implements ServiceInterface
     }
 
     /**
-     * @param $out
+     * @return string
      */
-    public function generatePassFile($out)
+    public function getKeysDir()
     {
-        /**
-         * Generate encryption key.
-         */
-        $command = 'openssl rand -base64 128 > ' . $out . '.key.pem';
-        $this->getConnection()->exec($command);
+        $root = $this->getConnection() instanceof LocalConnection ? path('private') : '/home/impero/impero/';
+        $dir = $root . 'service/random/';
+
+        return $dir;
     }
 
     /**
@@ -112,6 +100,18 @@ class OpenSSL extends AbstractService implements ServiceInterface
          * Generate public key.
          */
         $command = 'openssl rsa -in ' . $in . ' -outform PEM -pubout -out ' . $out;
+        $this->getConnection()->exec($command);
+    }
+
+    /**
+     * @param $out
+     */
+    public function generatePassFile($out)
+    {
+        /**
+         * Generate encryption key.
+         */
+        $command = 'openssl rand -base64 128 > ' . $out . '.key.pem';
         $this->getConnection()->exec($command);
     }
 

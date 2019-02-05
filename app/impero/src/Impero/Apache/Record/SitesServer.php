@@ -17,6 +17,17 @@ class SitesServer extends Record
 
     protected $entity = SitesServers::class;
 
+    public function redeploy()
+    {
+        $task = Task::create('Redeploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' .
+                             $this->server_id);
+
+        return $task->make(function() {
+            $this->undeploy();
+            $this->deploy();
+        });
+    }
+
     public function undeploy()
     {
         $task = Task::create('Un-deploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' .
@@ -26,17 +37,6 @@ class SitesServer extends Record
             if ($this->type == 'cron') {
                 $this->server->removeCronjob($this->site->getHtdocsPath());
             }
-        });
-    }
-
-    public function redeploy()
-    {
-        $task = Task::create('Redeploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' .
-                             $this->server_id);
-
-        return $task->make(function() {
-            $this->undeploy();
-            $this->deploy();
         });
     }
 
