@@ -27,11 +27,13 @@ class Sites
 
         email([
                   'subject' => 'Confirm /impero site #' . $site->id . ' (' . $site->server_name . ') removal',
-                  'content' => '<p>Hey Bojan,</p>' . '<p>someone requested removal of site #' . $site->id . ' (' . $site->server_name . ').</p>' . '<p>This action will create a backup of database, storage and config, remove app from all 
+                  'content' => '<p>Hey Bojan,</p>' . '<p>someone requested removal of site #' . $site->id . ' (' .
+                      $site->server_name . ').</p>' . '<p>This action will create a backup of database, storage and config, remove app from all 
 servers and services, delete all related backups (except final one :)). Backup will still be available for 30 days
-for manual reuse.</p>' . '<p>If you really want to delete site and all it\'s contents, please login to /impero and click ' . '<a href="' . $deleteUrl . '">here</a>.' . '</p>' . '<p>Best regards, /impero team</p>',
-              ],
-              new SimpleUser('schtr4jh@schtr4jh.net'));
+for manual reuse.</p>' .
+                      '<p>If you really want to delete site and all it\'s contents, please login to /impero and click ' .
+                      '<a href="' . $deleteUrl . '">here</a>.' . '</p>' . '<p>Best regards, /impero team</p>',
+              ], new SimpleUser('schtr4jh@schtr4jh.net'));
 
         return [
             'success' => true,
@@ -52,7 +54,8 @@ for manual reuse.</p>' . '<p>If you really want to delete site and all it\'s con
         }
 
         if (false) {
-            $content = '<p>Hey Bojan,</p>' . '<p>site ' . $site->id . ' (' . $site->server_name . ') was deleted on you request.</p>' . '<p>Before we deleted *everything* we made storage, database and config backup which will be 
+            $content = '<p>Hey Bojan,</p>' . '<p>site ' . $site->id . ' (' . $site->server_name .
+                ') was deleted on you request.</p>' . '<p>Before we deleted *everything* we made storage, database and config backup which will be 
 available for another 30 days in /impero dashboard in case of missdelete. After 30 days backup files will be deleted 
 automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
 
@@ -66,10 +69,10 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
             $content .= '<p>Delete backups:</p>';
 
             email([
-                      'subject' => 'Confirmation of /impero site #' . $site->id . ' (' . $site->server_name . ') removal',
+                      'subject' => 'Confirmation of /impero site #' . $site->id . ' (' . $site->server_name .
+                          ') removal',
                       'content' => $content,
-                  ],
-                  new SimpleUser('schtr4jh@schtr4jh.net'));
+                  ], new SimpleUser('schtr4jh@schtr4jh.net'));
 
             /*$site->undeploy();
             $site->delete();*/
@@ -282,10 +285,7 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
                 $site->setImperoPckgAttribute(post('pckg'));
                 $site->mergeImperoVarsAttribute(post('vars'));
 
-                $site->deploy($sitesServer->server,
-                              post('isAlias', false),
-                              post('checkAlias', false),
-                              $migrate);
+                $site->deploy($sitesServer->server, post('isAlias', false), post('checkAlias', false), $migrate);
                 $migrate = false;
             });
         });

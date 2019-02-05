@@ -1,7 +1,7 @@
 {
-  "name": "pckg/skeleton",
-  "description": "Directory structure, required files and suggestions for LFW",
-  "homepage": "https://github.com/pckg/skeleton",
+  "name": "pckg/impero",
+  "description": "Impero",
+  "homepage": "https://github.com/pckg/impero",
   "license": "MIT",
   "authors": [
     {

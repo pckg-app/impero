@@ -43,24 +43,22 @@ class Backup extends AbstractService implements ServiceInterface
          */
         $task = Task::create('Dumping database #' . $database->id);
 
-        return $task->make(
-            function() use ($database) {
-                /**
-                 * This commands will always executed by impero user, which is always available on filesystem.
-                 *
-                 * @T00D00 - read password from .cnf in impero home dir?
-                 *         - make sure that backup path exists and is writable
-                 */
-                $user = 'impero';
-                $backupFile = $this->prepareDirectory('random') . sha1random();
-                $flags = '--routines --triggers --skip-opt --order-by-primary --create-options --compact --master-data=2 --single-transaction --extended-insert --add-locks --disable-keys';
+        return $task->make(function() use ($database) {
+            /**
+             * This commands will always executed by impero user, which is always available on filesystem.
+             *
+             * @T00D00 - read password from .cnf in impero home dir?
+             *         - make sure that backup path exists and is writable
+             */
+            $user = 'impero';
+            $backupFile = $this->prepareDirectory('random') . sha1random();
+            $flags = '--routines --triggers --skip-opt --order-by-primary --create-options --compact --master-data=2 --single-transaction --extended-insert --add-locks --disable-keys';
 
-                $dumpCommand = 'mysqldump ' . $flags . ' -u ' . $user . ' ' . $database->name . ' > ' . $backupFile;
-                $this->getConnection()->exec($dumpCommand);
+            $dumpCommand = 'mysqldump ' . $flags . ' -u ' . $user . ' ' . $database->name . ' > ' . $backupFile;
+            $this->getConnection()->exec($dumpCommand);
 
-                return $backupFile;
-            }
-        );
+            return $backupFile;
+        });
     }
 
     /**
@@ -73,6 +71,7 @@ class Backup extends AbstractService implements ServiceInterface
     public function createStorageBackup(Server $server, Storage $storage)
     {
         $zip = (new Zip($server->getConnection()));
+
         return $zip->compressDirectory($storage->location);
     }
 
@@ -83,22 +82,21 @@ class Backup extends AbstractService implements ServiceInterface
     public function importMysqlBackup(Database $database, $file)
     {
         $task = Task::create('Importing backup to MySQL');
-        return $task->make(
-            function() use ($database, $file) {
-                $output = $this->exec(
-                    'mysql -u impero -e \'SHOW DATABASES WHERE `Database` = "' . $database->name . '"\''
-                );
-                if (trim($output)) {
-                    /**
-                     * Already existing.
-                     */
-                    return;
-                }
-                $this->exec('mysql -u impero -e \'CREATE DATABASE IF NOT EXISTS `' . $database->name . '`\'');
-                $command = 'mysql -u impero ' . $database->name . ' -e \'SET FOREIGN_KEY_CHECKS=0; SOURCE ' . $file . '; SET FOREIGN_KEY_CHECKS=1;\'';
-                return $this->getConnection()->exec($command);
+
+        return $task->make(function() use ($database, $file) {
+            $output = $this->exec('mysql -u impero -e \'SHOW DATABASES WHERE `Database` = "' . $database->name . '"\'');
+            if (trim($output)) {
+                /**
+                 * Already existing.
+                 */
+                return;
             }
-        );
+            $this->exec('mysql -u impero -e \'CREATE DATABASE IF NOT EXISTS `' . $database->name . '`\'');
+            $command = 'mysql -u impero ' . $database->name . ' -e \'SET FOREIGN_KEY_CHECKS=0; SOURCE ' . $file .
+                '; SET FOREIGN_KEY_CHECKS=1;\'';
+
+            return $this->getConnection()->exec($command);
+        });
     }
 
     /**
@@ -112,12 +110,11 @@ class Backup extends AbstractService implements ServiceInterface
     {
         $task = Task::create('Uploading file to cold location');
 
-        return $task->make(
-            function() use ($file) {
-                $do = (new DigitalOcean($this->getConnection()));
-                return $do->uploadToSpaces($file);
-            }
-        );
+        return $task->make(function() use ($file) {
+            $do = (new DigitalOcean($this->getConnection()));
+
+            return $do->uploadToSpaces($file);
+        });
     }
 
     /**
@@ -128,6 +125,7 @@ class Backup extends AbstractService implements ServiceInterface
     public function fromCold($file)
     {
         $do = (new DigitalOcean($this->getConnection()));
+
         return $do->downloadFromSpaces($file);
     }
 

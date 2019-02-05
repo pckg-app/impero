@@ -1,10 +1,13 @@
 <?php namespace Impero\Servers\Dataset;
 
+use Impero\Apache\Entity\SitesServers;
+use Impero\Apache\Record\SitesServer;
 use Impero\Servers\Entity\Servers as ServersEntity;
 use Impero\Servers\Record\Server;
 use Impero\Services\Service\Apache;
 use Impero\Services\Service\Cron;
 use Impero\Services\Service\GPG;
+use Impero\Services\Service\Ifconfig;
 use Impero\Services\Service\Mysql;
 use Impero\Services\Service\Nginx;
 use Impero\Services\Service\OpenSSL;
@@ -14,7 +17,6 @@ use Impero\Services\Service\PhpFpm;
 use Impero\Services\Service\Pureftpd;
 use Impero\Services\Service\Sendmail;
 use Impero\Services\Service\Ssh;
-use Impero\Services\Service\Connection\SshConnection;
 use Impero\Services\Service\Ufw;
 use Impero\Services\Service\Zip;
 use Pckg\Database\Relation\HasAndBelongsTo;
@@ -24,57 +26,167 @@ class Servers
 
     public function getServerForUser($serverId)
     {
-        return (new ServersEntity())->withTags()
-                                    ->withSystem()
-                                    ->withServices(function(HasAndBelongsTo $services) {
-                                        $services->getMiddleEntity()->withStatus();
-                                    })
-                                    ->withDependencies(function(HasAndBelongsTo $dependencies) {
-                                        $dependencies->getMiddleEntity()->withStatus();
-                                    })
-                                    ->withJobs()
-                                    ->where('id', $serverId)
-                                    ->oneOrFail();
+        return (new ServersEntity())->withTags()->withSystem()->withServices(function(HasAndBelongsTo $services) {
+            $services->getMiddleEntity()->withStatus();
+        })->withDependencies(function(HasAndBelongsTo $dependencies) {
+            $dependencies->getMiddleEntity()->withStatus();
+        })->withJobs()->where('id', $serverId)->oneOrFail();
     }
 
     public function getServersForUser()
     {
-        return (new ServersEntity())->withTags()
-                                    ->withSystem()
-                                    ->withServices(function(HasAndBelongsTo $services) {
-                                        $services->getMiddleEntity()->withStatus();
-                                    })
-                                    ->withDependencies(function(HasAndBelongsTo $dependencies) {
-                                        $dependencies->getMiddleEntity()->withStatus();
-                                    })
-                                    ->withJobs()
-                                    ->all()
-                                    ->map(function(Server $server) {
-                                        $data = $server->toArray();
-                                        try {
-                                            if ($server->status == 'active') {
-                                                $server->getConnection();
-                                            }
-                                        } catch (\Throwable $e) {
-                                            $data['status'] = $e->getMessage();
-                                        }
+        return (new ServersEntity())->withTags()->withSystem()->withServices(function(HasAndBelongsTo $services) {
+            $services->getMiddleEntity()->withStatus();
+        })->withDependencies(function(HasAndBelongsTo $dependencies) {
+            $dependencies->getMiddleEntity()->withStatus();
+        })->withJobs()->all()->map(function(Server $server) {
+            $data = $server->toArray();
+            try {
+                if ($server->status == 'active') {
+                    $server->getConnection();
+                }
+            } catch (\Throwable $e) {
+                $data['status'] = $e->getMessage();
+            }
 
-                                        $data['tags'] = $server->tags->toArray();
-                                        $data['os'] = $server->system->toArray();
+            $data['tags'] = $server->tags->toArray();
+            $data['os'] = $server->system->toArray();
 
-                                        $data['url'] = url('impero.servers.server', ['server' => $server->id]);
-                                        $data['applications'] = $this->getServerApplications();
-                                        $data['websites'] = $this->getServerWebsites();
-                                        $data['deployments'] = $this->getServerDeployments();
-                                        $data['logs'] = $this->getServerLogs();
+            $data['url'] = url('impero.servers.server', ['server' => $server->id]);
+            $data['applications'] = $this->getServerApplications($server);
+            $data['websites'] = $this->getServerWebsites($server);
+            $data['deployments'] = $this->getServerDeployments($server);
+            $data['logs'] = $this->getServerLogs($server);
 
-                                        return $data;
-                                    });
+            return $data;
+        });
     }
 
-    public function getServerServices()
+    public function getServerApplications(Server $server)
     {
-        $connection = new SshConnection();
+        return (new SitesServers())->where('server_id', $server->id)
+                                   ->where('type', 'web')
+                                   ->withServer()
+                                   ->withSite()
+                                   ->all()
+                                   ->map(function(SitesServer $sitesServer) {
+                                       return [
+                                           'name'    => $sitesServer->site->server_name,
+                                           'url'     => 'https://' . $sitesServer->site->server_name,
+                                           'urls'    => explode(' ', $sitesServer->site->server_alias),
+                                           'status'  => 'success',
+                                           'version' => $sitesServer->site->id,
+                                           'type'    => $sitesServer->type,
+                                           'source'  => 'git',
+                                       ];
+                                   });
+    }
+
+    public function getServerWebsites(Server $server)
+    {
+        return [
+            [
+                'name'        => 'GoNParty',
+                'url'         => 'https://gonparty.eu',
+                'application' => $this->getApplication($server),
+                'https'       => 'on',
+                'version'     => $this->getGitVersion(),
+                'status'      => 'offline',
+                'urls'        => [
+                    'si.gonparty.eu',
+                    'www.gonparty.eu',
+                    'hr.gonparty.eu',
+                ],
+            ],
+            [
+                'name'        => 'HardIsland',
+                'url'         => 'https://shop.hardisland.com',
+                'application' => $this->getApplication($server),
+                'https'       => 'on',
+                'version'     => $this->getGitVersion(),
+                'status'      => 'online',
+                'urls'        => [],
+            ],
+            [
+                'name'        => 'Server status',
+                'url'         => 'http://status.foobar.si',
+                'application' => $this->getApplication($server),
+                'https'       => 'on',
+                'version'     => $this->getGitVersion(),
+                'status'      => 'online',
+                'urls'        => [],
+            ],
+            [
+                'name'        => 'GNP.si',
+                'url'         => 'http://gnp.si',
+                'application' => $this->getApplication($server),
+                'https'       => 'on',
+                'version'     => $this->getGitVersion(),
+                'status'      => 'online',
+            ],
+        ];
+    }
+
+    public function getApplication(Server $server)
+    {
+        $applications = $this->getServerApplications($server);
+
+        return $applications->random();
+    }
+
+    private function getGitVersion()
+    {
+        return '#' . substr(sha1(microtime()), 0, 12);
+    }
+
+    public function getServerDeployments(Server $server)
+    {
+        return [
+            [
+                'application' => $this->getApplication($server),
+                'started_at'  => $this->getDatetime(),
+                'ended_at'    => $this->getDatetime(),
+                'status'      => 'ok',
+                'log'         => '',
+                'version'     => $this->getGitVersion(),
+            ],
+            [
+                'application' => $this->getApplication($server),
+                'started_at'  => $this->getDatetime(),
+                'ended_at'    => $this->getDatetime(),
+                'status'      => 'ok',
+                'log'         => '',
+                'version'     => $this->getGitVersion(),
+            ],
+            [
+                'application' => $this->getApplication($server),
+                'started_at'  => $this->getDatetime(),
+                'ended_at'    => $this->getDatetime(),
+                'status'      => 'ok',
+                'log'         => '',
+                'version'     => $this->getGitVersion(),
+            ],
+        ];
+    }
+
+    private function getDatetime()
+    {
+        return date('Y-m-d H:i:s', rand(time() - (2 * 365 * 24 * 60 * 60), time()));
+    }
+
+    private function getServerLogs()
+    {
+        return [
+            [
+                'name'       => 'SSH key created',
+                'created_at' => $this->getDatetime(),
+            ],
+        ];
+    }
+
+    public function getServerServices(Server $server)
+    {
+        $connection = $server->getConnection();
 
         $services = [
             new Apache($connection),
@@ -97,16 +209,18 @@ class Servers
         foreach ($services as $service) {
             $data[] = [
                 'name'      => $service->getName(),
-                'version'   => $service->getVersion(),
-                'status'    => $service->getStatus(),
-                'installed' => $service->isInstalled() ? 'yes' : 'no',
+                'service'   => $service->getService(),
+                'version'   => 'ok', //$service->getVersion(),
+                'status'    => 'ok', //$service->getStatus(),
+                'installed' => 'no',
+                $service->isInstalled() ? 'yes' : 'no',
             ];
         }
 
         return $data;
     }
 
-    public function getServerDependencies()
+    public function getServerDependencies(Server $server)
     {
         return [
             [
@@ -136,124 +250,25 @@ class Servers
         ];
     }
 
-    public function getServerDeployments()
+    private function getVersion()
     {
-        return [
-            [
-                'application' => $this->getApplication(),
-                'started_at'  => $this->getDatetime(),
-                'ended_at'    => $this->getDatetime(),
-                'status'      => 'ok',
-                'log'         => '',
-                'version'     => $this->getGitVersion(),
-            ],
-            [
-                'application' => $this->getApplication(),
-                'started_at'  => $this->getDatetime(),
-                'ended_at'    => $this->getDatetime(),
-                'status'      => 'ok',
-                'log'         => '',
-                'version'     => $this->getGitVersion(),
-            ],
-            [
-                'application' => $this->getApplication(),
-                'started_at'  => $this->getDatetime(),
-                'ended_at'    => $this->getDatetime(),
-                'status'      => 'ok',
-                'log'         => '',
-                'version'     => $this->getGitVersion(),
-            ],
-        ];
+        $length = rand(1, 3);
+        $versions = [];
+        foreach (range(1, $length) as $length) {
+            $versions[] = rand(1, 5);
+        }
+
+        return 'v' . implode('.', $versions);
     }
 
-    public function getApplication()
+    public function getServerNetworkInterfaces(Server $server)
     {
-        $applications = $this->getServerApplications();
-
-        return $applications[array_rand($applications)];
+        return (new Ifconfig($server->getConnection()))->getNetworkInterfaces();
     }
 
-    public function getServerApplications()
+    public function getServerFirewallSettings(Server $server)
     {
-        return [
-            [
-                'name'    => 'GoNParty Shop',
-                'url'     => 'http://gonparty.eu',
-                'status'  => 'success',
-                'version' => $this->getGitVersion(),
-                'type'    => 'www',
-                'source'  => 'git',
-            ],
-            [
-                'name'    => 'HardIsland Shop',
-                'url'     => 'http://shop.hardisland.com',
-                'status'  => 'warning',
-                'version' => $this->getGitVersion(),
-                'type'    => 'www',
-                'source'  => 'svn',
-            ],
-            [
-                'name'    => 'GoNParty Market Place',
-                'url'     => 'http://gonparty.xyz',
-                'status'  => 'success',
-                'version' => $this->getGitVersion(),
-                'type'    => 'www',
-                'source'  => 'zip',
-            ],
-            [
-                'name'    => 'Start Maestro',
-                'url'     => 'http://startmaestro.com',
-                'status'  => 'danger',
-                'version' => $this->getGitVersion(),
-                'type'    => 'www',
-                'source'  => 'git',
-            ],
-        ];
-    }
-
-    public function getServerWebsites()
-    {
-        return [
-            [
-                'name'        => 'GoNParty',
-                'url'         => 'https://gonparty.eu',
-                'application' => $this->getApplication(),
-                'https'       => 'on',
-                'version'     => $this->getGitVersion(),
-                'status'      => 'offline',
-                'urls'        => [
-                    'si.gonparty.eu',
-                    'www.gonparty.eu',
-                    'hr.gonparty.eu',
-                ],
-            ],
-            [
-                'name'        => 'HardIsland',
-                'url'         => 'https://shop.hardisland.com',
-                'application' => $this->getApplication(),
-                'https'       => 'on',
-                'version'     => $this->getGitVersion(),
-                'status'      => 'online',
-                'urls'        => [],
-            ],
-            [
-                'name'        => 'Server status',
-                'url'         => 'http://status.foobar.si',
-                'application' => $this->getApplication(),
-                'https'       => 'on',
-                'version'     => $this->getGitVersion(),
-                'status'      => 'online',
-                'urls'        => [],
-            ],
-            [
-                'name'        => 'GNP.si',
-                'url'         => 'http://gnp.si',
-                'application' => $this->getApplication(),
-                'https'       => 'on',
-                'version'     => $this->getGitVersion(),
-                'status'      => 'online',
-            ],
-        ];
+        return (new Ufw($server->getConnection()))->getFirewallSettings();
     }
 
     private function getCommand()
@@ -270,39 +285,8 @@ class Servers
             '--bla --blabla --foo=bar',
         ];
 
-        return $prefixes[array_rand($prefixes)] . ' ' . $dirs[array_rand($dirs)] . ' ' .
-               $execs[array_rand($execs)] . ' ' . $args[array_rand($args)] . ' ';
-    }
-
-    private function getGitVersion()
-    {
-        return '#' . substr(sha1(microtime()), 0, 12);
-    }
-
-    private function getVersion()
-    {
-        $length = rand(1, 3);
-        $versions = [];
-        foreach (range(1, $length) as $length) {
-            $versions[] = rand(1, 5);
-        }
-
-        return 'v' . implode('.', $versions);
-    }
-
-    private function getDatetime()
-    {
-        return date('Y-m-d H:i:s', rand(time() - (2 * 365 * 24 * 60 * 60), time()));
-    }
-
-    private function getServerLogs()
-    {
-        return [
-            [
-                'name'       => 'SSH key created',
-                'created_at' => $this->getDatetime(),
-            ],
-        ];
+        return $prefixes[array_rand($prefixes)] . ' ' . $dirs[array_rand($dirs)] . ' ' . $execs[array_rand($execs)] .
+            ' ' . $args[array_rand($args)] . ' ';
     }
 
     private function getFrequency()

@@ -135,10 +135,8 @@ class SshConnection implements ConnectionInterface, Connectable
          * Throw exception on misconfiguration.
          */
         if (!$auth) {
-            $this->server->logCommand('Cannot authenticate: ' . $type . ' ' . $user . ' ' . $key . ' ' . $host . ' ' . $port,
-                                      null,
-                                      null,
-                                      null);
+            $this->server->logCommand('Cannot authenticate: ' . $type . ' ' . $user . ' ' . $key . ' ' . $host . ' ' .
+                                      $port, null, null, null);
             throw new Exception("Cannot authenticate with " . $type);
         } else {
             $this->server->logCommand('Authenticated with SSH', null, null, null);
@@ -184,19 +182,6 @@ class SshConnection implements ConnectionInterface, Connectable
         }
 
         return $this;
-    }
-
-    /**
-     * @param        $dir
-     * @param string $group
-     * @param string $permissions
-     */
-    public function makeAndAllow($dir, $group = 'www-data', $permissions = 'g+rwx')
-    {
-        $this->exec('mkdir -p ' . $dir);
-        $this->exec('chown www-data:www-data ' . $dir);
-        $this->exec('chgrp ' . $group . ' ' . $dir);
-        $this->exec('chmod ' . $permissions . ' ' . $dir);
     }
 
     /**
@@ -248,6 +233,19 @@ class SshConnection implements ConnectionInterface, Connectable
     }
 
     /**
+     * @param        $dir
+     * @param string $group
+     * @param string $permissions
+     */
+    public function makeAndAllow($dir, $group = 'www-data', $permissions = 'g+rwx')
+    {
+        $this->exec('mkdir -p ' . $dir);
+        $this->exec('chown www-data:www-data ' . $dir);
+        $this->exec('chgrp ' . $group . ' ' . $dir);
+        $this->exec('chmod ' . $permissions . ' ' . $dir);
+    }
+
+    /**
      *
      */
     public function open()
@@ -268,29 +266,6 @@ class SshConnection implements ConnectionInterface, Connectable
         }
 
         return $this;
-    }
-
-    /**
-     * @param      $local
-     * @param      $remote
-     * @param null $mode
-     * @param bool $isFile
-     *
-     * @return bool
-     */
-    public function sftpSend($local, $remote, $mode = null, $isFile = true)
-    {
-        $this->server->logCommand('Copying local ' . $local . ' to remote ' . $remote, null, null, null);
-
-        $sftp = $this->openSftp();
-
-        $stream = fopen("ssh2.sftp://" . intval($sftp) . $remote, '+w');
-
-        $ok = @fwrite($stream, $isFile ? file_get_contents($local) : $local);
-
-        @fclose($stream);
-
-        return !!$ok;
     }
 
     /**
@@ -334,6 +309,7 @@ password = s0m3p4ssw0rd';*/
 
         $content = file_get_contents($tmp);
         unlink($tmp);
+
         return $content;
     }
 
@@ -363,7 +339,9 @@ password = s0m3p4ssw0rd';*/
              * -L localPort:ip:remotePort - local forwarding (-R - opposite, remote forwarding)
              */
             $this->tunnelPort = 3307; // @T00D00
-            $command = 'ssh -p ' . $this->port . ' -i ' . $this->key . ' -f -L ' . $this->tunnelPort . ':127.0.0.1:3306 ' . $this->user . '@' . $this->host . ' sleep 10 >> /tmp/tunnel.' . $this->host . '.' . $this->port . '.log';
+            $command = 'ssh -p ' . $this->port . ' -i ' . $this->key . ' -f -L ' . $this->tunnelPort .
+                ':127.0.0.1:3306 ' . $this->user . '@' . $this->host . ' sleep 10 >> /tmp/tunnel.' . $this->host . '.' .
+                $this->port . '.log';
             shell_exec($command);
         }
 
@@ -440,7 +418,8 @@ password = s0m3p4ssw0rd';*/
         if (!$to->getConnection()->dirExists($dir)) {
             $to->getConnection()->exec('mkdir -p ' . $dir);
         }
-        $this->exec('rsync -a ' . $file . ' impero@' . $to->privateIp . ':' . $file . ' -e \'ssh -p ' . $to->port . '\'');
+        $this->exec('rsync -a ' . $file . ' impero@' . $to->privateIp . ':' . $file . ' -e \'ssh -p ' . $to->port .
+                    '\'');
     }
 
     /**
@@ -453,7 +432,8 @@ password = s0m3p4ssw0rd';*/
             /**
              * We are copying for example some file from impero to $this connection.
              */
-            $command = 'rsync -a ' . $file . ' impero@' . $this->host . ':' . $file . ' -e \'ssh -p ' . $this->port . '\'';
+            $command = 'rsync -a ' . $file . ' impero@' . $this->host . ':' . $file . ' -e \'ssh -p ' . $this->port .
+                '\'';
 
             /**
              * @T00D00 ... how to do this transparent?
@@ -466,7 +446,8 @@ password = s0m3p4ssw0rd';*/
         /**
          * We are copying for example some file from $this connection to remote $from
          */
-        $command = 'rsync -a impero@' . $from->privateIp . ':' . $file . ' ' . $file . ' -e \'ssh -p ' . $from->port . '\'';
+        $command = 'rsync -a impero@' . $from->privateIp . ':' . $file . ' ' . $file . ' -e \'ssh -p ' . $from->port .
+            '\'';
         $this->exec($command);
     }
 
@@ -494,6 +475,29 @@ password = s0m3p4ssw0rd';*/
          */
         $this->server->logCommand('Removing ' . $tmp);
         unlink($tmp);
+    }
+
+    /**
+     * @param      $local
+     * @param      $remote
+     * @param null $mode
+     * @param bool $isFile
+     *
+     * @return bool
+     */
+    public function sftpSend($local, $remote, $mode = null, $isFile = true)
+    {
+        $this->server->logCommand('Copying local ' . $local . ' to remote ' . $remote, null, null, null);
+
+        $sftp = $this->openSftp();
+
+        $stream = fopen("ssh2.sftp://" . intval($sftp) . $remote, '+w');
+
+        $ok = @fwrite($stream, $isFile ? file_get_contents($local) : $local);
+
+        @fclose($stream);
+
+        return !!$ok;
     }
 
     /**

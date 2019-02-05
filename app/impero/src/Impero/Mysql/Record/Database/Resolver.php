@@ -1,12 +1,9 @@
 <?php namespace Impero\Mysql\Record\Database;
 
 use Impero\Apache\Entity\Sites;
-use Impero\Apache\Record\Site;
 use Impero\Mysql\Entity\Databases;
 use Pckg\Auth\Service\Auth;
-use Pckg\Concept\Reflect;
 use Pckg\Concept\Reflect\Resolver as ResolverInterface;
-use Pckg\Database\Record;
 use Pckg\Framework\Response;
 use Pckg\Framework\Router;
 
@@ -47,13 +44,10 @@ class Resolver implements ResolverInterface
             $this->response->bad('Database parameter is missing ...');
         }
 
-        return $this->databases->where('id', $id)
-            //->userIsAuthorized()
-                               ->oneOrFail(
-                function() {
-                    $this->response->unauthorized('Database not found');
-                }
-            );
+        return $this->databases->where('id', $id)//->userIsAuthorized()
+                               ->oneOrFail(function() {
+            $this->response->unauthorized('Database not found');
+        });
     }
 
     public function parametrize($record)

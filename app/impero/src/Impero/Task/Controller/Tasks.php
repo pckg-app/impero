@@ -39,15 +39,13 @@ class Tasks
         return [
             'tasks' => (new \Impero\Servers\Entity\Tasks())->withServerCommands()
                                                            ->where('started_at',
-                                                                   date('Y-m-d H:i',
-                                                                        strtotime('-36hours')),
-                                                                   '>')
+                                                                   date('Y-m-d H:i', strtotime('-36hours')), '>')
                                                            ->orderBy('id ASC')
                                                            ->all()
                                                            ->tree('parent_id', 'id', 'tasks')
-                ->sortBy(function(Task $task){
-                    return -$task->id;
-                })
+                                                           ->sortBy(function(Task $task) {
+                                                               return -$task->id;
+                                                           })
                                                            ->map(function(Task $item) use ($transform) {
                                                                return $transform($item, $transform);
                                                            })

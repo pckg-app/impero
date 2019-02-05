@@ -10,19 +10,16 @@ class Ftp extends Bootstrap implements ResolvesOnRequest
     {
         $this->addHidden('id');
 
-        $this->addText('username')
-             ->setLabel('Username:')/*
+        $this->addText('username')->setLabel('Username:')/*
             ->required()
             ->unique()*/
         ;
 
-        $this->addPassword('password')
-             ->setLabel('Password:')/*
+        $this->addPassword('password')->setLabel('Password:')/*
             ->required()*/
         ;
 
-        $this->addText('path')
-             ->setLabel('Path:');
+        $this->addText('path')->setLabel('Path:');
 
         $this->addSubmit();
 

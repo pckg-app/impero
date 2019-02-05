@@ -13,8 +13,7 @@ class Webpack extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('webpack version');
+        $response = $this->getConnection()->exec('webpack version');
 
         return $response;
     }

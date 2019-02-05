@@ -3,67 +3,75 @@
 use Impero\Services\Service;
 
 return [
-    'apache'   => [
+    'apache'                     => [
         'title'   => 'Apache2',
         'service' => Service\Apache::class,
     ],
-    'ssh'      => [
+    'ssh'                        => [
         'title'   => 'SSH',
         'service' => Service\Ssh::class,
     ],
-    'mysql'    => [
+    'mysql'                      => [
         'title'   => 'MySQL',
         'service' => Service\Mysql::class,
     ],
-    'ufw'      => [
+    'ufw'                        => [
         'title'   => 'UFW',
         'service' => Service\Ufw::class,
     ],
-    'php'      => [
+    'php'                        => [
         'title'   => 'PHP',
         'service' => Service\Php::class,
     ],
-    'nginx'    => [
+    'nginx'                      => [
         'title'   => 'NginX',
         'service' => Service\Nginx::class,
     ],
-    'cron'     => [
+    'cron'                       => [
         'title'   => 'Cron',
         'service' => Service\Cron::class,
     ],
-    'openvpn'  => [
+    'openvpn'                    => [
         'title'   => 'OpenVPN',
         'service' => Service\Openvpn::class,
     ],
-    'openssl'  => [
+    'openssl'                    => [
         'title'   => 'OpenSSL',
         'service' => Service\OpenSSL::class,
     ],
-    'gpg'      => [
+    'gpg'                        => [
         'title'   => 'GPG',
         'service' => Service\GPG::class,
     ],
-    'gpg2'     => [
+    'gpg2'                       => [
         'title' => 'GPG v2',
     ],
-    'haproxy'  => [
+    'haproxy'                    => [
         'title'   => 'HAProxy',
         'service' => Service\HAProxy::class,
     ],
-    'zip'      => [
+    'zip'                        => [
         'title'   => 'ZIP',
         'service' => Service\HAProxy::class,
     ],
-    'sendmail' => [
+    'sendmail'                   => [
         'title'   => 'Sendmail',
         'service' => Service\HAProxy::class,
     ],
-    'lsyncd'   => [
+    'lsyncd'                     => [
         'title'   => 'Lsyncd',
         'service' => Service\HAProxy::class,
     ],
-    'pureftpd' => [
+    'pureftpd'                   => [
         'title'   => 'PureFTPd',
         'service' => Service\HAProxy::class,
+    ],
+    'locales'                    => [
+        'title'   => 'Locales',
+        'service' => Service\Locales::class,
+    ],
+    'software-properties-common' => [
+        'title'   => 'Software properties (common)',
+        'service' => Service\SoftwareProperties::class,
     ],
 ];

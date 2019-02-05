@@ -18,25 +18,19 @@ abstract class AbstractDependency implements DependencyInterface
 
     protected $via = [];
 
-    public function getName()
-    {
-        return $this->name;
-    }
-
     public function __construct(SshConnection $connection)
     {
         $this->connection = $connection;
     }
 
-    public function getConnection()
+    public function getName()
     {
-        return $this->connection;
+        return $this->name;
     }
 
     public function isInstalled()
     {
-        $this->getConnection()
-             ->exec($this->dependency, $error);
+        $this->getConnection()->exec($this->dependency, $error);
 
         if ($error && strpos($error, 'command not found')) {
             return false;
@@ -45,11 +39,16 @@ abstract class AbstractDependency implements DependencyInterface
         return true;
     }
 
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
     public function install()
     {
         if ($this->via == 'apt') {
             $this->getConnection()->exec('sudo apt-get install -y ' . ($this->install ?? $this->service));
-        } else if ($this->via == 'npm') {
+        } elseif ($this->via == 'npm') {
             $this->getConnection()->exec('sudo npm install -g ' . ($this->install ?? $this->service));
         }
     }

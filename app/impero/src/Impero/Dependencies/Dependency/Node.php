@@ -11,8 +11,7 @@ class Node extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('node --version');
+        $response = $this->getConnection()->exec('node --version');
 
         return $response;
     }
@@ -21,9 +20,7 @@ class Node extends AbstractDependency
     {
         $outdated = false;
 
-        return $outdated
-            ? 'outdated'
-            : 'ok';
+        return $outdated ? 'outdated' : 'ok';
     }
 
     public function install()

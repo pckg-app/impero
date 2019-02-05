@@ -33,12 +33,10 @@ class Rsync extends AbstractService implements ServiceInterface
     {
         $task = Task::create('Copying file ' . $file . ' to server #' . $to->privateId);
 
-        return $task->make(
-            function() use ($to, $file) {
-                $command = 'rsync -a ' . $file . ' impero@' . $to->privateIp . ':' . $file;
-                $this->exec($command);
-            }
-        );
+        return $task->make(function() use ($to, $file) {
+            $command = 'rsync -a ' . $file . ' impero@' . $to->privateIp . ':' . $file;
+            $this->exec($command);
+        });
     }
 
 }

@@ -9,35 +9,6 @@ class User extends Record
 
     protected $entity = Users::class;
 
-    /**
-     * Build edit url.
-     *
-     * @return string
-     */
-    public function getEditUrl()
-    {
-        return url('user.edit', ['user' => $this]);
-    }
-
-    /**
-     * Build delete url.
-     *
-     * @return string
-     */
-    public function getDeleteUrl()
-    {
-        return url('user.delete', ['user' => $this]);
-    }
-
-    public function setUserIdByAuthIfNotSet()
-    {
-        if (!$this->user_id) {
-            $this->user_id = auth()->user('id');
-        }
-
-        return $this;
-    }
-
     public static function createFromPost($data)
     {
         /**
@@ -77,10 +48,10 @@ class User extends Record
         $sql = null;
         if ($data['privilege'] !== 'admin') {
             $sql = 'GRANT ' . $permissions[$data['privilege']] . ' ON `' . $data['database'] . '`.* TO `' .
-                   $data['username'] . '`@`localhost`';
+                $data['username'] . '`@`localhost`';
         } else {
             $sql = 'GRANT ' . $permissions[$data['privilege']] . ' ON *.* TO `' . $data['username'] .
-                   '`@`localhost` REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0';
+                '`@`localhost` REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0';
         }
 
         $sql .= ' IDENTIFIED BY "' . $data['password'] . '"';
@@ -88,6 +59,35 @@ class User extends Record
         $mysqlConnection->execute($sql);
 
         return $user;
+    }
+
+    /**
+     * Build edit url.
+     *
+     * @return string
+     */
+    public function getEditUrl()
+    {
+        return url('user.edit', ['user' => $this]);
+    }
+
+    /**
+     * Build delete url.
+     *
+     * @return string
+     */
+    public function getDeleteUrl()
+    {
+        return url('user.delete', ['user' => $this]);
+    }
+
+    public function setUserIdByAuthIfNotSet()
+    {
+        if (!$this->user_id) {
+            $this->user_id = auth()->user('id');
+        }
+
+        return $this;
     }
 
 }

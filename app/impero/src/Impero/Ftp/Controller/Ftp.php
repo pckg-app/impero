@@ -4,8 +4,8 @@ use Impero\Ftp\Entity\Ftps;
 use Impero\Ftp\Form\Ftp as FtpForm;
 use Impero\Ftp\Record\Ftp as FtpRecord;
 use Impero\Ftp\Service\Ftp as FtpService;
-use Pckg\Maestro\Helper\Maestro;
 use Pckg\Framework\Controller;
+use Pckg\Maestro\Helper\Maestro;
 
 class Ftp extends Controller
 {
@@ -75,22 +75,20 @@ class Ftp extends Controller
         /**
          * Save record to vsftpd.
          */
-        $ftpService->saveAccount(
-            [
-                'comment'     => $ftpRecord->id,
-                'user'        => $ftpRecord->getFullUsername(),
-                'password'    => $this->request()->password,
-                'status'      => 1,
-                'uid'         => 2001,
-                'gid'         => 2001,
-                'dir'         => $ftpRecord->getFullPath(),
-                'ulbandwidth' => 100,
-                'dlbandwidth' => 100,
-                'ipaccess'    => '*',
-                'quotasize'   => 50,
-                'quotafiles'  => 50,
-            ]
-        );
+        $ftpService->saveAccount([
+                                     'comment'     => $ftpRecord->id,
+                                     'user'        => $ftpRecord->getFullUsername(),
+                                     'password'    => $this->request()->password,
+                                     'status'      => 1,
+                                     'uid'         => 2001,
+                                     'gid'         => 2001,
+                                     'dir'         => $ftpRecord->getFullPath(),
+                                     'ulbandwidth' => 100,
+                                     'dlbandwidth' => 100,
+                                     'ipaccess'    => '*',
+                                     'quotasize'   => 50,
+                                     'quotafiles'  => 50,
+                                 ]);
 
         /**
          * If ftp was added via ajax, we display some data and redirect url.
@@ -140,22 +138,20 @@ class Ftp extends Controller
         /**
          * Save record to vsftpd.
          */
-        $ftpService->saveAccount(
-            [
-                'comment'     => $ftpRecord->id,
-                'user'        => $ftpRecord->getFullUsername(),
-                'password'    => $this->request()->password,
-                'status'      => 1,
-                'uid'         => 2001,
-                'gid'         => 2001,
-                'dir'         => $ftpRecord->getFullPath(),
-                'ulbandwidth' => 100,
-                'dlbandwidth' => 100,
-                'ipaccess'    => '*',
-                'quotasize'   => 50,
-                'quotafiles'  => 50,
-            ]
-        );
+        $ftpService->saveAccount([
+                                     'comment'     => $ftpRecord->id,
+                                     'user'        => $ftpRecord->getFullUsername(),
+                                     'password'    => $this->request()->password,
+                                     'status'      => 1,
+                                     'uid'         => 2001,
+                                     'gid'         => 2001,
+                                     'dir'         => $ftpRecord->getFullPath(),
+                                     'ulbandwidth' => 100,
+                                     'dlbandwidth' => 100,
+                                     'ipaccess'    => '*',
+                                     'quotasize'   => 50,
+                                     'quotafiles'  => 50,
+                                 ]);
 
         /**
          * If ftp was added via ajax, we display some data.

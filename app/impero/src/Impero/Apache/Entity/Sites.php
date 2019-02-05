@@ -24,9 +24,7 @@ class Sites extends Entity implements MaestroEntity
 
     public function user()
     {
-        return $this->belongsTo(Users::class)
-                    ->foreignKey('user_id')
-                    ->fill('user', 'sites');
+        return $this->belongsTo(Users::class)->foreignKey('user_id')->fill('user', 'sites');
     }
 
     public function scopeUserIsAuthorized()
@@ -42,14 +40,9 @@ class Sites extends Entity implements MaestroEntity
             /**
              * Reseller has access to it's and sub-user domains
              */
-            return $this->where(
-                'user_id',
-                $auth->getUser()->id,
-                '=',
-                function($query) use ($auth) {
-                    $query->orWhere('user_id', $auth->getUser()->subusers->all()->map('id'));
-                }
-            );
+            return $this->where('user_id', $auth->getUser()->id, '=', function($query) use ($auth) {
+                $query->orWhere('user_id', $auth->getUser()->subusers->all()->map('id'));
+            });
         } elseif ($auth->hasFlag('admin')) {
             /**
              * Admin has access to all domains
@@ -67,14 +60,12 @@ class Sites extends Entity implements MaestroEntity
 
     public function server()
     {
-        return $this->belongsTo(Servers::class)
-                    ->foreignKey('server_id');
+        return $this->belongsTo(Servers::class)->foreignKey('server_id');
     }
 
     public function sitesServers()
     {
-        return $this->hasMany(SitesServers::class)
-                    ->foreignKey('site_id');
+        return $this->hasMany(SitesServers::class)->foreignKey('site_id');
     }
 
 }

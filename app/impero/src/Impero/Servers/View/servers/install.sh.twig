@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo 'Writing hashed password to filesystem so it will not be visible in processlist.'
+echo 'Writing hashed password to filesystem so plain is not visible in processlist.'
 echo "{{ cryptedPassword }}" > /tmp/impero.hashed.password
 
 echo 'Creating local impero user with home directory for .ssh keys'
@@ -21,6 +21,6 @@ echo 'impero ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/100-impero
 echo 'Notifying supervisor about new server, this can take a moment ...'
 IMPEROHOSTNAME=$(cat /etc/hostname)
 POSTPARAMS='hostname='$IMPEROHOSTNAME'&password={{ secret }}&port=22'
-curl -v --data "$POSTPARAMS" "http://impero.foobar.si/postinstall"
+curl -v --data "$POSTPARAMS" "https://impero.foobar.si/postinstall"
 
-echo "Connection successfully estamblished. You can check status in impero panel: http://impero.foobar.si"
+echo "Connection successfully estamblished. You can check status in impero panel: https://impero.foobar.si"

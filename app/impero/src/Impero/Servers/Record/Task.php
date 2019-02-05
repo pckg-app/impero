@@ -32,12 +32,10 @@ class Task extends Record
         /**
          * Create task in database.
          */
-        $task = parent::create(array_merge($data,
-                                           [
-                                               'parent_id' => $parentTask->id ?? null,
-                                               'status'    => 'created',
-                                           ]),
-                               $entity);
+        $task = parent::create(array_merge($data, [
+            'parent_id' => $parentTask->id ?? null,
+            'status'    => 'created',
+        ]), $entity);
 
         /**
          * Bind it as current.
@@ -45,12 +43,6 @@ class Task extends Record
         context()->bind(Task::class, $task);
 
         return $task;
-    }
-
-    public function end()
-    {
-        $this->setAndSave(['ended_at' => date('Y-m-d H:i:s')]);
-        context()->bind(Task::class, $this->parent);
     }
 
     /**
@@ -100,6 +92,12 @@ class Task extends Record
 
             throw $e;
         }
+    }
+
+    public function end()
+    {
+        $this->setAndSave(['ended_at' => date('Y-m-d H:i:s')]);
+        context()->bind(Task::class, $this->parent);
     }
 
 }

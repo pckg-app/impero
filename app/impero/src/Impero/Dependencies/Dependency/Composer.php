@@ -13,8 +13,7 @@ class Composer extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('composer --version');
+        $response = $this->getConnection()->exec('composer --version');
 
         $versionStart = strpos($response, 'Composer version ') + strlen('Composer version ');
         $versionEnd = strpos($response, ' ', $versionStart);
@@ -25,14 +24,11 @@ class Composer extends AbstractDependency
 
     public function getStatus()
     {
-        $response = $this->getConnection()
-                         ->exec('composer diagnose');
+        $response = $this->getConnection()->exec('composer diagnose');
 
         $outdated = strpos($response, 'You are not running the latest stable version');
 
-        return $outdated
-            ? 'outdated'
-            : 'ok';
+        return $outdated ? 'outdated' : 'ok';
     }
 
     public function install()

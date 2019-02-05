@@ -13,8 +13,7 @@ class Less extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('less version');
+        $response = $this->getConnection()->exec('less version');
 
         return $response;
     }

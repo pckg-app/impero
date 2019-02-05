@@ -7,8 +7,7 @@ class AptTransportHttps extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('apt-transport-https version');
+        $response = $this->getConnection()->exec('apt-transport-https version');
 
         return $response;
     }

@@ -23,8 +23,7 @@ class Sendmail extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('sendmail -d0.4 -bv root');
+        $response = $this->getConnection()->exec('sendmail -d0.4 -bv root');
 
         $start = strpos($response, 'Version ') + strlen('Version ');
         $end = strpos($response, "\n");

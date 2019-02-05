@@ -33,8 +33,6 @@ class Servers
 
     public function getViewServerAction(ServersDataset $serversDataset)
     {
-        vueManager()->addView('Impero/Servers:servers/one.vue');
-
         return view('servers/one');
     }
 
@@ -45,10 +43,38 @@ class Servers
         ];
     }
 
-    public function getServerServicesAction(ServersDataset $serversDataset, $server)
+    public function getServerServicesAction(ServersDataset $serversDataset, Server $server)
     {
         return [
-            'services' => $serversDataset->getServerServices(),
+            'services' => $serversDataset->getServerServices($server),
+        ];
+    }
+
+    public function getServerDependenciesAction(ServersDataset $serversDataset, Server $server)
+    {
+        return [
+            'dependencies' => $serversDataset->getServerDependencies($server),
+        ];
+    }
+
+    public function getServerWebsitesAction(ServersDataset $serversDataset, Server $server)
+    {
+        return [
+            'websites' => $serversDataset->getServerApplications($server),
+        ];
+    }
+
+    public function getNetworkInterfacesAction(ServersDataset $serversDataset, Server $server)
+    {
+        return [
+            'networkInterfaces' => $serversDataset->getServerNetworkInterfaces($server),
+        ];
+    }
+
+    public function getFirewallSettingsAction(ServersDataset $serversDataset, Server $server)
+    {
+        return [
+            'firewallSettings' => $serversDataset->getServerFirewallSettings($server),
         ];
     }
 
@@ -56,10 +82,9 @@ class Servers
     {
         vueManager()->addView('Impero/Servers:servers/add.vue', ['serverForm' => $serverForm]);
 
-        $genericService->touchBlock('left')
-                       ->addAction(new CallableAction(function() {
-                           return view('servers/add_sidebar');
-                       }));
+        $genericService->touchBlock('left')->addAction(new CallableAction(function() {
+            return view('servers/add_sidebar');
+        }));
 
         return view('servers/add');
     }
@@ -100,6 +125,11 @@ class Servers
         return response()->respondWithSuccess(['jobs' => $server->jobs]);
     }
 
+    public function postWebhookAction()
+    {
+        return $this->getWebhookAction();
+    }
+
     public function getWebhookAction()
     {
         /**
@@ -109,11 +139,6 @@ class Servers
         //$server->getConnection()->exec('cd /www/gnpdev/gnpdev.gonparty.eu/htdocs/ && php console project:pull');
 
         return 'ok';
-    }
-
-    public function postWebhookAction()
-    {
-        return $this->getWebhookAction();
     }
 
     public function postInstallNewServerAction()

@@ -23,8 +23,7 @@ class Apache extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('apache2 -v');
+        $response = $this->getConnection()->exec('apache2 -v');
 
         $start = strpos($response, 'Server version: ') + strlen('Server version: ');
         $end = strpos($response, "\n");

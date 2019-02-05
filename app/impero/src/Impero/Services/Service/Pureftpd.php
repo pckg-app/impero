@@ -23,8 +23,7 @@ class Pureftpd extends AbstractService implements ServiceInterface
      */
     public function isInstalled()
     {
-        $response = $this->getConnection()
-                         ->exec($this->service . ' -v');
+        $response = $this->getConnection()->exec($this->service . ' -v');
 
         return strpos($response, 'No command') === false;
     }
@@ -34,8 +33,7 @@ class Pureftpd extends AbstractService implements ServiceInterface
      */
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('apt-cache showpkg ' . $this->service);
+        $response = $this->getConnection()->exec('apt-cache showpkg ' . $this->service);
 
         $start = strpos($response, 'Versions:') + strlen('Versions:') + 1;
         $end = strpos($response, " ", $start);

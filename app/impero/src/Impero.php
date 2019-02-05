@@ -56,9 +56,7 @@ class Impero extends Provider
     public function jobs()
     {
         return [
-            Cron::createJob(MakeMysqlBackup::class, 'Make database backups')
-                ->at(['6:00', '18:00'])
-                ->background(),
+            Cron::createJob(MakeMysqlBackup::class, 'Make database backups')->at(['6:00', '18:00'])->background(),
             /*Cron::createJob(MakeStorageBackup::class, 'Make storage backups')
                 ->at(['3:00', '15:00'])
                 ->background(),
@@ -76,9 +74,11 @@ class Impero extends Provider
         return [
             'vue' => [
                 '/build/js/backend.js',
+                '/build/js/services.js',
                 '/build/js/auth.js',
                 '/build/js/generic.js',
             ],
+            '@' . path('root') . 'app/impero/public/less/vars.less',
             'less/impero.less',
         ];
     }
@@ -101,38 +101,35 @@ function maestro_urls($class, $slug, $record, $resolver, $alterslug = null)
         $alterslug = $slug;
     }
 
-    return array_merge_array(
-        [
-            'controller' => $class,
-            '',
-        ],
-        [
-            '/' . $alterslug                               => [
-                'name' => $slug . '.list',
-                'view' => 'index',
-                'tags' => ['auth:in'],
-            ],
-            '/' . $alterslug . '/add'                      => [
-                'name' => $slug . '.add',
-                'view' => 'add',
-                'tags' => ['auth:in'],
-            ],
-            '/' . $alterslug . '/edit/[' . $record . ']'   => [
-                'name'      => $slug . '.edit',
-                'view'      => 'edit',
-                'resolvers' => [
-                    $record => $resolver,
-                ],
-                'tags'      => ['auth:in'],
-            ],
-            '/' . $alterslug . '/delete/[' . $record . ']' => [
-                'name'      => $slug . '.delete',
-                'view'      => 'delete',
-                'resolvers' => [
-                    $record => $resolver,
-                ],
-                'tags'      => ['auth:in'],
-            ],
-        ]
-    );
+    return array_merge_array([
+                                 'controller' => $class,
+                                 '',
+                             ], [
+                                 '/' . $alterslug                               => [
+                                     'name' => $slug . '.list',
+                                     'view' => 'index',
+                                     'tags' => ['auth:in'],
+                                 ],
+                                 '/' . $alterslug . '/add'                      => [
+                                     'name' => $slug . '.add',
+                                     'view' => 'add',
+                                     'tags' => ['auth:in'],
+                                 ],
+                                 '/' . $alterslug . '/edit/[' . $record . ']'   => [
+                                     'name'      => $slug . '.edit',
+                                     'view'      => 'edit',
+                                     'resolvers' => [
+                                         $record => $resolver,
+                                     ],
+                                     'tags'      => ['auth:in'],
+                                 ],
+                                 '/' . $alterslug . '/delete/[' . $record . ']' => [
+                                     'name'      => $slug . '.delete',
+                                     'view'      => 'delete',
+                                     'resolvers' => [
+                                         $record => $resolver,
+                                     ],
+                                     'tags'      => ['auth:in'],
+                                 ],
+                             ]);
 }

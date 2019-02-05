@@ -21,60 +21,35 @@ class Apache extends Provider
         return [
             'url' => maestro_urls(ApacheController::class, 'apache', 'site', SiteResolver::class, 'apache/sites'),
 
-            (new Group(
-                [
-                    'controller' => Sites::class,
-                    'urlPrefix'  => '/api/site',
-                    'namePrefix' => 'api.impero.site',
-                    'tags'       => ['auth:in'],
-                ]
-            ))->routes(
-                [
-                    '.cronjob'    => (new Route('/[site]/cronjob', 'cronjob'))
-                        ->resolvers(
-                            [
-                                'site' => SiteResolver::class,
-                            ]
-                        ),
-                    '.cronjobs'   => (new Route('/[site]/cronjobs', 'cronjobs'))
-                        ->resolvers(
-                            [
-                                'site' => SiteResolver::class,
-                            ]
-                        ),
-                    '.mysqlSlave' => (new Route('/[site]/mysql-slave', 'mysqlSlave'))
-                        ->resolvers(
-                            [
-                                'site'   => SiteResolver::class,
-                                'server' => (new Server())->fromPost('server'),
-                            ]
-                        ),
-                    '.checkout'   => (new Route('/[site]/checkout', 'checkout'))
-                        ->resolvers(
-                            [
-                                'site' => SiteResolver::class,
-                            ]
-                        ),
-                    '.recheckout' => (new Route('/[site]/recheckout', 'recheckout'))
-                        ->resolvers(
-                            [
-                                'site' => SiteResolver::class,
-                            ]
-                        ),
-                    '.deploy'     => (new Route('/[site]/deploy', 'deploy'))
-                        ->resolvers(
-                            [
-                                'site' => SiteResolver::class,
-                            ]
-                        ),
-                    '.check'      => (new Route('/[site]/check', 'check'))
-                        ->resolvers(
-                            [
-                                'site' => SiteResolver::class,
-                            ]
-                        ),
-                ]
-            ),
+            (new Group([
+                           'controller' => Sites::class,
+                           'urlPrefix'  => '/api/site',
+                           'namePrefix' => 'api.site',
+                           'tags'       => ['auth:in'],
+                       ]))->routes([
+                                       '.cronjob'    => (new Route('/[site]/cronjob', 'cronjob'))->resolvers([
+                                                                                                                 'site' => SiteResolver::class,
+                                                                                                             ]),
+                                       '.cronjobs'   => (new Route('/[site]/cronjobs', 'cronjobs'))->resolvers([
+                                                                                                                   'site' => SiteResolver::class,
+                                                                                                               ]),
+                                       '.mysqlSlave' => (new Route('/[site]/mysql-slave', 'mysqlSlave'))->resolvers([
+                                                                                                                        'site'   => SiteResolver::class,
+                                                                                                                        'server' => (new Server())->fromPost('server'),
+                                                                                                                    ]),
+                                       '.checkout'   => (new Route('/[site]/checkout', 'checkout'))->resolvers([
+                                                                                                                   'site' => SiteResolver::class,
+                                                                                                               ]),
+                                       '.recheckout' => (new Route('/[site]/recheckout', 'recheckout'))->resolvers([
+                                                                                                                       'site' => SiteResolver::class,
+                                                                                                                   ]),
+                                       '.deploy'     => (new Route('/[site]/deploy', 'deploy'))->resolvers([
+                                                                                                               'site' => SiteResolver::class,
+                                                                                                           ]),
+                                       '.check'      => (new Route('/[site]/check', 'check'))->resolvers([
+                                                                                                             'site' => SiteResolver::class,
+                                                                                                         ]),
+                                   ]),
         ];
     }
 

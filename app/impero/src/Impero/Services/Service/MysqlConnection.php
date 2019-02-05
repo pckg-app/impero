@@ -53,16 +53,6 @@ class MysqlConnection
     }
 
     /**
-     * @return mixed
-     */
-    protected function getMysqlPassword()
-    {
-        $content = $this->sshConnection->sftpRead('/etc/mysql/conf.d/impero.cnf');
-
-        return parse_ini_string($content)['password'];
-    }
-
-    /**
      * @param       $database
      * @param       $sql
      * @param array $binds
@@ -76,11 +66,7 @@ class MysqlConnection
             $tunnelPort = $this->sshConnection->tunnel();
 
             $p = "mysql:host=127.0.0.1:" . $tunnelPort . ";charset=utf8" . ($database ? ";dbname=" . $database : '');
-            $this->pdo = new PDO(
-                $p,
-                'impero',
-                $this->getMysqlPassword()
-            );
+            $this->pdo = new PDO($p, 'impero', $this->getMysqlPassword());
         }
 
         if (!$sql) {
@@ -100,12 +86,21 @@ class MysqlConnection
         if (!$execute) {
             $errorInfo = $prepared->errorInfo();
 
-            throw new Exception(
-                'Cannot execute prepared statement: ' . end($errorInfo) . ' : ' . $prepared->queryString
-            );
+            throw new Exception('Cannot execute prepared statement: ' . end($errorInfo) . ' : ' .
+                                $prepared->queryString);
         }
 
         return $prepared->fetchAll();
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getMysqlPassword()
+    {
+        $content = $this->sshConnection->sftpRead('/etc/mysql/conf.d/impero.cnf');
+
+        return parse_ini_string($content)['password'];
     }
 
     /**

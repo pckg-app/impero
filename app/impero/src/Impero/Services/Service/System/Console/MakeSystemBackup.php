@@ -16,42 +16,36 @@ class MakeSystemBackup extends Command
 {
 
     /**
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
-     */
-    protected function configure()
-    {
-        $this->setName('service:system:backup')
-             ->setDescription('Make backup of other system service configuration files');
-    }
-
-    /**
      *
      */
     public function handle()
     {
         $servers = (new Servers())->all();
 
-        $servers->each(
-            function(Server $server) {
-                try {
-                    Fork::fork(
-                        function() use ($server) {
-                            /**
-                             * Throw backup event for all services that are listening for backup event. :)
-                             */
-                        },
-                        function() use ($server) {
-                            return 'impero:backup:system:' . $server->id;
-                        },
-                        function() {
-                            throw new Exception('Cannot run system backup in parallel');
-                        }
-                    );
-                } catch (Throwable $e) {
-                    $this->output('EXCEPTION: ' . exception($e));
-                }
+        $servers->each(function(Server $server) {
+            try {
+                Fork::fork(function() use ($server) {
+                    /**
+                     * Throw backup event for all services that are listening for backup event. :)
+                     */
+                }, function() use ($server) {
+                    return 'impero:backup:system:' . $server->id;
+                }, function() {
+                    throw new Exception('Cannot run system backup in parallel');
+                });
+            } catch (Throwable $e) {
+                $this->output('EXCEPTION: ' . exception($e));
             }
-        );
+        });
+    }
+
+    /**
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     */
+    protected function configure()
+    {
+        $this->setName('service:system:backup')
+             ->setDescription('Make backup of other system service configuration files');
     }
 
 }

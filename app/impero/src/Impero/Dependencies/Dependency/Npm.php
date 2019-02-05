@@ -11,8 +11,7 @@ class Npm extends AbstractDependency
 
     public function getVersion()
     {
-        $response = $this->getConnection()
-                         ->exec('npm --version');
+        $response = $this->getConnection()->exec('npm --version');
 
         return $response;
     }
@@ -21,9 +20,7 @@ class Npm extends AbstractDependency
     {
         $outdated = false;
 
-        return $outdated
-            ? 'outdated'
-            : 'ok';
+        return $outdated ? 'outdated' : 'ok';
     }
 
 }

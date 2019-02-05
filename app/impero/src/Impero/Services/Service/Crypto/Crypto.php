@@ -48,7 +48,7 @@ class Crypto
     /**
      * Crypto constructor.
      *
-     * @param string      $file
+     * @param string $file
      * @param Server|null $from
      * @param Server|null $to
      */
@@ -109,18 +109,6 @@ class Crypto
     }
 
     /**
-     * @param Server $server
-     * @param        $file
-     *
-     * @throws \Exception
-     */
-    public function replaceFile(Server $server, $file)
-    {
-        $server->getConnection()->deleteFile($this->file);
-        $this->file = $file;
-    }
-
-    /**
      * @param Server $from
      * @param Server $to
      * @param        $file
@@ -134,25 +122,23 @@ class Crypto
     {
         $task = Task::create('Transferring file');
 
-        return $task->make(
-            function() {
-                /**
-                 * Compress, encrypt, and delete all unused copies.
-                 * We know that we'll transfer file from $from to $to server.
-                 */
-                $this->compressAndEncrypt();
+        return $task->make(function() {
+            /**
+             * Compress, encrypt, and delete all unused copies.
+             * We know that we'll transfer file from $from to $to server.
+             */
+            $this->compressAndEncrypt();
 
-                /**
-                 * Transfer backup.
-                 */
-                $this->transfer();
+            /**
+             * Transfer backup.
+             */
+            $this->transfer();
 
-                /**
-                 * Decrypt, decompress, and delete all unused copies.
-                 */
-                return $this->decryptAndDecompress();
-            }
-        );
+            /**
+             * Decrypt, decompress, and delete all unused copies.
+             */
+            return $this->decryptAndDecompress();
+        });
     }
 
     /**
@@ -183,6 +169,18 @@ class Crypto
     /**
      * @param Server $server
      * @param        $file
+     *
+     * @throws \Exception
+     */
+    public function replaceFile(Server $server, $file)
+    {
+        $server->getConnection()->deleteFile($this->file);
+        $this->file = $file;
+    }
+
+    /**
+     * @param Server $server
+     * @param        $file
      * @param        $keyFile
      *
      * @return null|string
@@ -193,19 +191,57 @@ class Crypto
     {
         $task = Task::create('Encrypting file');
 
-        return $task->make(
-            function() {
-                /**
-                 * File is then encrypted with gpg service.
-                 * Delete original after usage.
-                 */
-                $fromGpgService = new GPG($this->from);
-                $encryptedFile = $fromGpgService->encrypt($this);
-                $this->replaceFile($this->from, $encryptedFile);
+        return $task->make(function() {
+            /**
+             * File is then encrypted with gpg service.
+             * Delete original after usage.
+             */
+            $fromGpgService = new GPG($this->from);
+            $encryptedFile = $fromGpgService->encrypt($this);
+            $this->replaceFile($this->from, $encryptedFile);
 
-                return $encryptedFile;
-            }
-        );
+            return $encryptedFile;
+        });
+    }
+
+    /**
+     * @param Server $from
+     * @param Server $to
+     * @param        $file
+     * @param        $service
+     *
+     * @return string
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
+    public function transfer()
+    {
+        $encryptedCopy = $this->prepareDirectory('random') . sha1random();
+        $this->from->transferFile($this->file, $encryptedCopy, $this->to);
+        $this->replaceFile($this->from, $encryptedCopy);
+
+        return $encryptedCopy;
+    }
+
+    /**
+     * @param $dir
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function prepareDirectory($dir)
+    {
+
+        $root = $this->to->getConnection() instanceof LocalConnection ? path('private') : '/home/impero/impero/';
+        $dir = $root . 'service/random';// . $dir;
+
+        if ($this->to->getConnection()->dirExists($dir)) {
+            return $dir . '/';
+        }
+
+        $this->to->getConnection()->exec('mkdir -p ' . $dir);
+
+        return $dir . '/';
     }
 
     /**
@@ -246,55 +282,14 @@ class Crypto
          * File is then decrypted with gpg service.
          */
         $toConnection = $this->to
-            ? $this->to->getConnection()
-            : context()->getOrCreate(ConnectionManager::class)->createConnection();
+            ? $this->to->getConnection() : context()
+                ->getOrCreate(ConnectionManager::class)
+                ->createConnection();
         $toGpgService = (new GPG($toConnection));
         $decryptedFile = $toGpgService->decrypt($this);
         $this->replaceFile($this->to, $decryptedFile);
 
         return $decryptedFile;
-    }
-
-    /**
-     * @param Server $from
-     * @param Server $to
-     * @param        $file
-     * @param        $service
-     *
-     * @return string
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
-     * @throws \Throwable
-     */
-    public function transfer()
-    {
-        $encryptedCopy = $this->prepareDirectory('random') . sha1random();
-        $this->from->transferFile($this->file, $encryptedCopy, $this->to);
-        $this->replaceFile($this->from, $encryptedCopy);
-
-        return $encryptedCopy;
-    }
-
-    /**
-     * @param $dir
-     *
-     * @return string
-     * @throws \Exception
-     */
-    protected function prepareDirectory($dir)
-    {
-
-        $root = $this->to->getConnection() instanceof LocalConnection
-            ? path('private')
-            : '/home/impero/impero/';
-        $dir = $root . 'service/random';// . $dir;
-
-        if ($this->to->getConnection()->dirExists($dir)) {
-            return $dir . '/';
-        }
-
-        $this->to->getConnection()->exec('mkdir -p ' . $dir);
-
-        return $dir . '/';
     }
 
 }

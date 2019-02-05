@@ -10,8 +10,7 @@ class User extends Form\Bootstrap implements ResolvesOnRequest
     {
         $this->addHidden('id');
 
-        $this->addText('name')
-             ->setLabel('Name:');
+        $this->addText('name')->setLabel('Name:');
 
         $this->addSubmit();
 

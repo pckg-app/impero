@@ -2,9 +2,7 @@
 
 use Impero\Mysql\Entity\Users;
 use Pckg\Auth\Service\Auth;
-use Pckg\Concept\Reflect;
 use Pckg\Concept\Reflect\Resolver as ResolverInterface;
-use Pckg\Database\Record;
 use Pckg\Framework\Response;
 use Pckg\Framework\Router;
 
@@ -45,13 +43,10 @@ class Resolver implements ResolverInterface
             $this->response->bad('User parameter is missing ...');
         }
 
-        return $this->users->where('id', $id)
-            //->userIsAuthorized()
-                           ->oneOrFail(
-                function() {
-                    $this->response->unauthorized('User not found');
-                }
-            );
+        return $this->users->where('id', $id)//->userIsAuthorized()
+                           ->oneOrFail(function() {
+            $this->response->unauthorized('User not found');
+        });
     }
 
     public function parametrize($record)

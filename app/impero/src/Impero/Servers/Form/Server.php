@@ -15,17 +15,11 @@ class Server extends Bootstrap implements ResolvesOnRequest
              ->setLabel('OS')
              ->addOptions(['Ubuntu 16.04']);
 
-        $this->addText('name')
-             ->setAttribute('v-model', 'server.name')
-             ->setLabel('Name');
+        $this->addText('name')->setAttribute('v-model', 'server.name')->setLabel('Name');
 
-        $this->addText('ip')
-             ->setAttribute('v-model', 'server.ip')
-             ->setLabel('IP');
+        $this->addText('ip')->setAttribute('v-model', 'server.ip')->setLabel('IP');
 
-        $this->addText('ptr')
-             ->setAttribute('v-model', 'server.ptr')
-             ->setLabel('PTR');
+        $this->addText('ptr')->setAttribute('v-model', 'server.ptr')->setLabel('PTR');
 
         $this->addSubmit();
 
