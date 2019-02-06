@@ -23,6 +23,7 @@ class Impero extends Provider
         return [
             ImperoProvider::class,
             Provider\Framework::class,
+            (new \Pckg\Queue\Provider\Queue())->setRoutePrefix('/queue'),
         ];
     }
 
