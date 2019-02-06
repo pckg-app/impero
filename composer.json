@@ -40,7 +40,8 @@
     "league/flysystem-sftp": "dev-master",
     "pckg-app/api": "dev-master",
     "pckg/manager": "dev-master",
-    "snapappointments/bootstrap-select": "dev-master"
+    "snapappointments/bootstrap-select": "dev-master",
+    "php-amqplib/php-amqplib": "^2.8@dev"
   },
   "minimum-stability": "dev",
   "autoload": {

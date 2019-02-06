@@ -3,10 +3,12 @@
 use Impero\Apache\Console\DumpVirtualhosts;
 use Impero\Apache\Entity\Sites;
 use Impero\Apache\Entity\SitesServers;
+use Impero\Mysql\Entity\Databases;
 use Impero\Mysql\Record\Database;
 use Impero\Mysql\Record\User as DatabaseUser;
 use Impero\Servers\Entity\ServersMorphs;
 use Impero\Servers\Record\Server;
+use Impero\Servers\Record\ServersMorph;
 use Impero\Servers\Record\Task;
 use Impero\Services\Service\Connection\SshConnection;
 use Impero\Services\Service\Rsync;
@@ -932,6 +934,11 @@ class Site extends Record
         (new DumpVirtualhosts())->executeManually(['--server' => $this->server_id]);
     }
 
+    public function queueCheckout(Server $server)
+    {
+        queue('impero/impero/manage', 'site:checkout', ['site' => $this->id, 'server' => $server->id]);
+    }
+
     /**
      * @param Server $server
      * @param        $pckg
@@ -1565,6 +1572,88 @@ class Site extends Record
         SettingsMorph::makeItHappen('impero.pckg', $pckg, Sites::class, $this->id, 'array');
 
         return $this;
+    }
+
+    public function queueReplicateDatabasesToSlave(Server $server)
+    {
+        queue('impero/impero/manage', 'site:database:replicate-to-slave', ['site' => $this->id, 'to' => $server->id]);
+    }
+
+    public function replicateDatabasesToSlave(Server $server)
+    {
+        /**
+         * First, get databases associated with site.
+         * They are defined in pckg.yaml.
+         * They should also be associated with different sites, which are currently not.
+         * We will associate them in databases_morphs table (can be associated with servers, users, sites, ...).
+         */
+        //$variables = post('vars', []);
+        //$pckg = post('pckg', []);
+        $pckg = $this->getImperoPckgAttribute();
+        $variables = $this->getImperoVarsAttribute();
+
+        /**
+         * Now we have list of all databases (id_shop and pckg_derive for example) and we need to check that replication is in place.
+         */
+        $databases = [];
+        foreach ($pckg['services']['db']['mysql']['database'] ?? [] as $database => $config) {
+            $databases[] = str_replace(array_keys($variables), array_values($variables), $config['name']);
+        }
+
+        if (!$databases) {
+            return ['success' => false, 'message' => 'No databases'];
+        }
+
+        $databases = (new Databases())->where('name', $databases)->all();
+        $site = $this;
+        $databases->each(function(Database $database) use ($server, $site) {
+            $sitesServer = SitesServer::getOrNew([
+                                                     'site_id'   => $site->id,
+                                                     'server_id' => $server->id,
+                                                     'type'      => 'database:slave',
+                                                 ]);
+
+            $serversMorph = ServersMorph::getOrNew([
+                                          'morph_id'  => Databases::class,
+                                          'poly_id'   => $database->id,
+                                          'type'      => 'database:slave',
+                                          'server_id' => $server->id,
+                                      ]);
+            if (!$sitesServer->isNew() && !$serversMorph->isNew()) {
+                /**
+                 * Skip existing?
+                 *
+                 * @T00D00 ... at some point site may have multiple different databases over different servers
+                 *         ... link database with server instead
+                 * @T00D00 ... implement connections
+                 *         ... serve with server: zero@eth1 - one@eth1
+                 *         ... database with site
+                 *         ... database with server
+                 */
+                return;
+            }
+
+            /**
+             * Check that master is configured as master.
+             */
+            $database->requireMysqlMasterReplication();
+
+            /**
+             * Check that binlog is actually created for database.
+             */
+            $database->replicateOnMaster();
+
+            /**
+             * Link database:slave service to it.
+             */
+            $sitesServer->save();
+            $serversMorph->save();
+
+            /**
+             * Make backup and enable replication on slave.
+             */
+            $database->replicateTo($server);
+        });
     }
 
 }

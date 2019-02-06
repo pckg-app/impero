@@ -4,6 +4,7 @@ use Exception;
 use Impero\Mysql\Entity\Databases;
 use Impero\Secret\Record\Secret;
 use Impero\Servers\Record\Server;
+use Impero\Servers\Record\ServersMorph;
 use Impero\Servers\Record\Task;
 use Impero\Servers\Service\ConnectionManager;
 use Impero\Services\Service\Backup;
@@ -299,7 +300,7 @@ class Database extends Record implements Connectable
      */
     public function replicateTo(Server $slaveServer)
     {
-        $task = Task::create('Replicating #' . $this->id . ' to ' . $slaveServer->ip);
+        $task = Task::create('Replicating db #' . $this->id . ' to ' . $slaveServer->ip);
 
         $task->make(function() use ($slaveServer) {
             /**
@@ -341,9 +342,10 @@ class Database extends Record implements Connectable
             }
 
             /**
-             * Resume slave until backup.
+             * Resume slave until backup, then stop slave.
              */
             $this->syncSlaveUntilBackup($backupFile, $slaveServer);
+            $mysqlSlaveService->stopSlave();
 
             /**
              * Let backup service take care of full transfer.
@@ -358,15 +360,10 @@ class Database extends Record implements Connectable
             $this->importBackup($backupFile, $slaveServer);
 
             /**
-             * Stop slave.
-             */
-            $mysqlSlaveService->stopSlave();
-
-            /**
              * Update binlog update.
              * Dump new mysql config.
              */
-            $databasesOnSlave = $slaveServer->slaveDatabases;
+            $databasesOnSlave = $slaveServer->slaveDatabases();
             $mysqlSlaveService->refreshSlaveReplicationFilter($databasesOnSlave);
             $mysqlSlaveService->dumpSlaveReplicationFilter($databasesOnSlave);
 

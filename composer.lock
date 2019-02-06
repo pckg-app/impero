@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "08c14cfdd880241eb414243877bc3e59",
+    "content-hash": "fb5f6a06b7fb11c2ce02f0124b364e81",
     "packages": [
         {
             "name": "aferrandini/phpqrcode",
@@ -53,23 +53,22 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.87.3",
+            "version": "3.87.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "5f9caa48b7871ff24231898c01f51580a83f59b9"
+                "reference": "3435ed9535f83ca8f485ac8a78a7f3d99216af03"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/5f9caa48b7871ff24231898c01f51580a83f59b9",
-                "reference": "5f9caa48b7871ff24231898c01f51580a83f59b9",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/3435ed9535f83ca8f485ac8a78a7f3d99216af03",
+                "reference": "3435ed9535f83ca8f485ac8a78a7f3d99216af03",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "ext-pcre": "*",
                 "ext-simplexml": "*",
-                "ext-spl": "*",
                 "guzzlehttp/guzzle": "^5.3.3|^6.2.1",
                 "guzzlehttp/promises": "~1.0",
                 "guzzlehttp/psr7": "^1.4.1",
@@ -132,7 +131,7 @@
                 "s3",
                 "sdk"
             ],
-            "time": "2019-02-04T22:38:14+00:00"
+            "time": "2019-02-05T22:07:42+00:00"
         },
         {
             "name": "behat/gherkin",
@@ -2612,12 +2611,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/framework.git",
-                "reference": "b39ed3f3efa31a6ba2efd14aa82f0288d127d2c1"
+                "reference": "923bcbd012922a8325b602443b486ad5b0683107"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/framework/zipball/b39ed3f3efa31a6ba2efd14aa82f0288d127d2c1",
-                "reference": "b39ed3f3efa31a6ba2efd14aa82f0288d127d2c1",
+                "url": "https://api.github.com/repos/pckg/framework/zipball/923bcbd012922a8325b602443b486ad5b0683107",
+                "reference": "923bcbd012922a8325b602443b486ad5b0683107",
                 "shasum": ""
             },
             "require": {
@@ -2653,7 +2652,7 @@
             ],
             "description": "Fully featured lightweight php framework with multilingual support, twig templating engine, and tons of other features.",
             "homepage": "https://github.com/pckg/framework",
-            "time": "2019-01-28T16:45:20+00:00"
+            "time": "2019-02-06T12:48:49+00:00"
         },
         {
             "name": "pckg/generic",
@@ -2661,12 +2660,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/generic.git",
-                "reference": "87cb4ecfd948871cafd30b4e904516294f7cf899"
+                "reference": "487cbc98b82370a3f6182dd6f6fb48d33a254edf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/generic/zipball/87cb4ecfd948871cafd30b4e904516294f7cf899",
-                "reference": "87cb4ecfd948871cafd30b4e904516294f7cf899",
+                "url": "https://api.github.com/repos/pckg/generic/zipball/487cbc98b82370a3f6182dd6f6fb48d33a254edf",
+                "reference": "487cbc98b82370a3f6182dd6f6fb48d33a254edf",
                 "shasum": ""
             },
             "require": {
@@ -2692,7 +2691,7 @@
             ],
             "description": "Building admin interface and generic frontend made simple",
             "homepage": "https://github.com/pckg/generic",
-            "time": "2019-02-01T16:37:33+00:00"
+            "time": "2019-02-05T10:31:09+00:00"
         },
         {
             "name": "pckg/helpers-js",
@@ -2758,12 +2757,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/htmlbuilder.git",
-                "reference": "e3ed5aeba7531f40f0724baba304da6a77625452"
+                "reference": "cd7d1552ae9b1ed05abaeeb3881ca511d2f046c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/htmlbuilder/zipball/e3ed5aeba7531f40f0724baba304da6a77625452",
-                "reference": "e3ed5aeba7531f40f0724baba304da6a77625452",
+                "url": "https://api.github.com/repos/pckg/htmlbuilder/zipball/cd7d1552ae9b1ed05abaeeb3881ca511d2f046c8",
+                "reference": "cd7d1552ae9b1ed05abaeeb3881ca511d2f046c8",
                 "shasum": ""
             },
             "require": {
@@ -2795,7 +2794,7 @@
             ],
             "description": "Build advanced forms in php with datasources, decorators, handlers and validators",
             "homepage": "https://bitbucket.org/lfw/htmlbuilder",
-            "time": "2019-02-01T10:17:31+00:00"
+            "time": "2019-02-05T10:27:39+00:00"
         },
         {
             "name": "pckg/import",
@@ -2871,12 +2870,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/mail.git",
-                "reference": "c51206f872d827c40bd72a4fd707a7fb10cef6ab"
+                "reference": "eac74178b8d529d6ba8c7a9903dbc0dd269a7ec1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/mail/zipball/c51206f872d827c40bd72a4fd707a7fb10cef6ab",
-                "reference": "c51206f872d827c40bd72a4fd707a7fb10cef6ab",
+                "url": "https://api.github.com/repos/pckg/mail/zipball/eac74178b8d529d6ba8c7a9903dbc0dd269a7ec1",
+                "reference": "eac74178b8d529d6ba8c7a9903dbc0dd269a7ec1",
                 "shasum": ""
             },
             "require": {
@@ -2902,7 +2901,7 @@
             ],
             "description": "Sending mail via local mail server, smtp or api; global implementation of recipients and senders; subscriptions for mailchimp; made simple :)",
             "homepage": "https://github.com/pckg/mail",
-            "time": "2019-01-08T08:35:47+00:00"
+            "time": "2019-02-05T23:59:00+00:00"
         },
         {
             "name": "pckg/manager",
@@ -3033,12 +3032,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/queue.git",
-                "reference": "d6524292da32404c4f6bb5f108b74363399414f3"
+                "reference": "6f629b37a6faf9a1c89c4b6a230e00cd00339bcb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/queue/zipball/d6524292da32404c4f6bb5f108b74363399414f3",
-                "reference": "d6524292da32404c4f6bb5f108b74363399414f3",
+                "url": "https://api.github.com/repos/pckg/queue/zipball/6f629b37a6faf9a1c89c4b6a230e00cd00339bcb",
+                "reference": "6f629b37a6faf9a1c89c4b6a230e00cd00339bcb",
                 "shasum": ""
             },
             "type": "library",
@@ -3061,7 +3060,7 @@
             ],
             "description": "Queue, cronjobs and tasks simplified",
             "homepage": "https://github.com/pckg/queue",
-            "time": "2019-01-20T14:01:02+00:00"
+            "time": "2019-02-06T15:12:56+00:00"
         },
         {
             "name": "pckg/tempus",
@@ -3273,6 +3272,79 @@
             ],
             "description": "Library for handling version information and constraints",
             "time": "2017-03-05T17:38:23+00:00"
+        },
+        {
+            "name": "php-amqplib/php-amqplib",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-amqplib/php-amqplib.git",
+                "reference": "853eed5d4bc1309910c4cd25b5929370f6191096"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-amqplib/php-amqplib/zipball/853eed5d4bc1309910c4cd25b5929370f6191096",
+                "reference": "853eed5d4bc1309910c4cd25b5929370f6191096",
+                "shasum": ""
+            },
+            "require": {
+                "ext-bcmath": "*",
+                "ext-sockets": "*",
+                "php": ">=5.4.0"
+            },
+            "replace": {
+                "videlalvaro/php-amqplib": "self.version"
+            },
+            "require-dev": {
+                "phpdocumentor/phpdocumentor": "^2.9",
+                "phpunit/phpunit": "^4.8",
+                "scrutinizer/ocular": "^1.1",
+                "squizlabs/php_codesniffer": "^2.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.8-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "PhpAmqpLib\\": "PhpAmqpLib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-2.1-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Alvaro Videla",
+                    "role": "Original Maintainer"
+                },
+                {
+                    "name": "John Kelly",
+                    "email": "johnmkelly86@gmail.com",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Raúl Araya",
+                    "email": "nubeiro@gmail.com",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Luke Bakken",
+                    "email": "luke@bakken.io",
+                    "role": "Maintainer"
+                }
+            ],
+            "description": "Formerly videlalvaro/php-amqplib.  This library is a pure PHP implementation of the AMQP protocol. It's been tested against RabbitMQ.",
+            "homepage": "https://github.com/php-amqplib/php-amqplib/",
+            "keywords": [
+                "message",
+                "queue",
+                "rabbitmq"
+            ],
+            "time": "2019-01-08T19:41:15+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -3581,12 +3653,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPOffice/PHPWord.git",
-                "reference": "5b0c8a3e28f33b7787f6c96cfbf6a28e124edd39"
+                "reference": "6e172747ec8d43400c41fcc6b6b72e838a133373"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPOffice/PHPWord/zipball/5b0c8a3e28f33b7787f6c96cfbf6a28e124edd39",
-                "reference": "5b0c8a3e28f33b7787f6c96cfbf6a28e124edd39",
+                "url": "https://api.github.com/repos/PHPOffice/PHPWord/zipball/6e172747ec8d43400c41fcc6b6b72e838a133373",
+                "reference": "6e172747ec8d43400c41fcc6b6b72e838a133373",
                 "shasum": ""
             },
             "require": {
@@ -3682,7 +3754,7 @@
                 "word",
                 "writer"
             ],
-            "time": "2019-02-04T23:09:27+00:00"
+            "time": "2019-02-06T06:44:10+00:00"
         },
         {
             "name": "phpseclib/phpseclib",
@@ -3690,12 +3762,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpseclib/phpseclib.git",
-                "reference": "0926c4286ec8cbf2347b69c568666f2ed4e296f9"
+                "reference": "9902edfac3071a7cd3ee7a8bc1fbba1a27a1f253"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/0926c4286ec8cbf2347b69c568666f2ed4e296f9",
-                "reference": "0926c4286ec8cbf2347b69c568666f2ed4e296f9",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/9902edfac3071a7cd3ee7a8bc1fbba1a27a1f253",
+                "reference": "9902edfac3071a7cd3ee7a8bc1fbba1a27a1f253",
                 "shasum": ""
             },
             "require": {
@@ -3774,7 +3846,7 @@
                 "x.509",
                 "x509"
             ],
-            "time": "2019-01-27T23:04:12+00:00"
+            "time": "2019-02-06T05:31:04+00:00"
         },
         {
             "name": "phpspec/prophecy",
@@ -5971,16 +6043,16 @@
         },
         {
             "name": "symfony/polyfill-ctype",
-            "version": "v1.10.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-ctype.git",
-                "reference": "e3d826245268269cd66f8326bd8bc066687b4a19"
+                "reference": "82ebae02209c21113908c229e9883c419720738a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-ctype/zipball/e3d826245268269cd66f8326bd8bc066687b4a19",
-                "reference": "e3d826245268269cd66f8326bd8bc066687b4a19",
+                "url": "https://api.github.com/repos/symfony/polyfill-ctype/zipball/82ebae02209c21113908c229e9883c419720738a",
+                "reference": "82ebae02209c21113908c229e9883c419720738a",
                 "shasum": ""
             },
             "require": {
@@ -5992,7 +6064,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.9-dev"
+                    "dev-master": "1.11-dev"
                 }
             },
             "autoload": {
@@ -6025,20 +6097,20 @@
                 "polyfill",
                 "portable"
             ],
-            "time": "2018-08-06T14:22:27+00:00"
+            "time": "2019-02-06T07:57:58+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.10.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "c79c051f5b3a46be09205c73b80b346e4153e494"
+                "reference": "fe5e94c604826c35a32fa832f35bd036b6799609"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/c79c051f5b3a46be09205c73b80b346e4153e494",
-                "reference": "c79c051f5b3a46be09205c73b80b346e4153e494",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/fe5e94c604826c35a32fa832f35bd036b6799609",
+                "reference": "fe5e94c604826c35a32fa832f35bd036b6799609",
                 "shasum": ""
             },
             "require": {
@@ -6050,7 +6122,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.9-dev"
+                    "dev-master": "1.11-dev"
                 }
             },
             "autoload": {
@@ -6084,20 +6156,20 @@
                 "portable",
                 "shim"
             ],
-            "time": "2018-09-21T13:07:52+00:00"
+            "time": "2019-02-06T07:57:58+00:00"
         },
         {
             "name": "symfony/polyfill-php72",
-            "version": "v1.10.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-php72.git",
-                "reference": "9050816e2ca34a8e916c3a0ae8b9c2fccf68b631"
+                "reference": "ab50dcf166d5f577978419edd37aa2bb8eabce0c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php72/zipball/9050816e2ca34a8e916c3a0ae8b9c2fccf68b631",
-                "reference": "9050816e2ca34a8e916c3a0ae8b9c2fccf68b631",
+                "url": "https://api.github.com/repos/symfony/polyfill-php72/zipball/ab50dcf166d5f577978419edd37aa2bb8eabce0c",
+                "reference": "ab50dcf166d5f577978419edd37aa2bb8eabce0c",
                 "shasum": ""
             },
             "require": {
@@ -6106,7 +6178,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.9-dev"
+                    "dev-master": "1.11-dev"
                 }
             },
             "autoload": {
@@ -6139,7 +6211,7 @@
                 "portable",
                 "shim"
             ],
-            "time": "2018-09-21T13:07:52+00:00"
+            "time": "2019-02-06T07:57:58+00:00"
         },
         {
             "name": "symfony/process",
@@ -6671,7 +6743,8 @@
         "league/flysystem-sftp": 20,
         "pckg-app/api": 20,
         "pckg/manager": 20,
-        "snapappointments/bootstrap-select": 20
+        "snapappointments/bootstrap-select": 20,
+        "php-amqplib/php-amqplib": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

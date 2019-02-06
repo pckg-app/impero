@@ -789,9 +789,9 @@ frontend all_https
      * @return bool|null|string
      * @throws \Exception
      */
-    public function exec($command)
+    public function exec($command, &$output = null, &$error = null)
     {
-        return $this->getConnection()->exec($command);
+        return $this->getConnection()->exec($command, $output, $error);
     }
 
     /**

@@ -1,0 +1,13 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * Simply require queue entry point, framework will take care of things.
+ */
+if (isset($_SERVER['PHP_SELF']) && strpos($_SERVER['PHP_SELF'], '/') === 0) {
+    define('__ROOT__', dirname($_SERVER['PHP_SELF']) . '/');
+} else {
+    define('__ROOT__', dirname(__FILE__) . '/');
+}
+
+require_once __ROOT__ . 'vendor/pckg/framework/src/queue.php';

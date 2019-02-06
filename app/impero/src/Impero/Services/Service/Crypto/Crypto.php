@@ -258,14 +258,14 @@ class Crypto
          * Decrypt encrypted file.
          * Delete original after usage.
          */
-        $compressedFile = $this->decrypt();
+        // $compressedFile = $this->decrypt();
 
         /**
          * Decompress file with Zip service.
          * Delete original after usage.
          */
         $zipService = new Zip($this->to);
-        $decompressedFile = $zipService->decompressFile($compressedFile);
+        $decompressedFile = $zipService->decompressFile($this->file);
         $this->replaceFile($this->to, $decompressedFile);
 
         return $decompressedFile;

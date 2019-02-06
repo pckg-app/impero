@@ -152,6 +152,7 @@ max_binlog_size = 100M';
             return;
         }
 
+        dd('replicating master?');
         $this->replicateMysqlMaster();
     }
 
@@ -182,12 +183,12 @@ max_binlog_size = 100M';
         $replications[] = 'server-id = 1';
         $replications[] = 'log_bin = /var/log/mysql/mysql-bin.log';
         $replications[] = 'expire_logs_days = 5';
-        $replications[] = 'max_binlog_size = 100M';
+        $replications[] = 'max_binlog_size = 256M';
 
         /**
          * Save changes and restart mysql server.
          */
-        $this->getConnection()->sftpSend($replicationFile, implode("\n", $replications));
+        $this->getConnection()->saveContent($replicationFile, implode("\n", $replications));
         $this->getConnection()->exec('sudo service mysql restart');
     }
 
@@ -195,11 +196,21 @@ max_binlog_size = 100M';
     {
         $task = Task::create('Dumping mysql slave replication configuration');
 
-        return $task->make(function() {
+        return $task->make(function() use ($databases) {
+            $replicationFile = $this->getReplicationConfigLocation();
+            $tables = $databases->map('name')->unique()->implode('.%,') . '.%';
+            $content = '[mysqld]
+#skip-slave-start
+server-id = 2
+relay-log = /var/log/mysql/mysql-relay-bin.log
+log_bin = /var/log/mysql/mysql-bin.log
+replicate-wild-do-table=' . $tables . '
+';
             /**
              * Dump original slave filter and list of replicated tables.
              * If restart is needed that server is restarted manually.
              */
+            $this->getConnection()->saveContent($replicationFile, $content);
         });
     }
 
@@ -308,7 +319,7 @@ max_binlog_size = 100M';
 
         return $task->make(function() use ($databases) {
             $dbString = $databases->map(function(Database $database) {
-                return '`' . $database->name . '.%`';
+                return '\'' . $database->name . '.%\'';
             })->implode(',');
             $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
             $this->getMysqlConnection()->execute($sql);

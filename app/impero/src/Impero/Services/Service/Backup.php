@@ -91,11 +91,18 @@ class Backup extends AbstractService implements ServiceInterface
                  */
                 return;
             }
-            $this->exec('mysql -u impero -e \'CREATE DATABASE IF NOT EXISTS `' . $database->name . '`\'');
+            $o = null;
+            $e = null;
+            $r = $this->exec('mysql -u impero -e \'CREATE DATABASE `' . $database->name . '`\'', $o, $e); // IF NOT EXISTS
+
             $command = 'mysql -u impero ' . $database->name . ' -e \'SET FOREIGN_KEY_CHECKS=0; SOURCE ' . $file .
                 '; SET FOREIGN_KEY_CHECKS=1;\'';
 
-            return $this->getConnection()->exec($command);
+            $o = null;
+            $e = null;
+            $r = $this->getConnection()->exec($command, $o, $e);
+
+            return $r;
         });
     }
 

@@ -57,6 +57,19 @@ class Task extends Record
         return $this->execute($exception);
     }
 
+    public function queue(string $channel, string $command, array $data = [])
+    {
+        /*
+        $this->setAndSave(['status' => 'queued']);
+
+        queue()->queue('task:queue', [
+            '--task'    => $this->id,
+            '--channel' => $channel,
+            '--command' => $command,
+            '--data'    => $data,
+        ]);*/
+    }
+
     public function prepare(callable $make)
     {
         $this->make = $make;

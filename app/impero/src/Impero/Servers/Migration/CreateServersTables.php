@@ -25,6 +25,7 @@ class CreateServersTables extends Migration
         $tasks->varchar('status');
         $tasks->datetime('started_at');
         $tasks->datetime('ended_at');
+        $tasks->longtext('data');
 
         $serverCommands = $this->table('server_commands');
         $serverCommands->integer('server_id')->references('servers');

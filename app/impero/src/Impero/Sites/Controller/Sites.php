@@ -236,7 +236,7 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
          * Whole project (or site) is then initially checked out on server.
          * User may choose multiple servers / targets for specific service.
          */
-        $site->checkout($site->server);
+        $site->queueCheckout($site->server);
 
         return [
             'site' => $site,
@@ -350,74 +350,10 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
      */
     public function postMysqlSlaveAction(Site $site, Server $server)
     {
-        /**
-         * First, get databases associated with site.
-         * They are defined in pckg.yaml.
-         * They should also be associated with different sites, which are currently not.
-         * We will associate them in databases_morphs table (can be associated with servers, users, sites, ...).
-         */
-        $variables = post('vars', []);
-        $pckg = post('pckg', []);
-
-        /**
-         * Now we have list of all databases (id_shop and pckg_derive for example) and we need to check that replication is in place.
-         */
-        $databases = [];
-        foreach ($pckg['service']['db']['mysql']['database'] ?? [] as $database => $config) {
-            $databases[] = str_replace(array_keys($variables), array_values($variables), $database['name']);
-        }
-
-        if (!$databases) {
-            return ['success' => false, 'message' => 'No databases'];
-        }
-
-        $databases = (new Databases())->where('name', $databases)->all();
-        $databases->each(function(Database $database) use ($server, $site) {
-            $sitesServer = SitesServer::getOrNew([
-                                                     'site_id'   => $site->id,
-                                                     'server_id' => $server->id,
-                                                     'type'      => 'database:slave',
-                                                 ]);
-            if (!$sitesServer->isNew()) {
-                /**
-                 * Skip existing?
-                 *
-                 * @T00D00 ... at some point site may have multiple different databases over different servers
-                 *         ... link database with server instead
-                 * @T00D00 ... implement connections
-                 *         ... serve with server: zero@eth1 - one@eth1
-                 *         ... database with site
-                 *         ... database with server
-                 */
-                return;
-            }
-
-            /**
-             * Check that master is configured as master.
-             */
-            $database->requireMysqlMasterReplication();
-
-            /**
-             * Check that binlog is actually created for database.
-             */
-            $database->replicateOnMaster();
-
-            /**
-             * Make backup and enable replication on slae.
-             */
-            $database->replicateTo($server);
-
-            /**
-             * When successfuly, link database:slave service to it.
-             */
-            if ($sitesServer->isNew()) {
-                $sitesServer->save();
-            }
-        });
+        $site->queueReplicateDatabasesToSlave($server);
 
         return [
             'success'   => true,
-            'databases' => $databases->map('name'),
         ];
     }
 

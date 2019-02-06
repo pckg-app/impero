@@ -80,7 +80,7 @@ class Zip extends AbstractService implements ServiceInterface
      */
     public function decompressFile($file)
     {
-        $output = $this->exec('unzip -l ' . $file);
+        $output = $this->exec('unzip -l ' . $file, $o, $e);
         $output = explode(' ', explode("\n", trim($output))[3] ?? '');
         $output = end($output);
 
