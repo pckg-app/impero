@@ -26,4 +26,5 @@ return [
     CreateListTables::class,
     CreateStorageTables::class,
     CreateApiTables::class,
+    \Pckg\Queue\Migration\Queue::class,
 ];
