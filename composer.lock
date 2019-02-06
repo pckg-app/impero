@@ -2350,16 +2350,16 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg-app/api.git",
-                "reference": "8161938a948183e59b5120085715d78fcb6e380f"
+                "reference": "2c4e9b4ad44cdb18dea1e1e10807e1122d38fe3f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg-app/api/zipball/8161938a948183e59b5120085715d78fcb6e380f",
-                "reference": "8161938a948183e59b5120085715d78fcb6e380f",
+                "url": "https://api.github.com/repos/pckg-app/api/zipball/2c4e9b4ad44cdb18dea1e1e10807e1122d38fe3f",
+                "reference": "2c4e9b4ad44cdb18dea1e1e10807e1122d38fe3f",
                 "shasum": ""
             },
             "require": {
-                "guzzlehttp/guzzle": "^6.3",
+                "guzzlehttp/guzzle": "6.*",
                 "pckg/database": "dev-master"
             },
             "type": "library",
@@ -2380,7 +2380,7 @@
             ],
             "description": "Core api for pckg apps",
             "homepage": "https://github.com/pckg-app/api",
-            "time": "2018-05-20T11:26:29+00:00"
+            "time": "2019-02-06T16:35:44+00:00"
         },
         {
             "name": "pckg/auth",
@@ -3032,12 +3032,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/queue.git",
-                "reference": "6f629b37a6faf9a1c89c4b6a230e00cd00339bcb"
+                "reference": "dc78fdd2aa2493a1a7bde8a025995f1e3da7ab1a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/queue/zipball/6f629b37a6faf9a1c89c4b6a230e00cd00339bcb",
-                "reference": "6f629b37a6faf9a1c89c4b6a230e00cd00339bcb",
+                "url": "https://api.github.com/repos/pckg/queue/zipball/dc78fdd2aa2493a1a7bde8a025995f1e3da7ab1a",
+                "reference": "dc78fdd2aa2493a1a7bde8a025995f1e3da7ab1a",
                 "shasum": ""
             },
             "type": "library",
@@ -3060,7 +3060,7 @@
             ],
             "description": "Queue, cronjobs and tasks simplified",
             "homepage": "https://github.com/pckg/queue",
-            "time": "2019-02-06T15:12:56+00:00"
+            "time": "2019-02-06T19:06:24+00:00"
         },
         {
             "name": "pckg/tempus",
