@@ -1,6 +1,7 @@
 <?php namespace Impero\Sites\Provider;
 
 use Impero\Sites\Console\CheckoutSite;
+use Impero\Sites\Console\DereplicateDatabaseToSlave;
 use Impero\Sites\Console\ReplicateDatabaseToSlave;
 use Impero\Sites\Controller\Sites as SitesController;
 use Impero\Sites\Resolver\Site;
@@ -103,6 +104,7 @@ class Sites extends Provider
         return [
             CheckoutSite::class,
             ReplicateDatabaseToSlave::class,
+            DereplicateDatabaseToSlave::class,
         ];
     }
 

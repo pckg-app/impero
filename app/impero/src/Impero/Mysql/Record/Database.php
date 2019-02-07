@@ -327,8 +327,12 @@ class Database extends Record implements Connectable
 
             /**
              * Stop slave down so it won't sync with master.
+             * Then we create backup file on master and transfer it to slave.
+             * We sync slave to backup point and import file to slave.
+             * When file is imported we refresh config and resume slave operations.
              *
              * @T00D00 - take down only $database, then sync only $database from binlog.
+             *         - we need to make sure that no one touches mysql server in the meantime.
              */
             $mysqlSlaveService->stopSlave();
 
@@ -380,6 +384,33 @@ class Database extends Record implements Connectable
     }
 
     /**
+     * @param Server $slaveServer
+     *
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Throwable
+     */
+    public function dereplicateFrom(Server $slaveServer)
+    {
+        $task = Task::create('Dereplicating db #' . $this->id . ' from ' . $slaveServer->ip);
+
+        $db = $this;
+        $task->make(function() use ($slaveServer, $db) {
+            $mysqlSlaveService = (new Mysql($slaveServer->getConnection()));
+
+            $mysqlSlaveService->stopSlave();
+
+            $databasesOnSlave = $slaveServer->slaveDatabases()->filter(function(Database $database) use ($db) {
+                return $database->id != $db->id;
+            });
+
+            $mysqlSlaveService->refreshSlaveReplicationFilter($databasesOnSlave);
+            $mysqlSlaveService->dumpSlaveReplicationFilter($databasesOnSlave);
+
+            $mysqlSlaveService->startSlave();
+        });
+    }
+
+    /**
      * @param $backupPath
      *
      * @throws Exception
@@ -401,7 +432,6 @@ class Database extends Record implements Connectable
             /**
              * Validate
              */
-
             if (!strpos($positionLine, 'MASTER_LOG_FILE=') || !strpos($positionLine, 'MASTER_LOG_POS=')) {
                 throw new Exception('No data provider for binlog position.');
             }

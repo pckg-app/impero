@@ -1579,6 +1579,54 @@ class Site extends Record
         queue('impero/impero/manage', 'site:database:replicate-to-slave', ['site' => $this->id, 'to' => $server->id]);
     }
 
+    public function dereplicateDatabasesFromSlave(Server $server)
+    {
+        $pckg = $this->getImperoPckgAttribute();
+        $variables = $this->getImperoVarsAttribute();
+
+        $databases = [];
+        foreach ($pckg['services']['db']['mysql']['database'] ?? [] as $database => $config) {
+            if ($config['type'] != 'searchOrCreate') {
+                continue;
+            }
+
+            $databases[] = str_replace(array_keys($variables), array_values($variables), $config['name']);
+        }
+
+        if (!$databases) {
+            return ['success' => false, 'message' => 'No databases'];
+        }
+
+        $databases = (new Databases())->where('name', $databases)->all();
+        $site = $this;
+        $databases->each(function(Database $database) use ($server, $site) {
+            $sitesServer = SitesServer::gets([
+                                                     'site_id'   => $site->id,
+                                                     'server_id' => $server->id,
+                                                     'type'      => 'database:slave',
+                                                 ]);
+
+            $serversMorph = ServersMorph::gets([
+                                                       'morph_id'  => Databases::class,
+                                                       'poly_id'   => $database->id,
+                                                       'type'      => 'database:slave',
+                                                       'server_id' => $server->id,
+                                                   ]);
+
+            if (!$sitesServer || !$serversMorph) {
+                return;
+            }
+
+            /**
+             * Make backup and enable replication on slave.
+             */
+            $database->dereplicateFrom($server);
+
+            $sitesServer->delete();
+            $serversMorph->delete();
+        });
+    }
+
     public function replicateDatabasesToSlave(Server $server)
     {
         /**
