@@ -138,7 +138,7 @@ relay-log = /var/log/mysql/mysql-relay-bin.log';
 server-id = 1
 log_bin = /var/log/mysql/mysql-bin.log
 expire_logs_days = 5
-max_binlog_size = 100M';
+max_binlog_size = 256M';
     }
 
     /**
@@ -198,13 +198,15 @@ max_binlog_size = 100M';
 
         return $task->make(function() use ($databases) {
             $replicationFile = $this->getReplicationConfigLocation();
-            $tables = $databases->map('name')->unique()->implode('.%,') . '.%';
+            $tables = $databases->map('name')->unique()->map(function($table){
+                return 'replicate-wild-do-table=' . $table;
+            })->implode("\n");
             $content = '[mysqld]
 #skip-slave-start
 server-id = 2
 relay-log = /var/log/mysql/mysql-relay-bin.log
 log_bin = /var/log/mysql/mysql-bin.log
-replicate-wild-do-table=' . $tables . '
+' . $tables . '
 ';
             /**
              * Dump original slave filter and list of replicated tables.
