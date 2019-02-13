@@ -2,6 +2,7 @@
 
 use Impero\Sites\Console\CheckoutSite;
 use Impero\Sites\Console\DereplicateDatabaseToSlave;
+use Impero\Sites\Console\DestroySite;
 use Impero\Sites\Console\ReplicateDatabaseToSlave;
 use Impero\Sites\Controller\Sites as SitesController;
 use Impero\Sites\Resolver\Site;
@@ -95,6 +96,8 @@ class Sites extends Provider
                                                                               'redeployConfigService'))->resolvers([
                                                                                                                        'site' => Site::class,
                                                                                                                    ]),
+                                       '.script'                => (new Route('/[site]/script',
+                                                                              'script'))->resolvers(['site' => Site::class]),
                                    ]),
         ];
     }
@@ -105,6 +108,7 @@ class Sites extends Provider
             CheckoutSite::class,
             ReplicateDatabaseToSlave::class,
             DereplicateDatabaseToSlave::class,
+            DestroySite::class,
         ];
     }
 

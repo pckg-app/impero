@@ -1,6 +1,7 @@
 <?php namespace Impero\Apache\Record;
 
 use Impero\Apache\Entity\SitesServers;
+use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
 use Impero\Servers\Record\Task;
 use Pckg\Database\Record;
@@ -36,6 +37,10 @@ class SitesServer extends Record
         return $task->make(function() {
             if ($this->type == 'cron') {
                 $this->server->removeCronjob($this->site->getHtdocsPath());
+            } else if ($this->type == 'web') {
+                $this->site->undeployWebService($this->server);
+            } else if ($this->type == 'database:slave') {
+                $this->site->dereplicateDatabasesFromSlave($this->server);
             }
         });
     }

@@ -375,11 +375,26 @@ password = s0m3p4ssw0rd';*/
         return ssh2_sftp_mkdir($sftp, $dir, $mode, $recursive);
     }
 
-    public function deleteFile($file)
+    public function deleteFile($file, $sudo = false)
     {
+        if ($sudo) {
+            return $this->exec('sudo rm ' . $file);
+        }
+
         $sftp = $this->openSftp();
 
         return ssh2_sftp_unlink($sftp, $file);
+    }
+
+    public function deleteDir($dir, $sudo = false)
+    {
+        if ($sudo) {
+            return $this->exec('sudo rm -r ' . $dir);
+        }
+
+        $sftp = $this->openSftp();
+
+        return ssh2_sftp_rmdir($sftp, $dir);
     }
 
     /**

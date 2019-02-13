@@ -4,6 +4,7 @@ use Impero\Apache\Console\DumpVirtualhosts;
 use Impero\Apache\Entity\Sites;
 use Impero\Apache\Entity\SitesServers;
 use Impero\Mysql\Entity\Databases;
+use Impero\Mysql\Entity\Users;
 use Impero\Mysql\Record\Database;
 use Impero\Mysql\Record\User as DatabaseUser;
 use Impero\Servers\Entity\ServersMorphs;
@@ -13,6 +14,7 @@ use Impero\Servers\Record\Task;
 use Impero\Services\Service\Connection\SshConnection;
 use Impero\Services\Service\Rsync;
 use Pckg\Database\Record;
+use Pckg\Framework\Console\Command;
 use Pckg\Generic\Record\SettingsMorph;
 use Throwable;
 
@@ -299,13 +301,23 @@ class Site extends Record
      * Delete:
      *  - cronjobs (cron)
      *  - site (apache, nginx, haproxy)
+     *  - storage (htdocs, logs, ssl)
      *  - databases associated only with site (mysql master, mysql slave, haproxy)
      *  - database users associated only with site (mysql master, mysql slave)
-     *  - storage (htdocs, logs, ssl)
      *  - backups associated only with site (storage, mysql, config)
      *  - inactivate pendo, mailo, condo, ... api keys
+     * We want to:
+     *  - remove site from cronjobs
+     *  - remove site from haproxy
+     *  - remove site from apache
+     *  - remove site from nginx
+     *  - delete /www/$user/$site directory
+     *  - delete /storage/$user/$site directory
+     *  - remove database and disable sync on slave
+     *  - remove database and disable binlog on master
+     *  - remove https certificates in /etc/letsencrypt/live/$domain
      */
-    public function undeploy()
+    public function undeploy(Command $destroySite)
     {
         /**
          * Create full backup of all services, resources and configuration.
@@ -315,17 +327,17 @@ class Site extends Record
         /**
          * Undeploy all cronjobs from all servers.
          */
-        (new SitesServers())->where('site_id', $this->id)->where('type', 'cron')->all()->each->undeploy();
+        $this->removeFromCron();
+
+        /**
+         * Remove HTTP and HTTPS access to all servers.
+         */
+        $this->removeFromWeb();
 
         /**
          * Remove Letsencrypt certificates and https entrypoint.
          */
         $this->removeLetsencrypt();
-
-        /**
-         * Delete htdocs, logs and ssl directories, as well as parent site directory.
-         */
-        (new SitesServers())->where('site_id', $this->id)->where('type', 'web')->all()->each->undeploy();
 
         /**
          * Delete all volume directories.
@@ -337,7 +349,6 @@ class Site extends Record
          * Delete databases from all replicas.
          * Remove users from all servers.
          */
-        (new SitesServers())->where('site_id', $this->id)->where('type', 'database')->all()->each->undeploy();
         $this->removeFromDatabase();
 
         /**
@@ -376,6 +387,37 @@ class Site extends Record
          */
     }
 
+    public function removeFromCron()
+    {
+        (new SitesServers())->where('site_id', $this->id)->where('type', 'cron')->all()->each(function(
+            SitesServer $sitesServer
+        ) {
+            $sitesServer->undeploy();
+            $sitesServer->delete();
+        });
+    }
+
+    public function removeFromWeb()
+    {
+        /**
+         * Delete htdocs, logs and ssl directories, as well as parent site directory.
+         */
+        (new SitesServers())->where('site_id', $this->id)->where('type', 'web')->all()->each(function(
+            SitesServer $sitesServer
+        ) {
+            /**
+             * This will also restart apache and delete SitesServer entry.
+             */
+            $sitesServer->undeploy();
+        });
+        (new SitesServers())->where('site_id', $this->id)->where('type', 'config')->all()->each(function(
+            SitesServer $sitesServer
+        ) {
+            $sitesServer->undeploy();
+            $sitesServer->delete();
+        });
+    }
+
     public function removeLetsencrypt()
     {
         /**
@@ -383,6 +425,27 @@ class Site extends Record
          * Invalidate certificate? Backup certificate?
          * Delete letsencrypt history.
          */
+        $domain = $this->document_root;
+
+        $archiveDir = '/etc/letsencrypt/archive/' . $domain;
+        $liveDir = '/etc/letsencrypt/live/' . $domain;
+        $renewalConfig = '/etc/letsencrypt/renewal/' . $domain . '.conf';
+        $connection = $this->getServerConnection();
+
+        foreach ([$archiveDir, $liveDir] as $dir) {
+            if (!$connection->dirExists($dir)) {
+                continue;
+            }
+
+            $connection->deleteDir($dir, true);
+        }
+        foreach ([$renewalConfig] as $file) {
+            if (!$connection->fileExists($file)) {
+                continue;
+            }
+
+            $connection->deleteFile($dir, true);
+        }
     }
 
     public function removeFromStorage()
@@ -390,6 +453,20 @@ class Site extends Record
         /**
          * Delete storage volumes.
          */
+        $user = $this->user->username;
+        $domain = $this->document_root;
+
+        $storageDir = '/mnt/volume-fra1-01/live/' . $user . '/' . $domain;
+        $checkoutDir = '/mnt/volume-fra1-02/www/' . $user . '/' . $domain;
+        $connection = $this->getServerConnection();
+
+        foreach ([$storageDir, $checkoutDir] as $dir) {
+            if (!$connection->dirExists($dir)) {
+                continue;
+            }
+
+            $connection->deleteDir($dir, true);
+        }
     }
 
     public function removeFromDatabase()
@@ -398,6 +475,34 @@ class Site extends Record
          * Delete databases
          * Delete users
          */
+        $databases = (new Databases())->where('name', $this->getSiteDatabases())->all();
+        $databases->each(function(Database $database) {
+            /**
+             * Delete database users.
+             */
+            (new Users())->where('name', $database->name)->delete();
+
+            $slave = (new ServersMorphs())->where('type', 'database:slave')
+                                          ->where('morph_id', Databases::class)
+                                          ->where('poly_id', $database->id)
+                                          ->one();
+            if ($slave) {
+                $this->dereplicateDatabasesFromSlave($slave->server);
+                $slave->delete();
+                /**
+                 * We have to drop database!
+                 */
+                echo('Slave: DROP DATABASE `' . $database->name . '`' . "\n");
+            }
+
+            echo('Master: DROP DATABASE `' . $database->name . '`' . "\n");
+
+            /**
+             * Delete database.
+             */
+            $database->delete();
+        });
+        (new SitesServers())->where('site_id', $this->id)->delete();
     }
 
     public function removeFromBackups()
@@ -1033,6 +1138,38 @@ class Site extends Record
         });
     }
 
+    public function undeployWebService(Server $server)
+    {
+        $task = Task::create('Undeploying web service for site #' . $this->id . ' on server #' . $server->id);
+
+        return $task->make(function() use ($server) {
+            /**
+             * Link server and site's service.
+             */
+            $sitesServer = SitesServer::gets(['server_id' => $server->id, 'site_id' => $this->id, 'type' => 'web']);
+
+            if (!$sitesServer) {
+                return;
+            }
+
+            $sitesServer->delete();
+
+            /**
+             * First remove from haproxy, apache and nginx?
+             */
+            (new DumpVirtualhosts())->executeManually(['--server' => $server->id]);
+        });
+    }
+
+    public function undeployDatabaseService(Server $server)
+    {
+        $task = Task::create('Undeploying database for site #' . $this->id . ' on server #' . $server->id);
+
+        return $task->make(function() use ($server) {
+
+        });
+    }
+
     /**
      * @param Server $server
      * @param        $pckg
@@ -1579,7 +1716,7 @@ class Site extends Record
         queue('impero/impero/manage', 'site:database:replicate-to-slave', ['site' => $this->id, 'to' => $server->id]);
     }
 
-    public function dereplicateDatabasesFromSlave(Server $server)
+    public function getSiteDatabases()
     {
         $pckg = $this->getImperoPckgAttribute();
         $variables = $this->getImperoVarsAttribute();
@@ -1593,6 +1730,13 @@ class Site extends Record
             $databases[] = str_replace(array_keys($variables), array_values($variables), $config['name']);
         }
 
+        return $databases;
+    }
+
+    public function dereplicateDatabasesFromSlave(Server $server)
+    {
+        $databases = $this->getSiteDatabases();
+
         if (!$databases) {
             return ['success' => false, 'message' => 'No databases'];
         }
@@ -1601,17 +1745,17 @@ class Site extends Record
         $site = $this;
         $databases->each(function(Database $database) use ($server, $site) {
             $sitesServer = SitesServer::gets([
-                                                     'site_id'   => $site->id,
-                                                     'server_id' => $server->id,
-                                                     'type'      => 'database:slave',
-                                                 ]);
+                                                 'site_id'   => $site->id,
+                                                 'server_id' => $server->id,
+                                                 'type'      => 'database:slave',
+                                             ]);
 
             $serversMorph = ServersMorph::gets([
-                                                       'morph_id'  => Databases::class,
-                                                       'poly_id'   => $database->id,
-                                                       'type'      => 'database:slave',
-                                                       'server_id' => $server->id,
-                                                   ]);
+                                                   'morph_id'  => Databases::class,
+                                                   'poly_id'   => $database->id,
+                                                   'type'      => 'database:slave',
+                                                   'server_id' => $server->id,
+                                               ]);
 
             if (!$sitesServer || !$serversMorph) {
                 return;
@@ -1662,11 +1806,11 @@ class Site extends Record
                                                  ]);
 
             $serversMorph = ServersMorph::getOrNew([
-                                          'morph_id'  => Databases::class,
-                                          'poly_id'   => $database->id,
-                                          'type'      => 'database:slave',
-                                          'server_id' => $server->id,
-                                      ]);
+                                                       'morph_id'  => Databases::class,
+                                                       'poly_id'   => $database->id,
+                                                       'type'      => 'database:slave',
+                                                       'server_id' => $server->id,
+                                                   ]);
             if (!$sitesServer->isNew() && !$serversMorph->isNew()) {
                 /**
                  * Skip existing?

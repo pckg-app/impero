@@ -14,6 +14,7 @@ use Impero\Services\Service\MysqlConnection;
 use Impero\Services\Service\OpenSSL;
 use Impero\Services\Service\Zip;
 use Pckg\Database\Record;
+use Pckg\Database\Relation\BelongsTo;
 use Pckg\Generic\Record\Setting;
 
 class Server extends Record implements Connectable
@@ -293,7 +294,11 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
         /**
          * Get all sites for web service on this server.
          */
-        $sitesServers = (new SitesServers())->where('server_id', $this->id)->where('type', 'web')->all();
+        $sitesServers = (new SitesServers())->where('server_id', $this->id)->where('type', 'web')
+                                                                           ->withSite(function(BelongsTo $site){
+                                                                               $site->withUser();
+                                                                           })
+                                                                           ->all();
 
         $server = $this;
         $sitesServers->each(function(SitesServer $sitesServer) use (&$virtualhosts, $server) {
@@ -325,6 +330,9 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
                                                                                    ->where('server_id', $this->id)
                                                                                    ->where('type', 'web'))
                                             ->where('type', 'web')
+                                            ->withSite(function(BelongsTo $site){
+                                                $site->withUser();
+                                            })
                                             ->all()
                                             ->groupBy('site_id');
 
@@ -473,6 +481,12 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
                                                                                    ->where('server_id', $this->id)
                                                                                    ->where('type', 'web'))
                                             ->where('type', 'web')
+                                            ->withSite(function(BelongsTo $site) {
+                                                $site->withUser();
+                                            })
+                                            ->withServer(function(BelongsTo $server) {
+                                                $server->withSettings();
+                                            })
                                             ->all()
                                             ->groupBy('site_id');
 

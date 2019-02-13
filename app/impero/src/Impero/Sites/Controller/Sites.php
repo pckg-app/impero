@@ -4,8 +4,6 @@ use Exception;
 use Impero\Apache\Entity\SitesServers;
 use Impero\Apache\Record\Site;
 use Impero\Apache\Record\SitesServer;
-use Impero\Mysql\Entity\Databases;
-use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
 use Impero\Servers\Record\Task;
 use Pckg\Mail\Service\Mail\Adapter\SimpleUser;
@@ -56,7 +54,7 @@ for manual reuse.</p>' .
         if (false) {
             $content = '<p>Hey Bojan,</p>' . '<p>site ' . $site->id . ' (' . $site->server_name .
                 ') was deleted on you request.</p>' . '<p>Before we deleted *everything* we made storage, database and config backup which will be 
-available for another 30 days in /impero dashboard in case of missdelete. After 30 days backup files will be deleted 
+available for another 30 days in /impero dashboard in case of miss-delete. After 30 days backup files will be deleted 
 automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
 
             $content .= '<br />';
@@ -74,8 +72,8 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
                       'content' => $content,
                   ], new SimpleUser('schtr4jh@schtr4jh.net'));
 
-            /*$site->undeploy();
-            $site->delete();*/
+            $site->undeploy();
+            $site->delete();
         }
 
         return [
@@ -480,6 +478,19 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
 
         return ['success' => true];
 
+    }
+
+    public function postScriptAction(Site $site)
+    {
+        $command = $site->replaceVars(post('script'));
+        $site->getServerConnection()->exec($command);
+
+        queue('impero/impero/manage', $command);
+
+        return [
+            'success' => true,
+            'site'    => $site,
+        ];
     }
 
 }

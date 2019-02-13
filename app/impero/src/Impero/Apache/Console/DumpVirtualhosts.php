@@ -25,7 +25,7 @@ class DumpVirtualhosts extends Command
         /**
          * Get server.
          */
-        $server = (new Servers())->where('id', $this->option('server'))->oneOrFail();
+        $server = (new Servers())->where('id', $this->option('server'))->withSettings()->oneOrFail();
 
         /**
          * Get server services: web and lb.
@@ -33,29 +33,29 @@ class DumpVirtualhosts extends Command
          * @T00D00 - run this in parallel
          */
 
-        $this->output('Building apache');
+        $this->outputDated('Building apache');
         $virtualhosts = $server->getApacheConfig();
 
-        $this->output('Building haproxy');
+        $this->outputDated('Building haproxy');
         $virtualhostsHaproxy = $server->getHaproxyConfig();
 
-        $this->output('Building nginx');
+        $this->outputDated('Building nginx');
         $virtualhostsNginx = $server->getNginxConfig();
 
-        $this->output('Dumping apache');
+        $this->outputDated('Dumping apache');
         $this->storeVirtualhosts($server, $virtualhosts);
 
         if ($server->getSettingValue('service.haproxy.active')) {
-            $this->output('Dumping haproxy');
+            $this->outputDated('Dumping haproxy');
             $this->storeVirtualhostsHaproxy($server, $virtualhostsHaproxy);
         }
 
         if ($server->getSettingValue('service.nginx.active')) {
-            $this->output('Dumping nginx');
+            $this->outputDated('Dumping nginx');
             $this->storeVirtualhostsNginx($server, $virtualhostsNginx);
         }
 
-        $this->output('Done');
+        $this->outputDated('Done');
     }
 
     /**
