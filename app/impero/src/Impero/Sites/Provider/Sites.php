@@ -3,6 +3,7 @@
 use Impero\Sites\Console\CheckoutSite;
 use Impero\Sites\Console\DereplicateDatabaseToSlave;
 use Impero\Sites\Console\DestroySite;
+use Impero\Sites\Console\ExecSite;
 use Impero\Sites\Console\ReplicateDatabaseToSlave;
 use Impero\Sites\Controller\Sites as SitesController;
 use Impero\Sites\Resolver\Site;
@@ -109,6 +110,7 @@ class Sites extends Provider
             ReplicateDatabaseToSlave::class,
             DereplicateDatabaseToSlave::class,
             DestroySite::class,
+            ExecSite::class,
         ];
     }
 

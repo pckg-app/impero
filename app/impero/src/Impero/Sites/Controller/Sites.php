@@ -482,10 +482,15 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
 
     public function postScriptAction(Site $site)
     {
+        /**
+         * Parse variables.
+         */
         $command = $site->replaceVars(post('script'));
-        $site->getServerConnection()->exec($command);
 
-        queue('impero/impero/manage', $command);
+        /**
+         * We need to execute this on server on site.
+         */
+        queue('impero/impero/manage', 'site:exec', ['site' => $site->id, 'command' => $command]);
 
         return [
             'success' => true,
