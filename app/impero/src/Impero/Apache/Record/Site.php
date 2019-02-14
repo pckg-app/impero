@@ -1138,11 +1138,11 @@ class Site extends Record
         });
     }
 
-    public function undeployWebService(Server $server)
+    public function undeployWebService(Server $server, $dump = true)
     {
         $task = Task::create('Undeploying web service for site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(function() use ($server) {
+        return $task->make(function() use ($server, $dump) {
             /**
              * Link server and site's service.
              */
@@ -1153,6 +1153,10 @@ class Site extends Record
             }
 
             $sitesServer->delete();
+
+            if (!$dump) {
+                return;
+            }
 
             /**
              * First remove from haproxy, apache and nginx?

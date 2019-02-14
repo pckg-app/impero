@@ -390,7 +390,7 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
          * We need to delete old files (they should be logged somewhere) and recreate new ones.
          * When config file is removed from pckg.yaml we need to remove it.
          */
-        $configs = (new SitesServers())->where('type', 'web')->where('site_id', $site->id)->all();
+        $configs = (new SitesServers())->where('type', 'config')->where('site_id', $site->id)->all();
         $configs->each->redeploy();
 
         $site->redeployConfigService();

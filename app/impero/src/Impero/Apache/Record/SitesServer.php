@@ -24,21 +24,21 @@ class SitesServer extends Record
                              $this->server_id);
 
         return $task->make(function() {
-            $this->undeploy();
+            $this->undeploy(false);
             $this->deploy();
         });
     }
 
-    public function undeploy()
+    public function undeploy($dump = true)
     {
         $task = Task::create('Un-deploying ' . $this->type . ' for site #' . $this->site_id . ' on server ' .
                              $this->server_id);
 
-        return $task->make(function() {
+        return $task->make(function() use ($dump) {
             if ($this->type == 'cron') {
                 $this->server->removeCronjob($this->site->getHtdocsPath());
             } else if ($this->type == 'web') {
-                $this->site->undeployWebService($this->server);
+                $this->site->undeployWebService($this->server, $dump);
             } else if ($this->type == 'database:slave') {
                 $this->site->dereplicateDatabasesFromSlave($this->server);
             }
@@ -53,7 +53,7 @@ class SitesServer extends Record
         return $task->make(function() {
             if ($this->type == 'cron') {
                 $this->site->deployCronService($this->server);
-            } elseif ($this->type == 'web') {
+            } elseif ($this->type == 'config') {
                 $this->site->deployConfigService($this->server);
             }
         });
