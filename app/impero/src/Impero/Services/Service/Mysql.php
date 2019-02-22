@@ -227,6 +227,7 @@ log_bin = /var/log/mysql/mysql-bin.log
         $currentReplication = $this->getConnection()->sftpRead($replicationFile);
         $replications = explode("\n", $currentReplication);
 
+        return true;
         /**
          * Check for existence.
          */
@@ -240,6 +241,7 @@ log_bin = /var/log/mysql/mysql-bin.log
      */
     public function replicateOnMaster(Database $database)
     {
+        return;
         $replicationFile = $this->getReplicationConfigLocation();
         $line = 'binlog_do_db = ' . $database->name;
 
