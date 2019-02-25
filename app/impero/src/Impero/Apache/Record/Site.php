@@ -134,9 +134,10 @@ class Site extends Record
 
         $directives = $this->getBasicDirectives();
         $directives[] = 'SSLEngine on';
-        $directives[] = 'SSLCertificateFile ' . $this->getSslPath() . $this->ssl_certificate_file;
+        //$directives[] = 'SSLCertificateFile ' . $this->getSslPath() . $this->ssl_certificate_file;
+        $directives[] = 'SSLCertificateFile ' . $this->getSslPath() . $this->ssl_certificate_chain_file;
         $directives[] = 'SSLCertificateKeyFile ' . $this->getSslPath() . $this->ssl_certificate_key_file;
-        $directives[] = 'SSLCertificateChainFile ' . $this->getSslPath() . $this->ssl_certificate_chain_file;
+        //$directives[] = 'SSLCertificateChainFile ' . $this->getSslPath() . $this->ssl_certificate_chain_file;
 
         $port = $server->getSettingValue('service.apache2.httpsPort', 443);
 
