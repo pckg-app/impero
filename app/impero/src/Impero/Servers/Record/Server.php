@@ -336,7 +336,7 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
                                             ->all()
                                             ->groupBy('site_id');
 
-        $apachePort = $this->getSettingValue('service.apache.httpsPort', 8082);
+        $apachePort = $this->getSettingValue('service.apache2.httpsPort', 8082);
         $httpPort = $this->getSettingValue('service.nginx.httpPort', 8083);
         $httpsPort = $this->getSettingValue('service.nginx.httpsPort', 8084);
 
@@ -426,7 +426,7 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
             allow all;
             expires 1M;
             access_log off;
-            add_header Cache-Control "public";
+            add_header Cache-Control "public, max-age=2592000";
 
             try_files $uri =404;
         }
@@ -440,7 +440,7 @@ Listen ' . $this->getSettingValue('service.apache2.httpPort', 80) . '
             allow all;
             expires 1M;
             access_log off;
-            add_header Cache-Control "public";
+            add_header Cache-Control "public, max-age=2592000";
 
             alias ' . $site->getHtdocsPath() . 'www/cache/;
             try_files $uri @apacheProxy;

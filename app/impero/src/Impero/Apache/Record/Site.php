@@ -542,13 +542,18 @@ class Site extends Record
         });
     }
 
-    public function addWebWorker(Server $server, $pckg, $vars)
+    public function addWebWorker(Server $server, $vars = [])
     {
         $this->vars = $vars;
 
         $task = Task::create('Adding web worker for site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(function() use ($server, $pckg) {
+        return $task->make(function() use ($server) {
+            /**
+             * Link server and site's service.
+             */
+            SitesServer::getOrCreate(['server_id' => $server->id, 'site_id' => $this->id, 'type' => 'web']);
+
             /**
              * Create webserver directories.
              */
@@ -556,24 +561,23 @@ class Site extends Record
 
             /**
              * Checkout platform.
+             * We will checkout platform in same way as on main server.
              */
-            $this->executeCheckoutProcedure($server, $pckg);
+            $this->executeCheckoutProcedure($server);
 
             /**
              * We are extending site to another server.
-             * All directories are existent.
+             * Currently we've manually mounted NFS to /mnt/, in future it has to happen automatically.
              *
              * @T00D00 - check that volume is actually mounted
              * @T00D00 - check that tmp directory is local, cache is shared
              */
-            $this->deployStorageService($server, $pckg);
+            $this->deployStorageService($server);
 
             /**
-             * Copy config.
-             *
-             * @T00D00 - allow different "configurations"
+             * We do not want to copy config, we want to create fresh dump.
              */
-            $this->copyConfigFromWorker($server, $pckg);
+            $this->deployConfigService($server);
 
             /**
              * Database don't need to be changed
@@ -582,14 +586,15 @@ class Site extends Record
              */
 
             /**
-             * Check for letsencrypt.
-             * Restart apache and haproxy.
+             * SSL - live and archive directories are manually mounted.
+             * Path is then the same.
              */
-            if (isset($pckg['services']['web']['https'])) {
-                $this->redeploySslService();
-            } else {
-                $this->restartApache();
-            }
+
+            /**
+             * Restart new worker and add it to entrypoint.
+             */
+            (new DumpVirtualhosts())->executeManually(['--server' => $server->id]);
+            (new DumpVirtualhosts())->executeManually(['--server' => $this->server_id]);
         });
     }
 
@@ -807,11 +812,12 @@ class Site extends Record
 
                 /**
                  * Transfer contents.
+                 * This was only needed before we've mounted all storage directories?
                  *
                  * @T00D00 - check if this is needed at all times?
                  */
-                $connection->exec('rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath . $storageDir .
-                                  '/ --stats');
+                /*$connection->exec('rsync -a ' . $htdocsOldPath . $storageDir . '/ ' . $siteStoragePath . $storageDir .
+                                  '/ --stats');*/
             }
 
             /**
@@ -859,11 +865,13 @@ class Site extends Record
 
         /**
          * In most cases $vars is empty.
+         * Add $vars to $defaults.
          */
         $replaces = array_merge($defaults, $vars);
 
         /**
          * Default vars.
+         * Add impero vars to $replaces.
          */
         $replaces = array_merge($this->getImperoVarsAttribute(), $replaces);
 
@@ -894,11 +902,12 @@ class Site extends Record
      *
      * @throws \Exception
      */
-    public function copyConfigFromWorker(Server $server, $pckg)
+    public function copyConfigFromWorker(Server $server)
     {
         $task = Task::create('Copying config for site #' . $this->id . ' to server #' . $server->id);
 
-        return $task->make(function() use ($server, $pckg) {
+        return $task->make(function() use ($server) {
+            $pckg = $this->getImperoPckgAttribute();
             $otherWorker = (new ServersMorphs())->where('type', 'web')
                                                 ->where('server_id', $server->id, '!=')
                                                 ->where('morph_id', Sites::class)
@@ -1292,7 +1301,18 @@ class Site extends Record
                 if ($connection->fileExists($destination)) {
                     $connection->deleteFile($destination);
                 }
-                $connection->saveContent($destination, $this->getConfigFileContent($connection, $copy));
+                /**
+                 * The issue with config file is that variable values may be different between checkouts:
+                 *  - db server: 127.0.0.1 / 10.8.0.1 / 10.135.61.34
+                 *  - job parameter: --type = newsletter / transactional
+                 *
+                 * MySQL service should be smart enough to automatically resolve routing IP.
+                 * Job parameter will be requested in web interface
+                 *
+                 * Either way, special settings are saved under SitesServer ?
+                 */
+                $configContent = $this->getConfigFileContent($connection, $copy);
+                $connection->saveContent($destination, $configContent);
             }
         });
     }
