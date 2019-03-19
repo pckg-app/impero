@@ -20,7 +20,8 @@ class ExecSite extends Command
         $site = Site::getOrFail($this->option('site'));
 
         $this->outputDated('Executing');
-        $site->getServerConnection()->exec($this->option('command'));
+        $site->getServerConnection()->exec($this->option('command'), $output, $error);
+        d('output', $output, 'error', $error);
         $this->outputDated('Executed');
     }
 
