@@ -139,6 +139,8 @@ class Site extends Record
         $directives[] = 'SSLCertificateKeyFile ' . $this->getSslPath() . $this->ssl_certificate_key_file;
         //$directives[] = 'SSLCertificateChainFile ' . $this->getSslPath() . $this->ssl_certificate_chain_file;
 
+        $directives[] = 'Header always set Strict-Transport-Security "max-age=15768000"';
+
         $port = $server->getSettingValue('service.apache2.httpsPort', 443);
 
         return '<VirtualHost *:' . $port . '>
