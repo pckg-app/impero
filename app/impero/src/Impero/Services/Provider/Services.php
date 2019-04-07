@@ -1,6 +1,7 @@
 <?php namespace Impero\Services\Provider;
 
 use Impero\Servers\Resolver\Server;
+use Impero\Servers\Service\ServerQueueDispatcher;
 use Impero\Services\Controller\Services as ServicesController;
 use Impero\Services\Resolver\Service;
 use Impero\Services\Service\Ssh\Provider\Ssh;
@@ -31,6 +32,13 @@ class Services extends Provider
     {
         return [
             Ssh::class,
+        ];
+    }
+
+    public function consoles()
+    {
+        return [
+            ServerQueueDispatcher::class,
         ];
     }
 

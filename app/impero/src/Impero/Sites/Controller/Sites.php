@@ -226,15 +226,17 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
         /**
          * Pckg project definition and variables are stored on initial checkout.
          * Settings can be changed and added afterwards.
+         * Scale is definition for services on which server they are deployed.
          */
         $site->setImperoPckgAttribute(post('pckg', []));
         $site->setImperoVarsAttribute(post('vars', []));
+        $scale = post('scale', []);
 
         /**
          * Whole project (or site) is then initially checked out on server.
          * User may choose multiple servers / targets for specific service.
          */
-        $site->queueCheckout($site->server);
+        $site->queueCheckout($scale);
 
         return [
             'site' => $site,

@@ -7,6 +7,7 @@ use Impero\Services\Service\Storage\Console\MakeStorageBackup;
 use Impero\Services\Service\System\Console\MakeSystemBackup;
 use Pckg\Auth\Middleware\LoginWithApiKeyHeader;
 use Pckg\Auth\Middleware\RestrictAccess;
+use Pckg\Framework\Console\Provider\Console;
 use Pckg\Framework\Provider;
 use Pckg\Generic\Middleware\EncapsulateResponse;
 use Pckg\Manager\Middleware\RegisterCoreAssets;
@@ -23,6 +24,7 @@ class Impero extends Provider
         return [
             ImperoProvider::class,
             Provider\Framework::class,
+            Console::class,
             (new \Pckg\Queue\Provider\Queue())->setRoutePrefix('/queue'),
         ];
     }

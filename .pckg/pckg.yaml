@@ -28,51 +28,108 @@ services:
 
   web:
     system: web
-    https: true
+    apache:
+      root: www
 
   cron:
     system: cron
     command: php $webDirconsole cron:run >> $logsDircron.log
 
+  queue-manage:
+    system: queue
+    command: php $webDirconsole impero queue:run-channel --channel=impero/impero/manage >> $logsDirqueue-manage.log
+
+  queue-servers:
+    system: queue
+    command: php $webDirconsole impero service:dispatch-workers >> $logsDirqueue-servers.log
+
 checkout:
   type: standalone
 
 init:
-  - composer install --no-dev --prefer-dist --no-progress --no-suggest --optimize-autoloader --ignore-platform-reqs
-  - yarn install --production --silent
+  - command:install-dependencies
 
 prepare:
-  # chown to www-data:impero
   - sudo chown www-data:impero . -R
-
-  # chown storage to www-data
   - sudo chown www-data:www-data storage -R
 
 deploy:
-  # pull changes
-  - git pull --ff
 
-  # install dependency changes
-  - composer install --no-dev --prefer-dist --no-progress --no-suggest --optimize-autoloader --ignore-platform-reqs
-  - yarn install --production --silent
+  - command:pull-git
+  - command:install-dependencies
 
 migrate:
-  # import translations
-  #- php console $app translator:import
 
-  # import generic data
-  #- php console $app generic:import-actions
-  #- php console $app generic:import-lists
+  - command:clear-cache
 
-  # clear cache
-  - php $webDirconsole cache:clear
-
-  # install migrations
   - php $webDirconsole $app migrator:install --repository=default --fields --yes --clear
   - php $webDirconsole $app migrator:install --repository=default --indexes --yes --clear
 
-  # upgrade slugs
-  # - php console $app translator:upgrade-slugs
+  - command:clear-cache
 
-  # clear cache
-  - php $webDirconsole cache:clear
+commands:
+
+  clear-cache:
+    - php $webDirconsole cache:clear
+
+  install-dependencies:
+    - composer install --no-dev --prefer-dist --no-progress --no-suggest --optimize-autoloader --ignore-platform-reqs
+    - yarn install --production --silent
+
+  pull-git:
+    - git reset --hard
+    - git pull --ff
+
+# We want to allow deployment procedure to be defined by project.
+# definition of service and command requirements when project is initially deployed.
+# services without conditions can be executed concurrently.
+# other services are triggered from dependant services.
+bring-up:
+
+  resource:database:
+  resource:queue:
+
+  service:web:
+
+  command:checkout:
+    when:
+      - service:web-dynamic:ready
+
+  resource:storage:
+    when:
+      - command:checkout:end
+
+  service:config:
+    when:
+      - resource:database:ready
+      - resource:queue:ready
+      - resource:cache:ready
+      - resource:storage:ready
+
+  command:prepare:
+    when:
+      - service:config:ready
+
+  service:cron:
+    when:
+      - command:prepare:end
+
+  service:queue-manage:
+    when:
+      - command:prepare:end
+
+# TESTS
+# Each of cloud providers should have dedicated file in project root (example: ./circle.yml)
+# When pro
+test:
+  bitbucket:
+  jenkins:
+  circleci:
+  travisci:
+  phpci:
+
+build:
+  - command:checkout
+  - command:init
+  # delete .git, .npmrc
+  # make and upload zip (auto)
