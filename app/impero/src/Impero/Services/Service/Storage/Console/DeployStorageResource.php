@@ -56,8 +56,10 @@ class DeployStorageResource extends Command
      */
     public function deployStorageToServer()
     {
+        $this->outputDated('Creating directories');
         $this->createDirectories();
 
+        $this->outputDated('Mounting web services');
         $this->mountWebServices();
     }
 
@@ -76,6 +78,7 @@ class DeployStorageResource extends Command
         }
 
         $config = $this->getSitePckgConfig();
+        ddd($config);
         foreach ($config['dir'] ?? [] as $storageDir) {
             $hasStorageDir = $connection->dirExists($siteStoragePath . $storageDir);
             if ($hasStorageDir) {
