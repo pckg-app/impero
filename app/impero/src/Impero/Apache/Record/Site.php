@@ -1345,10 +1345,9 @@ class Site extends Record
             $task->make(function() use ($pckg, $deployDir, $connection) {
                 $finalCommands = [];
                 foreach ($pckg['migrate'] ?? [] as $command) {
-                    $dirCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
-                    $this->replaceCommands($finalCommands, $dirCommand . $command);
+                    $this->replaceCommands($finalCommands, $command);
                 }
-                $connection->execMultiple($finalCommands);
+                $connection->execMultiple($finalCommands, $o, $e, $deployDir);
             });
         });
     }
