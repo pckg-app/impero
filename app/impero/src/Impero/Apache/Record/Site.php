@@ -14,7 +14,7 @@ use Impero\Servers\Record\Task;
 use Impero\Services\Service\Apache\DeployApacheService;
 use Impero\Services\Service\Config\DeployConfigService;
 use Impero\Services\Service\Cron\DeployCronService;
-use Impero\Services\Service\Storage\DeployStorageResource;
+use Impero\Services\Service\Storage\Console\DeployStorageResource;
 use Impero\Services\Service\Checkout\ExecuteCheckoutProcedure;
 use Impero\Services\Service\Checkout\ExecutePrepareProcedure;
 use Impero\Services\Service\Connection\SshConnection;

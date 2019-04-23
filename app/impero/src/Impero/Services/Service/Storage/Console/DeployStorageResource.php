@@ -1,4 +1,4 @@
-<?php namespace Impero\Services\Service\Storage;
+<?php namespace Impero\Services\Service\Storage\Console;
 
 use Exception;
 use Impero\Apache\Record\Site;

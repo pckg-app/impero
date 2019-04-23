@@ -58,7 +58,7 @@ class Impero extends Provider
             \Impero\Services\Service\Cron\DeployCronService::class,
             \Impero\Services\Service\Config\DeployConfigService::class,
             \Impero\Services\Service\Apache\DeployApacheService::class,
-            \Impero\Services\Service\Storage\DeployStorageResource::class,
+            \Impero\Services\Service\Storage\Console\DeployStorageResource::class,
         ];
     }
 
