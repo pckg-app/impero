@@ -303,7 +303,11 @@ class CheckoutSite extends Command
                 $callback = 'service:apache:deploy';
                 $service = 'service:apache';
 
-            } elseif (isset($config['command'])) {
+            } /*elseif (isset($config['nginx'])) {
+                $callback = 'service:nginx:deploy';
+                $service = 'service:nginx';
+
+            } */elseif (isset($config['commands'])) {
                 $callback = 'service:cron:deploy';
                 $service = 'service:cron';
 
