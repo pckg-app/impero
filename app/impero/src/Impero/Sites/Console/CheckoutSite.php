@@ -341,8 +341,6 @@ class CheckoutSite extends Command
                 'channel' => $respondChannel,
             ],
         ];
-        d('queue', $channel, $callback, json_encode($data));
-        return;
         queue($channel, $callback, $data);
     }
 
