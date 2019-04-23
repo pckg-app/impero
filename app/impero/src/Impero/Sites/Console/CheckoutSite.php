@@ -116,6 +116,12 @@ class CheckoutSite extends Command
         $this->outputDated('Delayed: ' . implode(', ', array_keys($waiting)));
         $finished = [];
 
+        if (!$immediately) {
+            $this->outputDated('ERROR: No immediate events, exiting');
+            $this->outputDated(json_encode($this->getBringUp()));
+            return;
+        }
+
         /**
          * Register listeners.
          */
