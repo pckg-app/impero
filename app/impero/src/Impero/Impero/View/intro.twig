@@ -1,177 +1,107 @@
-<h2>Nightly writing</h2>
-<p>There're many tools that make app deployment simpler, but we made it crazy simple.</p>
-<p>Impero is a service which which simplifies deployments and management of multi service-platforms. It combines
-    automatic configuration changes and service reloads on entrypoint and top level services with composing docker
-    configuration files and container scaling managed from web interface and project configuration file.</p>
+<div class="jumbotron">
+    <p>There're many tools that make app deployment simpler, but we made it crazy simple.</p>
+    <p>Impero is a service which which simplifies deployments and management of multi service-platforms. It combines
+        automatic configuration changes and service reloads on entrypoint and top level services with composing docker
+        configuration files and container scaling managed from web interface and project configuration file.</p>
+</div>
 
 <div class="row">
-    <div class="col-xs-4">
-        <p>First, create new <b>server</b> and connect it to - server. If you don't have one you can simply create new
-            droplet on supported cloud provider.</p>
+    <div class="col-xs-6">
+        <h3>Start with Impero</h3>
+        <ol>
+            <li>
+                <p>Create account and your first server. Connect new or existing server by executing:<br/>
+                    $ bash <(curl -s https://impero.foobar.si/install-key.sh)</p>
+            </li>
+            <li>
+                <p>Create new application and select project source GIT repository.</p>
+            </li>
+            <li>
+                <p>Configure your /.pckg/pckg.yaml file and commit it.</p>
+            </li>
+        </ol>
+        <h3>Minimum configuration</h3>
+        <p>We want to deploy apache webserver with php (foo/web image) and mysql database server (foo/db). Example below
+            would be sufficient enough for basic wordpress instalations.</p>
+        <pre>
+repository: git@bitbucket.org:foo/bar.git
+branch: master
+
+system:
+
+  web:
+    image: foo/web
+
+  database:
+    image: foo/db
+
+resources:
+
+  database:
+    system: database
+    mysql:
+      type: search
+      name: foo_db
+      foo_user:
+        foo_db: basic
+
+services:
+
+  web:
+    system: web
+    apache:
+      root: www
+        </pre>
     </div>
-    <div class="col-xs-4">
-        <p>Then, create new <b>site</b> - all you need to define is domain and source, for example impero.foobar.si and
-            ssh://git@github.com/pckg-app/impero.git.</p>
-    </div>
-    <div class="col-xs-4">
-        <p>
-            Deploy your site's services and reconfigure services in /.pckg/pckg.yaml file.
-        </p>
+    <div class="col-xs-6">
+        <h3>Basic commands</h3>
+        <p>By adding additional commands you control what happens on each step: init (initialize project), prepare
+            (import project defaults and populate database) and deploy (change database schema or execute
+            migrations).</p>
+        <pre>
+init:
+   - command:install-dependencies
+
+prepare:
+   - php console migrator:install --repository=default --schema
+   - php console migrator:install --repository=default --fields
+   - php console user:create john@doe.com
+   - command:clear-cache
+
+deploy:
+   - command:pull-git
+   - php console migrator:install --repository=default
+
+commands:
+
+  install-dependencies:
+    - yarn install --silent --production
+    - composer install --no-dev --optimize-autoloader --ignore-platform-reqs --prefer-dist
+
+  pull-git:
+    - git reset --hard
+    - git pull --ff
+        </pre>
+        <h3>Deployment strategy</h3>
+        <p>Additionally, there's a section called bring-up where you can tweak steps taken to deploy project.</p>
+        <pre>
+bring-up:
+  resource:database:
+  service:web
+  command:checkout:
+    when:
+      - service:web:filesystem:ready
+  service:config:
+    when:
+      - resource:database:ready
+      - command:checkout:end
+  service:cron:
+    when:
+      - service:config:ready
+        </pre>
     </div>
 </div>
-<p>
-    All services and configuration you need is defined in 3 simple scripts in /.pckg/pckg.yaml in your git
-    repository
-<ul>
-    <li>services - services that needs to be up and running for app, for example you need php and apache on web server,
-        mysql on db server and some directories for storage and uploads
-    </li>
-    <li>init - scripts that needs to be executed on first deploy on web server, such as checkout and dependency
-        install
-    </li>
-    <li>deploy - scripts that needs to be executed on next deploys on web server, for example git pull and clean cache
-    </li>
-</ul>
-</p>
-<p>When you choose to put your website online you simply select servers on which to put your app or app's services.</p>
-<p>You can select multiple web workers and configure load balancing mechanism. You can select multiple mysql servers and
-    put them in master / slave mode replication and load balancing. You can have multiple storages in sync when hard
-    drive is bottleneck, or optimize things by caching them.</p>
-<p>Or you can simply choose one server and put all services on it - and then automatically expand to partial or full
-    structure of multiple loadbalancers, static and dynamic web servers, master and slave database servers and storage
-    servers for best performance and money usage.</p>
-<p>You click, computer makes things happen. All through ssh connection.</p>
 
-<p>
-    Pricing (per month):
-<table class="table">
-    <thead>
-    <tr>
-        <td></td>
-        <td>Free</td>
-        <td>Basic</td>
-        <td>Pro</td>
-        <td>Enterprise</td>
-        <td>Custom</td>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td>Number of servers</td>
-        <td>3</td>
-        <td>10</td>
-        <td>Unlimited</td>
-        <td>Unlimited</td>
-        <td>Unlimited</td>
-    </tr>
-    <tr>
-        <td>Deployments</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>1$</td>
-    </tr>
-    <tr>
-        <td>Services</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>1$</td>
-    </tr>
-    <tr>
-        <td>Dependencies</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>1$</td>
-    </tr>
-    <tr>
-        <td>Cronjobs</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>1$</td>
-    </tr>
-    <tr>
-        <td>Firewall</td>
-        <td>No</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>1$</td>
-    </tr>
-    <tr>
-        <td>Backups</td>
-        <td>No</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>2$</td>
-    </tr>
-    <tr>
-        <td>API</td>
-        <td>No</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>2$</td>
-    </tr>
-    <tr>
-        <td>Clone</td>
-        <td>No</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>2$</td>
-    </tr>
-    <tr>
-        <td>Scaling</td>
-        <td>No</td>
-        <td>No</td>
-        <td>No</td>
-        <td>Yes</td>
-        <td>3$</td>
-    </tr>
-    <tr>
-        <td>Replication</td>
-        <td>No</td>
-        <td>No</td>
-        <td>No</td>
-        <td>Yes</td>
-        <td>3$</td>
-    </tr>
-    <tr>
-        <td>Load balancing</td>
-        <td>No</td>
-        <td>No</td>
-        <td>No</td>
-        <td>Yes</td>
-        <td>3$</td>
-    </tr>
-    <tr>
-        <td>Support</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Yes</td>
-    </tr>
-    <tr>
-        <td>Price per month</td>
-        <td>Free</td>
-        <td>3$ per server</td>
-        <td>9$ per server</td>
-        <td>19$ per server</td>
-        <td>x$ per server</td>
-    </tr>
-    </tbody>
-</table>
-<p>Our price table is fully customizable, meaning that you pay for only what you use.</p>
-<p>* Limited - ftp and mail services are not available in free version</p>
 
 <h2>Features</h2>
 <h3>About Impero</h3>
@@ -193,7 +123,11 @@
     </div>
 </div>
 
-<h3>Server management</h3>
+<br/><br/>
+
+<br/><br/>
+
+<h3>Scaling</h3>
 <div class="row">
     <div class="col-md-4 col-sm-6">
         <h4>Load balancing</h4>
@@ -201,10 +135,42 @@
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
+        <h4>Database replication</h4>
+        <p>Replicate MySQL databases and manage your active and passive master and slave configuration.</p>
+        <a href="#" class="pull-right">Learn more</a>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <h4>Web, API & CLI access</h4>
+        <p>Access and manage your infrastructure from web interface, API or CLI.</p>
+        <a href="#" class="pull-right">Learn more</a>
+    </div>
+</div>
+
+<br/><br/>
+
+<br/><br/>
+
+<h3>Features for DevOPs</h3>
+<div class="row">
+    <div class="col-md-4 col-sm-6">
+        <h4>Testing</h4>
+        <p>Integrate your test service such as Jenkins, Travis, CircleCI, BitBucket pipelines or other cloud testing
+            provider into your CI / CD strategy.</p>
+        <a href="#" class="pull-right">Learn more</a>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <h4>Deployment</h4>
+        <p>Deploy applications with one click. Connect your GIT repository to Impero application and automatically test,
+            build and deploy your project.</p>
+        <a href="#" class="pull-right">Learn more</a>
+    </div>
+    <div class="col-md-4 col-sm-6">
         <h4>Scaling</h4>
         <p>Clone whole web server faster then ever. Use services on bare-metal, vps or docker image.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
+</div>
+<div class="row">
     <div class="col-md-4 col-sm-6">
         <h4>Automatic updates</h4>
         <p>Don't worry about security updates. We will update supported services by default and let you know about any
@@ -213,84 +179,88 @@
     </div>
 </div>
 
-<h3>Features for DevOPs</h3>
+<br/><br/>
+
+<br/><br/>
+
+<h3>Storage</h3>
 <div class="row">
     <div class="col-md-4 col-sm-6">
-        <h4>Automated deployment</h4>
-        <p>Deploy applications with one click.</p>
-        <a href="#" class="pull-right">Learn more</a>
-    </div>
-    <div class="col-md-4 col-sm-6">
-        <h4>Automated testing</h4>
-        <p>You will be able to install everything from jenkins server to virtual machines.</p>
-        <a href="#" class="pull-right">Learn more</a>
-    </div>
-    <div class="col-md-4 col-sm-6">
-        <h4>Webhooks</h4>
-        <p>We also offer deploying Impero to dedicated servers managed by us, or managed by you. Contact our sales for
-            more info.</p>
-        <a href="#" class="pull-right">Learn more</a>
-    </div>
-</div>
-<div class="row">
-    <div class="col-md-4 col-sm-6">
-        <h4>Smart cronjobs</h4>
-        <p>Manage cronjobs with intuitive web interface, review past execution details and many more.</p>
-        <a href="#" class="pull-right">Learn more</a>
-    </div>
-    <div class="col-md-4 col-sm-6">
-        <h4>SSL management</h4>
-        <p>Manage SSL certificates for your Apache or NginX hosted websites and applications for free with
-            LetsEncrypt.</p>
+        <h4>Storage management</h4>
+        <p>Manage external storage attached to your server..</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
         <h4>Backups</h4>
-        <p>We can also set automated backups of config files, database and other files and backup them to any local or
-            remote server.</p>
+        <p>Enable automatic database, storage and configuration local and remote backups to make sure your data is
+            safe.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
 </div>
+
+<br/><br/>
+
+<br/><br/>
 
 <h3>Services</h3>
 <div class="row">
     <div class="col-md-4 col-sm-6">
         <h4>Dependency management</h4>
-        <p>Installing all dependencies such as git, composer or npm on multiple servers can be time consuming. Let us
-            take care of it.</p>
+        <p>Define which services and dependencies your project needs and let Impero take care of instalment and
+            configuration of git, composer, npm or other project dev or production dependency.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
         <h4>Service management</h4>
-        <p>We offer automated management of popular webservers, databases, ftp, mail and dns servers and many more.</p>
+        <p>Impero offers automated management of popular webservers, load balancers, database and other services.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
-        <h4>Firewall management</h4>
-        <p>Allow or deny access to some ports or applications via web interface.</p>
+        <h4>Smart cronjobs</h4>
+        <p>Manage cronjobs with intuitive web interface, review past execution details and configure them in single
+            file.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
 </div>
 <div class="row">
     <div class="col-md-4 col-sm-6">
-        <h4>Email</h4>
-        <p>Hello, we can also install whole mail infrastructure for you, from postfix and sendmail, to horde and other
-            mail services.</p>
+        <h4>Queue</h4>
+        <p>Build apps on top of powerful message broker RabbitMQ and organize your queue.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
-        <h4>DNS management</h4>
-        <p>One click and everything needed for DNS server will be installed on your server. Still, DNS records will be
-            edited in our interface.</p>
+        <h4>Supervisor</h4>
+        <p>Manage long running tasks, workers and websockets with supervisor.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
-        <h4>(s)FTP made simple</h4>
-        <p>Create and manage FTP and SFTP accounts using our interface. We currently support ProFTPd and PureFTPd
-            services.</p>
+        <h4>SSL management</h4>
+        <p>Manage SSL certificates for your websites and applications for free with LetsEncrypt.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
 </div>
+
+<br/><br/>
+
+<br/><br/>
+
+<h3>Network</h3>
+<div class="row">
+    <div class="col-md-4 col-sm-6">
+        <h4>Network management</h4>
+        <p>Manage networks for different applications on same server and even services in same application.</p>
+        <a href="#" class="pull-right">Learn more</a>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <h4>Firewall management</h4>
+        <p>Allow or deny access to some ports or applications and make your services secure.</p>
+        <a href="#" class="pull-right">Learn more</a>
+    </div>
+</div>
+
+<br/><br/>
+
+<br/><br/>
 
 <h3>Advanced features</h3>
 <div class="row">
@@ -301,29 +271,152 @@
         <a href="#" class="pull-right">Learn more</a>
     </div>
     <div class="col-md-4 col-sm-6">
-        <h4>API</h4>
-        <p>We wrote secure web API so you can extend and automate your infrastructure needs.</p>
-        <a href="#" class="pull-right">Learn more</a>
-    </div>
-    <div class="col-md-4 col-sm-6">
         <h4>Log parser</h4>
         <p>Read apache, mysql, system and other logs in human readable format.</p>
         <a href="#" class="pull-right">Learn more</a>
     </div>
+    <div class="col-md-4 col-sm-6">
+        <h4>Webhooks</h4>
+        <p>Setup some webhooks and watch how your infrastructure changes.</p>
+        <a href="#" class="pull-right">Learn more</a>
+    </div>
 </div>
 
-<p>* some of described features are being developed, or in beta phase.</p>
+<br/><br/>
+
+<br/><br/>
+
+<table class="table table-fixed">
+    <thead>
+    <tr>
+        <td></td>
+        <td>Free</td>
+        <td>Pro</td>
+        <td>Enterprise</td>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Number of servers</td>
+        <td>2</td>
+        <td>10</td>
+        <td><i class="fa fa-infinity"></i></td>
+    </tr>
+    <tr>
+        <td>Number of applications</td>
+        <td>5</td>
+        <td>100</td>
+        <td><i class="fa fa-infinity"></i></td>
+    </tr>
+    <tr>
+        <td>Services</td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>Resources</td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>Deployments</td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>Cronjobs</td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>Firewall</td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>API</td>
+        <td><i class="fa fa-times clr-error"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>Networks</td>
+        <td><i class="fa fa-times clr-error"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>Backups</td>
+        <td><i class="fa fa-times clr-error"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>CLI</td>
+        <td><i class="fa fa-times clr-error"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>Clone</td>
+        <td><i class="fa fa-times clr-error"></i></td>
+        <td><i class="fa fa-times clr-error"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>Scaling</td>
+        <td><i class="fa fa-times clr-error"></i></td>
+        <td><i class="fa fa-times clr-error"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>Replication</td>
+        <td><i class="fa fa-times clr-error"></i></td>
+        <td><i class="fa fa-times clr-error"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>Load balancing</td>
+        <td><i class="fa fa-times clr-error"></i></td>
+        <td><i class="fa fa-times clr-error"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>Support</td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+        <td><i class="fa fa-check clr-success"></i></td>
+    </tr>
+    <tr>
+        <td>Price per month</td>
+        <td>Free</td>
+        <td>9$ per server</td>
+        <td>19$ per server</td>
+    </tr>
+    </tbody>
+</table>
 
 <h3>Full example</h3>
 <p>
 <ul>
     <li>Create a <b>server</b> and make sure that ssh connection is successful.</li>
-    <li>Create a <b>site</b> and <b>checkout</b> some code from git. Web (<b>apache</b>) and <b>storage</b> services are enabled at this point.</li>
-    <li>Create <b>database</b>, <b>user</b> and set <b>privileges</b>. Database (<b>mysql</b>) service is added at this point.</li>
+    <li>Create a <b>site</b> and <b>checkout</b> some code from git. Web (<b>apache</b>) and <b>storage</b> services are
+        enabled at this point.
+    </li>
+    <li>Create <b>database</b>, <b>user</b> and set <b>privileges</b>. Database (<b>mysql</b>) service is added at this
+        point.
+    </li>
     <li>Add a <b>cronjob</b> for website. <b>Cron</b> service is added at this point.</li>
     <li>Enable cold and passive <b>backups</b> for code, config, db and storage with <b>backup</b> service.</li>
     <li>Add another <b>web worker</b>. Loadbalancing (<b>haproxy</b>) is enabled at this point.</li>
-    <li>Replicate mysql as active or passive slave for better performance and quicker restore in case backup is needed.</li>
+    <li>Replicate mysql as active or passive slave for better performance and quicker restore in case backup is
+        needed.
+    </li>
     <li>Configure ./pckg/pckg.yaml file and integrate /impero API to automatically manage your infrastructure.</li>
 </ul>
 </p>

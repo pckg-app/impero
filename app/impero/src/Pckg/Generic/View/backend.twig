@@ -2,6 +2,7 @@
 <html>
 <head>
     {% include '_head.twig' %}
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
 </head>
 <body>
 
@@ -29,31 +30,20 @@
     </div>
 </nav>
 
-<div class="container container-narrow" id="vue-app">
-    <div class="row">
-        <div class="col-md-12">
-            <ol class="breadcrumb">
-                <li><a href="/">Impero</a></li>
-                <li><a href="/servers">Servers</a></li>
-                <li class="active">Add</li>
-            </ol>
+<div id="vue-app">
+    {% if left %}
+        <div class="col-md-3">
+            {% block left %}{{ left | raw }}{% endblock %}
         </div>
+    {% endif %}
+    <div class="{% if left and right %}col-md-6{% elseif left or right %}col-md-9{% else %}col-md-12{% endif %}">
+        {% block content %}{{ content | raw }}{% endblock %}
     </div>
-    <div class="row">
-        {% if left %}
-            <div class="col-md-3">
-                {% block left %}{{ left | raw }}{% endblock %}
-            </div>
-        {% endif %}
-        <div class="{% if left and right %}col-md-6{% elseif left or right %}col-md-9{% else %}col-md-12{% endif %}">
-            {% block content %}{{ content | raw }}{% endblock %}
+    {% if right %}
+        <div class="col-md-3">
+            {% block right %}{{ right | raw }}{% endblock %}
         </div>
-        {% if right %}
-            <div class="col-md-3">
-                {% block right %}{{ right | raw }}{% endblock %}
-            </div>
-        {% endif %}
-    </div>
+    {% endif %}
 </div>
 
 {% include '_foot.twig' %}
