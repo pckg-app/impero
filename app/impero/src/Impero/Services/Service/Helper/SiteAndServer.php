@@ -120,7 +120,7 @@ trait SiteAndServer
         $config = $this->decodeOption('shout', true);
         $broker = $this->getRabbitMQ();
         $broker->makeShoutExchange($config['channel']);
-        $broker->shout($config['channel'], ['event' => $config['event'] . ':' . $state]);
+        $broker->shout($config['channel'], ['event' => $config['event'] . ':' . $state, 'state' => $state]);
     }
 
 }

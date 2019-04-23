@@ -170,7 +170,7 @@ class CheckoutSite extends Command
             /**
              * Check for event state.
              */
-            $state = $json['state'];
+            $state = $json['state'] ?? null;
             if (!$state == 'error') {
                 throw new Exception('Got error state from sub-event');
             }
