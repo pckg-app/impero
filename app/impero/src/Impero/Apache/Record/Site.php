@@ -1343,12 +1343,12 @@ class Site extends Record
             $connection = $connection ?? $server->getConnection();
             $task = Task::create('Migrating site #' . $this->id);
             $task->make(function() use ($pckg, $deployDir, $connection) {
+                $finalCommands = [];
                 foreach ($pckg['migrate'] ?? [] as $command) {
-                    $finalCommands = [];
                     $dirCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
                     $this->replaceCommands($finalCommands, $dirCommand . $command);
-                    $connection->execMultiple($finalCommands);
                 }
+                $connection->execMultiple($finalCommands);
             });
         });
     }
