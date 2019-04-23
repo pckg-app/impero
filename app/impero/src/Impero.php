@@ -54,6 +54,11 @@ class Impero extends Provider
             MakeConfigBackup::class,
             \Pckg\Queue\Console\RunJobs::class,
             \Pckg\Queue\Command\RunChannel::class,
+            \Impero\Services\Service\Mysql\DeployMysqlService::class,
+            \Impero\Services\Service\Cron\DeployCronService::class,
+            \Impero\Services\Service\Config\DeployConfigService::class,
+            \Impero\Services\Service\Apache\DeployApacheService::class,
+            \Impero\Services\Service\Storage\DeployStorageResource::class,
         ];
     }
 
