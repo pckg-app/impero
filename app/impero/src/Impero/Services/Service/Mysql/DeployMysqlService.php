@@ -116,10 +116,10 @@ class DeployMysqlService extends Command
         $config = $this->decodeOption('shout', true);
         $key = str_replace('resource:', '', $config['event']);
         $site->mergeImperoVarsAttribute([
-                                            '$' . ucfirst($key) . 'Host' => '127.0.0.1',
-                                            '$' . ucfirst($key) . 'Name' => $dbname,
-                                            '$' . ucfirst($key) . 'User' => $dbuser,
-                                            '$' . ucfirst($key) . 'Pass' => $dbpass,
+                                            '$' . $key . 'Host' => '127.0.0.1',
+                                            '$' . $key . 'Name' => $dbname,
+                                            '$' . $key . 'User' => $dbuser,
+                                            '$' . $key . 'Pass' => $dbpass,
                                         ]);
 
         /**
