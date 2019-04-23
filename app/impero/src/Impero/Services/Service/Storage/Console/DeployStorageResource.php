@@ -25,7 +25,7 @@ class DeployStorageResource extends Command
     public function configure()
     {
         $this->setName('resource:storage:deploy')
-             ->setDescription('Activa te apache for site on server')
+             ->setDescription('Activate apache for site on server')
              ->addSiteAndServerOptions();
     }
 
@@ -61,6 +61,8 @@ class DeployStorageResource extends Command
 
         $this->outputDated('Mounting web services');
         $this->mountWebServices();
+
+        $this->outputDated('Done');
     }
 
     protected function createDirectories()
@@ -78,7 +80,6 @@ class DeployStorageResource extends Command
         }
 
         $config = $this->getSitePckgConfig();
-        ddd($config);
         foreach ($config['dir'] ?? [] as $storageDir) {
             $hasStorageDir = $connection->dirExists($siteStoragePath . $storageDir);
             if ($hasStorageDir) {
