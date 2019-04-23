@@ -31,6 +31,10 @@ class DestroySite extends Command
         }
 
         $site->undeploy($this);
+        /**
+         * @T00D00 - delete site?
+         */
+        $this->outputDated('Undeployed');
     }
 
 }
