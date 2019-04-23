@@ -50,7 +50,7 @@ class ServerQueueDispatcher extends Command
                                                             '--concurrency' => 1,
                                                         ]);
                 }, function() use ($channel) {
-                    return 'service:dispatch-workers --channel=' . $channel;
+                    return 'php service:dispatch-workers --channel=' . $channel;
                 });
                 Fork::waitFor($pid);
             }
