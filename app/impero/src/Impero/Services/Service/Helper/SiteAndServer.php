@@ -49,8 +49,8 @@ trait SiteAndServer
         $server = $this->option('server');
         $config = $this->decodeOption('config', true);
 
-        if (!$site || !$server || !$config) {
-            throw new Exception('Site, server and config are required');
+        if (!$site || !$server) {
+            throw new Exception('Site and server are required');
         }
 
         return [$site, $server, $config];
