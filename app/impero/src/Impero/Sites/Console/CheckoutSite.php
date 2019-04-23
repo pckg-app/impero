@@ -64,15 +64,6 @@ class CheckoutSite extends Command
     {
         $bringUp = $this->getBringUp();
 
-        $bringUp = [
-            'service:web' => null,
-            'command:checkout' => [
-                'when' => [
-                    'service:web:ready',
-                ]
-            ],
-        ];
-
         $immediately = [];
         $waiting = [];
 
