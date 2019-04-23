@@ -271,6 +271,13 @@ class CheckoutSite extends Command
         list($type, $name) = explode(':', $step);
 
         /**
+         * Custom for config.
+         */
+        if ($step == 'service:config') {
+            return ['service:config:deploy', $pckg, 'service:config'];
+        }
+
+        /**
          * So, we now have config for service or resource.
          * We currently support web (apache) and db (mysql) services.
          */
