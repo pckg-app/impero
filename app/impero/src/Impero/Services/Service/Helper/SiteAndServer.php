@@ -117,6 +117,7 @@ trait SiteAndServer
 
     public function emitEvent($state)
     {
+        $this->outputDated('Emiting event state ' . $state);
         $config = $this->decodeOption('shout', true);
         $broker = $this->getRabbitMQ();
         $broker->makeShoutExchange($config['channel']);
