@@ -114,6 +114,8 @@ class DeployMysqlService extends Command
         /**
          * For configuration.
          */
+        $config = $this->decodeOption('shout', true);
+        $key = str_replace('resource:', '', $config['event']);
         $site->mergeImperoVarsAttribute([
                                             '$db' . ucfirst($key) . 'Host' => '127.0.0.1',
                                             '$db' . ucfirst($key) . 'Name' => $dbname,
