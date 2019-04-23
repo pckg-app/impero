@@ -53,6 +53,7 @@ class Impero extends Provider
             MakeSystemBackup::class,
             MakeConfigBackup::class,
             \Pckg\Queue\Console\RunJobs::class,
+            \Pckg\Queue\Command\RunChannel::class,
         ];
     }
 
