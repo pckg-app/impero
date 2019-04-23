@@ -1325,12 +1325,11 @@ class Site extends Record
 
             if ($deployDir) {
                 $connection = $connection ?? $server->getConnection();
+                $finalCommands = [];
                 foreach ($pckg['deploy'] ?? [] as $command) {
-                    $finalCommands = [];
-                    $dirCommand = $deployDir ? 'cd ' . $deployDir . ' && ' : '';
-                    $this->replaceCommands($finalCommands, $dirCommand . $command);
-                    $connection->execMultiple($finalCommands);
+                    $this->replaceCommands($finalCommands, $command);
                 }
+                $connection->execMultiple($finalCommands, $o, $e, $deployDir);
             }
 
             /**
