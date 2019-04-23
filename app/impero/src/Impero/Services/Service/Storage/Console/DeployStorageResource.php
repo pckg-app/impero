@@ -75,6 +75,7 @@ class DeployStorageResource extends Command
             $connection->makeAndAllow($siteStoragePath);
         }
 
+        $config = $this->getSitePckgConfig();
         foreach ($config['dir'] ?? [] as $storageDir) {
             $hasStorageDir = $connection->dirExists($siteStoragePath . $storageDir);
             if ($hasStorageDir) {
@@ -117,6 +118,7 @@ class DeployStorageResource extends Command
          *
          * @T00D00 - check if this should be moved before previous loop?
          */
+        $pckg = $this->site->getImperoPckgAttribute();
         foreach ($pckg['services']['web']['mount'] ?? [] as $linkPoint => $storageDir) {
             /**
              * If mount point was previously created, it will be recreated.
