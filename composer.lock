@@ -2956,12 +2956,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/queue.git",
-                "reference": "04f8b5d0c35f2e7525f66fb25d10f47b6851a8a2"
+                "reference": "f453bf80b6ffd6ad6a50c00759e0a115173d7526"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/queue/zipball/04f8b5d0c35f2e7525f66fb25d10f47b6851a8a2",
-                "reference": "04f8b5d0c35f2e7525f66fb25d10f47b6851a8a2",
+                "url": "https://api.github.com/repos/pckg/queue/zipball/f453bf80b6ffd6ad6a50c00759e0a115173d7526",
+                "reference": "f453bf80b6ffd6ad6a50c00759e0a115173d7526",
                 "shasum": ""
             },
             "type": "library",
@@ -2984,7 +2984,7 @@
             ],
             "description": "Queue, cronjobs and tasks simplified",
             "homepage": "https://github.com/pckg/queue",
-            "time": "2019-04-23T14:22:26+00:00"
+            "time": "2019-04-23T14:47:33+00:00"
         },
         {
             "name": "pckg/tempus",
