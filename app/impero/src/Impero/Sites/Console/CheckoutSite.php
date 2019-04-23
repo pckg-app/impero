@@ -347,6 +347,10 @@ class CheckoutSite extends Command
                 'channel' => $respondChannel,
             ],
         ];
+
+        /**
+         * @T00D00: Output and error need to be captured.
+         */
         $this->outputDated('Posting to channel ' . $channel . ' command ' . $callback);
         $this->outputDated(json_encode($data));
         queue($channel, $callback, $data);

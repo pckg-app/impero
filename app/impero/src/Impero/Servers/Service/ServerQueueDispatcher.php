@@ -67,6 +67,11 @@ class ServerQueueDispatcher extends Command
     {
         return [
             /**
+             * Commands
+             */
+            'command:checkout',
+            'command:prepare',
+            /**
              * Frontend services
              */
             'service:apache',

@@ -98,6 +98,8 @@ class ExecuteCheckoutProcedure extends Command
         $errorStream = null;
         $outputStream = null;
         $connection->execMultiple($commands, $outputStream, $errorStream, $site->getHtdocsPath());
+
+        $this->emitEvent('source:ready');
     }
 
     /**
