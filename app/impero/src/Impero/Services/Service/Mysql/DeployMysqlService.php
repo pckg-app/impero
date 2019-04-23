@@ -26,7 +26,7 @@ class DeployMysqlService extends Command
      */
     public function configure()
     {
-        $this->setName('service:mysql:deploy')
+        $this->setName('resource:mysql:deploy')
              ->setDescription('Activa te apache for site on server')
              ->addSiteAndServerOptions();
     }
