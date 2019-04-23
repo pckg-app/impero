@@ -78,7 +78,7 @@ class DeployMysqlService extends Command
         /**
          * Some defaults.
          */
-        $dbpass = auth()->createPassword(20);
+        $dbpass = $site->getImperoVarsAttribute()['$dbDefaultPass'] ?? auth()->createPassword(20);
 
         $mysql = $config['mysql'];
 
