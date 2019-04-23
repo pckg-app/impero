@@ -59,6 +59,8 @@ class Impero extends Provider
             \Impero\Services\Service\Config\DeployConfigService::class,
             \Impero\Services\Service\Apache\DeployApacheService::class,
             \Impero\Services\Service\Storage\Console\DeployStorageResource::class,
+            \Impero\Services\Service\Checkout\ExecutePrepareProcedure::class,
+            \Impero\Services\Service\Checkout\ExecuteCheckoutProcedure::class,
         ];
     }
 
