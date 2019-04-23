@@ -33,4 +33,5 @@ return [
             ],
         ],
     ],
+    'lessc' => ' --js=true',
 ];
