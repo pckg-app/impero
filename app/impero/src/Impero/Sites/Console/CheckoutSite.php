@@ -341,6 +341,8 @@ class CheckoutSite extends Command
                 'channel' => $respondChannel,
             ],
         ];
+        $this->outputDated('Posting to channel ' . $channel);
+        $this->outputDated(json_encode($data));
         queue($channel, $callback, $data);
     }
 
