@@ -199,7 +199,7 @@ max_binlog_size = 256M';
         return $task->make(function() use ($databases) {
             $replicationFile = $this->getReplicationConfigLocation();
             $tables = $databases->map('name')->unique()->map(function($table){
-                return 'replicate-wild-do-table=' . $table;
+                return 'replicate-wild-do-table=' . $table . '.%';
             })->implode("\n");
             $content = '[mysqld]
 #skip-slave-start
