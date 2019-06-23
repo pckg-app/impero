@@ -118,6 +118,7 @@ trait SiteAndServer
     public function emitEvent($state)
     {
         $config = $this->decodeOption('shout', true);
+        d($config);
         if (!$config) {
             $this->outputDated('No channel: event state ' . $state);
             return;
