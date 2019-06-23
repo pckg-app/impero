@@ -686,15 +686,22 @@ class Site extends Record
         /**
          * Checkout platform.
          */
-        $connection->execMultiple([
-                                      'git clone ' . $pckg['repository'] . ' .',
-                                      'git checkout ' . $pckg['branch'],
-                                  ], $output, $error, $aliasDir);
+        $commands = [
+            'git clone ' . $pckg['repository'] . ' .',
+            'git checkout ' . $pckg['branch'],
+        ];
 
         /**
          * Init platform.
          */
-        $connection->execMultiple($pckg['init'], $output, $error, $aliasDir);
+        foreach ($pckg['init'] as $initCommand) {
+            $this->replaceCommands($commands, $initCommand);
+        }
+
+        /**
+         * Execute commands
+         */
+        $connection->execMultiple($commands, $output, $error, $aliasDir);
     }
 
     /**
