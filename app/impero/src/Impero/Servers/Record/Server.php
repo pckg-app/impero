@@ -434,10 +434,6 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)';
         return 200 \'User-Agent: *\nDisallow: \';
         add_header Content-Type text/plain;
     }
-    
-    location ~* \.(eot|otf|ttf|woff|woff2)$ {
-        add_header Access-Control-Allow-Origin *;
-    }
 
     # Nginx will serve only files from ./htdocs/storage/ directory.
     # We deny all by default and allow only static files.
@@ -463,6 +459,7 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)';
             expires 1M;
             access_log off;
             add_header Cache-Control "public, max-age=2592000";
+            add_header Access-Control-Allow-Origin *;
 
             try_files $uri =404;
         }
