@@ -451,6 +451,20 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)';
         
         return 403;
     }
+    location /build/ {
+        deny all;
+
+        location ~* "\.(jpg|jpeg|gif|png|css|js|ico|ttf|woff|woff2|otf)$" {
+            allow all;
+            expires 1M;
+            access_log off;
+            add_header Cache-Control "public, max-age=2592000";
+
+            try_files $uri =404;
+        }
+        
+        return 403;
+    }
     location /cache/ {
         deny all;
 
