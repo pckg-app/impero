@@ -248,6 +248,10 @@ class Site extends Record
     alias ' . $this->getHtdocsPath() . 'storage/;
   }' . "\n";
 
+        $vh .= 'location /build/ {
+    alias ' . $this->getHtdocsPath() . 'build/;
+  }' . "\n";
+
         $vh .= 'location /cache/ {
     alias ' . $this->getHtdocsPath() . 'storage/cache/www/;
   }' . "\n";
