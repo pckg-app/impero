@@ -445,6 +445,7 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)';
             expires 1M;
             access_log off;
             add_header Cache-Control "public, max-age=2592000";
+            add_header Access-Control-Allow-Origin *;
 
             try_files $uri =404;
         }
@@ -474,6 +475,7 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)';
             expires 1M;
             access_log off;
             add_header Cache-Control "public, max-age=2592000";
+            add_header Access-Control-Allow-Origin *;
 
             alias ' . $site->getHtdocsPath() . 'www/cache/;
             try_files $uri @apacheProxy;
