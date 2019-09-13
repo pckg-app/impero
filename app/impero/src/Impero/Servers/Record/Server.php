@@ -692,6 +692,7 @@ frontend all_https
             $config .= "\n" . 'backend backend-dynamic-' . $site->id;
             $config .= "\n" . '    balance roundrobin';
             $config .= "\n" . '    mode ' . $httpsMode;
+            $config .= "\n" . '    compression algo gzip';
             //$config .= "\n" . '    cookie PHPSESSID prefix nocache';
             //$config .= "\n" . '    option forwardfor';
 
