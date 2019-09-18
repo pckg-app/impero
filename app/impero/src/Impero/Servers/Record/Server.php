@@ -417,7 +417,7 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)';
     #ssl_prefer_server_ciphers on;
 
     # HSTS (ngx_http_headers_module is required) (15768000 seconds = 6 months)
-    add_header Strict-Transport-Security max-age=15768000;
+    add_header Strict-Transport-Security "max-age=15768000; preload; includeSubDomains" always;
 
     # OCSP Stapling ---
     # fetch OCSP records from URL in ssl_certificate and cache them
@@ -618,7 +618,7 @@ frontend all_https
     tcp-request content accept if { req_ssl_hello_type 1 }
     
     # We do not allow downgrading to https
-    # http-response set-header Strict-Transport-Security max-age=15768000 # only http mode';
+    # http-response set-header Strict-Transport-Security max-age=15768000; preload; includeSubDomains # only http mode';
 
         $split = [];
         foreach ($sitesServers as $sitesServersGrouped) {
