@@ -723,7 +723,7 @@ frontend all_https
             $config .= "\n" . 'backend backend-static-' . $site->id;
             $config .= "\n" . '    balance roundrobin';
             $config .= "\n" . '    mode ' . $httpsMode;
-            $config .= "\n" . '    compression algo gzip';
+            // $config .= "\n" . '    compression algo gzip';
 
             if ($httpsMode == 'tcp') {
                 $config .= "\n" . 'option ssl-hello-chk';
