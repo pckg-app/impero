@@ -282,6 +282,10 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
         $task->make(function() use ($site) {
             $migrate = true;
             $site->sitesServers->filter('type', 'web')->each(function(SitesServer $sitesServer) use ($site, &$migrate) {
+                if ($sitesServer->server->parent_id) {
+                    return;
+                }
+                
                 $site->setImperoPckgAttribute(post('pckg'));
                 $site->mergeImperoVarsAttribute(post('vars'));
 
