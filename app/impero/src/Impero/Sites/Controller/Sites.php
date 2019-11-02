@@ -305,6 +305,86 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
         return ['cronjobs' => ['yes!']];
     }
 
+    public function postScaleAction(Site $site)
+    {
+        $payload = post('orchestrate', []);
+        foreach ($payload as $serviceKey => $scale) {
+            foreach ($scale as $i => $scaleConfig) {
+                $ip = $scaleConfig['host'];
+                $vars = $scaleConfig['vars'];
+                $files = $scaleConfig['files'];
+                /**
+                 * Save vars and files.
+                 * Start new containers.
+                 * Kill old containers.
+                 */
+                $pckgConfig = $site->getImperoPckgAttribute();
+                $server = Server::getOrFail(['ip' => $ip]);
+
+                /**
+                 * Check if there's a service that needs to be running (rabbitmq for cron, web, ...).
+                 */
+                $systems = $pckgConfig['system'];
+                $service = $pckgConfig['service'][$serviceKey];
+                $image = $systems[$service['system']]['image'];
+                $volumes = $service['volumes'] ?? [];
+                $common = '--restart=unless-stopped';
+                $identifier = int2str($site->id);
+                // we want to use the same hostname on all containers?
+                $hostname = $server->name; // sendmail-worker.mailo.impero.local // $serviceKey . '.' . $identifier . '.impero.local';
+                $name = $serviceKey . '-' . $identifier;
+
+                /**
+                 * Collect mounts
+                 */
+                $mounts = [];
+                foreach ($volumes as $k => $v) {
+                    $mounts[] = '-f ' . $k . ':' . $v;
+                }
+                foreach ($files ?? [] as $file => $content) {
+                    // save file content
+                    $dir = '/home/impero/impero/mounts/' . $identifier . '/' . $serviceKey . '/' . $i . '';
+                    $fullPath = $dir . $file;
+                    $fullDir = substr($fullPath, 0, strrpos($fullPath, '/'));
+                    $server->getConnection()->createDir($fullDir);
+                    $server->writeFile($fullPath, $content);
+                    $mounts[] = '-f ' . $file . ':' . $file;
+                }
+                $mounts = $mounts ? ' ' . implode(' ', $mounts) : '';
+
+                /**
+                 * Collect networks.
+                 */
+                $networks = [];
+                foreach ($service['networks'] ?? [] as $net) {
+                    $networks[] = '--network=' . $net;
+                }
+                $networks = $networks ? ' ' . implode(' ', $networks) : '';
+
+                $alreadyDeployed = false;
+                $command = null;
+                if ($alreadyDeployed) {
+                    $command = 'sudo docker restart ' . $name;
+                } else {
+                    $command = 'sudo docker run -d --hostname ' . $hostname . ' --name ' . $name . ' ' . $common .
+                        $mounts . $networks . ' ' . $image;
+                }
+
+                // $server->getConnection()->exec($command);
+            }
+
+            /**
+             * Deactivate all other hosts.
+             * Find all service hosts.
+             * Send them command to kill.
+             * Wait a minute.
+             * Kill them.
+             * But, we need to know where we've deployed them. They are all added as a sub-server.
+             */
+            // $command = 'sudo docker ps | grep "' . $serviceKey .'-"';
+        }
+    }
+
     /**
      * @param Site   $site
      * @param Server $server
@@ -353,7 +433,7 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
         $site->queueReplicateDatabasesToSlave($server);
 
         return [
-            'success'   => true,
+            'success' => true,
         ];
     }
 

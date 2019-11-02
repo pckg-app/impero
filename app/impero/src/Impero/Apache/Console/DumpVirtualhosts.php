@@ -109,18 +109,37 @@ class DumpVirtualhosts extends Command
      */
     protected function storeVirtualhostsHaproxy(Server $server, $virtualhosts)
     {
+        /**
+         * When HAProxy is running as service.
+         */
+        $type = 'service';
         $local = '/tmp/server.' . $server->id . '.haproxy';
         $remote = '/etc/haproxy/haproxy.cfg';
         file_put_contents($local, $virtualhosts);
         if ($this->option('dry')) {
             return;
         }
-        $this->outputDated('Dumping and restarting (haproxy)');
-        $sshConnection = $server->getConnection();
-        $sshConnection->sftpSend($local, $remote);
-        unlink($local);
+        if ($type === 'service') {
+            $this->outputDated('Dumping and restarting (haproxy)');
+            $sshConnection = $server->getConnection();
+            $sshConnection->sftpSend($local, $remote);
+            unlink($local);
 
-        (new HAProxy($sshConnection))->reload();
+            (new HAProxy($sshConnection))->reload();
+        } elseif ($type === 'docker') {
+            /**
+             * When docker is already running, dump new config, and send SIGHUP signal.
+             * Start it when it's not running.
+             * Check for user, group and stats in config.
+             * https://github.com/docker-library/haproxy/issues/6
+             */
+            $containerName = 'impero-service-entrypoint';
+            $image = 'haproxy:1.8.21-alpine';
+            $signal = 'sudo docker kill -s HUP ' . $containerName;
+            $docker = 'sudo docker run --rm --net=host -v /etc/haproxy/haproxy.cfg.old:/usr/local' . $remote .
+                ' -v /etc/haproxy/errors/:/etc/haproxy/errors/ --restart=on-failure --name ' . $containerName . ' ' .
+                $image . ' -p 443:8012 -f /usr/local' . $remote;
+        }
     }
 
     /**

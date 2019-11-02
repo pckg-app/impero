@@ -516,18 +516,25 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)';
                                                                                    ->where('server_id', $this->id)
                                                                                    ->where('type', 'web'))
                                             ->where('type', 'web')
-                                            ->withSite(function(BelongsTo $site) {
-                                                $site->withUser();
-                                            })
-                                            ->withServer(function(BelongsTo $server) {
-                                                $server->withSettings();
-                                            })
-                                            ->all()
-                                            ->groupBy('site_id');
+                                            ->with(['site' => ['user'], 'server' => ['settings']])
+                                            ->all();
+        /**
+         * Also match sites that are hosted in a container on a current server.
+         */
+        (new SitesServers())->where('site_id', (new SitesServers())->select('sites_servers.site_id')->where('server_id', (new Servers())->select('id')->where('parent_id', $server->id)))
+            ->where('type', 'web')
+            ->with(['site' => ['user'], 'server' => ['settings']])
+            ->all()
+            ->copyTo($sitesServers);
+
+        /**
+         * We will need the grouped by site.
+         */
+        $sitesServers = $sitesServers->groupBy('site_id');
 
         $httpPort = $this->getSettingValue('service.haproxy.httpPort', 8080);
         $httpsPort = $this->getSettingValue('service.haproxy.httpsPort', 8082);
-        $httpsMode = 'tcp';
+        $httpsMode = 'tcp'; // on tcp mode we do NOT make SSL offloading, we simple forward packets
 
         /**
          * Make sure that haproxy-crt-list exists.
@@ -592,13 +599,15 @@ defaults
     
     # Forward letsencrypt requests separately
     acl letsencrypt-acl path_beg /.well-known/acme-challenge/
-    use_backend letsencrypt if letsencrypt-acl
     
     # Change http to https port
     http-request replace-header Host ^(.*?)(:[0-9]+)?$ \1:443 if !letsencrypt-acl
     
     # Change scheme to https and port to https port
     http-request redirect location https://%[req.hdr(Host)]%[capture.req.uri] if !letsencrypt-acl
+    
+    # then process usages
+    use_backend letsencrypt if letsencrypt-acl
      
 frontend all_https
     # Https listens only on https port and forwards requests to backends
@@ -708,6 +717,24 @@ frontend all_https
             }
 
             foreach ($workers as $worker) {
+                /**
+                 * When worker is a localhost, the ip will be "localhost".
+                 * When worker is a container on a localhost, the ip will be ip from a swarm's advertised address (openvpn).
+                 * When worker is a remote host, the ip will be from a openvpn network.
+                 * When worker is a container on a remote host, the ip will be ip from remote host (openvpn)
+                 *
+                 * When worker is a localhost, the port will be 8082.
+                 * When worker is a container on a localhost, the port will be 8084? what about when multiple containers are hosted?
+                 * When worker is a remote host, the port will be 8082.
+                 * When worker is a container on a remote host, the port will be 8086? what about when multiple containers are hosted?
+                 * Can we load balance all requests and act as a load balancer, offloader, forwarder?, router?
+                 *
+                 * When an entry point works as a ROUTER, it splits the requests on tcp level by domain name - comms platforms | comms hub | mailo | ...
+                 * ROUTER sends all requests to OFF-LOADER or LOAD BALANCER.
+                 * When an entry point works as an OFF-LOADER, it works on a http level, removing https encription, forwarding to backends
+                 * When an entry point works as a LOAD BALANCER, it balances the traffic between backends
+                 * When an entry point works as a FORWARDER, it forwards the request to the next loadbalancer (ROUTER's default?)
+                 */
                 $allWorkers[$worker->id] = $worker;
                 $workerHttpsPort = $httpsMode == 'tcp' ? $worker->getSettingValue('service.apache2.httpsPort', 443)
                     : $worker->getSettingValue('service.apache2.httpPort', 80);
