@@ -516,14 +516,22 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)';
                                                                                    ->where('server_id', $this->id)
                                                                                    ->where('type', 'web'))
                                             ->where('type', 'web')
-                                            ->with(['site' => ['user'], 'server' => ['settings']])
+            ->withSite(function(BelongsTo $site){
+                $site->withUser();
+            })->withServer(function(BelongsTo $server){
+                $server->withSettings();
+            })
                                             ->all();
         /**
          * Also match sites that are hosted in a container on a current server.
          */
         (new SitesServers())->where('site_id', (new SitesServers())->select('sites_servers.site_id')->where('server_id', (new Servers())->select('id')->where('parent_id', $server->id)))
             ->where('type', 'web')
-            ->with(['site' => ['user'], 'server' => ['settings']])
+            ->withSite(function(BelongsTo $site){
+                $site->withUser();
+            })->withServer(function(BelongsTo $server){
+                $server->withSettings();
+            })
             ->all()
             ->copyTo($sitesServers);
 
