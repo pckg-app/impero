@@ -91,11 +91,11 @@ class Site extends Record
         }
 
         if ($this->error_log) {
-            $directives[] = 'ErrorLog ' . $this->getLogPath() . 'error.log';
+            $directives[] = '#ErrorLog ' . $this->getLogPath() . 'error.log';
         }
 
         if ($this->access_log) {
-            $directives[] = 'CustomLog ' . $this->getLogPath() . 'access.log combined';
+            $directives[] = '#CustomLog ' . $this->getLogPath() . 'access.log combined';
         }
 
         return $directives;

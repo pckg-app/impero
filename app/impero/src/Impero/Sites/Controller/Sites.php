@@ -285,7 +285,7 @@ automatically and permanently.</p>' . '<p>Best regards, /impero team</p>';
                 if ($sitesServer->server->parent_id) {
                     return;
                 }
-                
+
                 $site->setImperoPckgAttribute(post('pckg'));
                 $site->mergeImperoVarsAttribute(post('vars'));
 
