@@ -440,7 +440,7 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)';
     location /storage/ {
         deny all;
 
-        location ~* "\.(jpg|jpeg|gif|png|css|js|ico|ttf|woff|woff2|otf)$" {
+        location ~* "\.(jpg|jpeg|gif|png|webp|css|js|ico|ttf|woff|woff2|otf)$" {
             allow all;
             expires 1M;
             access_log off;
@@ -455,7 +455,7 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)';
     location /build/ {
         deny all;
 
-        location ~* "\.(jpg|jpeg|gif|png|css|js|ico|ttf|woff|woff2|otf)$" {
+        location ~* "\.(jpg|jpeg|gif|png|webp|css|js|ico|ttf|woff|woff2|otf)$" {
             allow all;
             expires 1M;
             access_log off;
