@@ -538,7 +538,7 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)';
         /**
          * We will need the grouped by site.
          */
-        $sitesServers = $sitesServers->groupBy('site_id');
+        $sitesServers = $sitesServers->keyBy('id')->groupBy('site_id');
 
         $httpPort = $this->getSettingValue('service.haproxy.httpPort', 8080);
         $httpsPort = $this->getSettingValue('service.haproxy.httpsPort', 8082);
