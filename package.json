@@ -22,7 +22,7 @@
     "puppeteer": "^1.1.1",
     "simple-vue-validator": "^0.14.2",
     "sortablejs": "^1.7.0",
-    "tinymce": "^4.7.2",
+    "tinymce": "^4.9.7",
     "vee-validate": "^2.0.0-rc.27",
     "vue": "^2.5.3",
     "vue-loader": "^15.4.2",
