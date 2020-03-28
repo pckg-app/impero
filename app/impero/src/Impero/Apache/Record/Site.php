@@ -864,49 +864,66 @@ class Site extends Record
                                       ' on ip ' . $ip, null, null, null);
         }
 
-        $realDomains = implode(',', $realDomains);
-        $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email . ' --webroot-path ' .
-            $webroot . ' --cert-name ' . $domain . ' --domains "' . $realDomains . '" --webroot --expand';
 
         /**
-         * Execute command.
+         * When domains are only *.id, *.cdn and *.demo, redirect to cdn certificate?
          */
         $connection = $this->getServerConnection();
-        $response = $connection->exec($command . ' ' . $params);
+        $certsDir = null;
+        if (count($realDomains) === 3 && collect($realDomains)->filter(function($domain){
+            return strpos($domain, '.id.startcomms.com') > 0
+                || strpos($domain, '.cdn.startcomms.com') > 0
+                || strpos($domain, '.demo.startcomms.com') > 0;
+            })->count() === 3) {
+            $certsDir = '/etc/letsencrypt/live/\*.id.startcomms.com/'; // * is escaped
 
-        if (strpos($response, 'Certificate not yet due for renewal')) {
+        } else {
             /**
-             * Check if correct certificate is linked?
+             * Classic new domain retrieval?
              */
-            return false;
-        }
+            $realDomains = implode(',', $realDomains);
+            $params = '--agree-tos --non-interactive --text --rsa-key-size 4096 --email ' . $email . ' --webroot-path ' .
+                $webroot . ' --cert-name ' . $domain . ' --domains "' . $realDomains . '" --webroot --expand';
 
-        $congrats = 'Congratulations! Your certificate and chain have been saved at:';
-        if (strpos($response, $congrats) === false) {
             /**
-             * What happened? Another instance is running?
+             * Execute command.
              */
-            return false;
+            $response = $connection->exec($command . ' ' . $params);
+
+            if (strpos($response, 'Certificate not yet due for renewal')) {
+                /**
+                 * Check if correct certificate is linked?
+                 */
+                return false;
+            }
+
+            $congrats = 'Congratulations! Your certificate and chain have been saved at:';
+            if (strpos($response, $congrats) === false) {
+                /**
+                 * What happened? Another instance is running?
+                 */
+                return false;
+            }
+
+            /**
+             * @T00D00 - when certificate is re-issued we need to make backup of it and transfer it to all servers.
+             *         - we also need to update path, when needed
+             */
+            $startCongrats = strpos($response, $congrats);
+            $startDir = $startCongrats + strlen($congrats);
+            $endDir = strpos($response, '.pem', $startDir);
+            $fullPath = trim(substr($response, $startDir, $endDir - $startDir));
+            $certsDir = trim(substr($fullPath, 0, strrpos($fullPath, '/') + 1));
+
+            if (!$certsDir) {
+                return false;
+            }
+
+            /**
+             * If command is successful update site, dump config and restart apache.
+             */
+            // $certsDir = '/etc/letsencrypt/live/' . $domain . '/';
         }
-
-        /**
-         * @T00D00 - when certificate is re-issued we need to make backup of it and transfer it to all servers.
-         *         - we also need to update path, when needed
-         */
-        $startCongrats = strpos($response, $congrats);
-        $startDir = $startCongrats + strlen($congrats);
-        $endDir = strpos($response, '.pem', $startDir);
-        $fullPath = trim(substr($response, $startDir, $endDir - $startDir));
-        $dir = trim(substr($fullPath, 0, strrpos($fullPath, '/') + 1));
-
-        if (!$dir) {
-            return false;
-        }
-
-        /**
-         * If command is successful update site, dump config and restart apache.
-         */
-        // $dir = '/etc/letsencrypt/live/' . $domain . '/';
 
         /**
          * Create symlinks.
@@ -918,7 +935,7 @@ class Site extends Record
                 $connection->deleteFile($sslPath . $file);
             }
 
-            $connection->exec('sudo ln -s ' . $dir . $file . ' ' . $sslPath . $file);
+            $connection->exec('sudo ln -s ' . $certsDir . $file . ' ' . $sslPath . $file);
         }
 
         /**
@@ -1146,6 +1163,7 @@ class Site extends Record
         (new DeployCronService())->executeManually([
             '--server' => $server->id,
             '--site' => $this->id,
+            '--config' => ['commands' => []],
                                                        ]);
     }
 
