@@ -256,6 +256,10 @@ class Site extends Record
     alias ' . $this->getHtdocsPath() . 'storage/cache/www/;
   }' . "\n";
 
+        $vh .= 'location /img/ {
+    alias ' . $this->getHtdocsPath() . 'www/img/;
+  }' . "\n";
+
         $vh .= '    location / {' . "\n";
         $vh .= '	    proxy_pass https://' . $appName . ';' . "\n";
         $vh .= '	    proxy_set_header X-Real-IP $remote_addr;' . "\n";
