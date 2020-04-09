@@ -478,7 +478,8 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)';
             access_log off;
             add_header Cache-Control "public, max-age=2592000";
             add_header Access-Control-Allow-Origin *;
-
+            disable_symlinks off;
+            
             alias ' . $site->getHtdocsPath() . 'app/derive/src/Derive/Layout/public/img/;
             try_files $uri =404;
         }
