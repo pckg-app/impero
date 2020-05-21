@@ -88,7 +88,7 @@ class Docker extends AbstractService implements ServiceInterface
          * Dump entrypoints.
          */
         foreach ($files as $file => $content) {
-            $this->getConnection()->saveContent($dir . $file, Yaml::dump($content));
+            $this->getConnection()->saveContent($dir . $file, $content);
         }
 
         /**
