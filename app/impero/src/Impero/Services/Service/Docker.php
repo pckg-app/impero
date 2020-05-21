@@ -2,6 +2,7 @@
 
 use Impero\Jobs\Record\Job;
 use Impero\Services\Service\Connection\ContainerConnection;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class Docker
@@ -87,7 +88,7 @@ class Docker extends AbstractService implements ServiceInterface
          * Dump entrypoints.
          */
         foreach ($files as $file => $content) {
-            $this->getConnection()->saveContent($dir . $file, $content);
+            $this->getConnection()->saveContent($dir . $file, Yaml::dump($content));
         }
 
         /**
