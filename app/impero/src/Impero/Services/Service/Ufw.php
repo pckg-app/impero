@@ -73,21 +73,25 @@ class Ufw extends AbstractService implements ServiceInterface
     public function activate()
     {
         $commands = [
+            'sudo apt-get update',
+            'sudo apt-get upgrade',
+            // ufw
             'sudo apt-get install ufw -y',
-            'ufw disable',
-            'ufw default deny incoming',
-            'ufw default allow outgoing',
-            'ufw allow 22',
-            'ufw allow 80',
-            'ufw allow 443',
+            'sudo ufw disable',
+            'sudo ufw default deny incoming',
+            'sudo ufw default allow outgoing',
+            'sudo ufw allow 22',
+            'sudo ufw allow 80',
+            'sudo ufw allow 443',
             // docker
-            'sudo ufw allow 2376/tcp && sudo ufw allow 7946/udp && sudo ufw allow 7946/tcp && sudo ufw allow 2377/tcp && sudo ufw allow 4789/udp',
-            'ufw enable',
+            'sudo sudo ufw allow 2376/tcp && sudo ufw allow 7946/udp && sudo ufw allow 7946/tcp && sudo ufw allow 2377/tcp && sudo ufw allow 4789/udp',
+            'sudo ufw enable',
         ];
         $connection = $this->getConnection();
         foreach ($commands as $command) {
             $connection->exec($command);
         }
+        d('manuall execute: sudo ufw enable');
     }
 
 }

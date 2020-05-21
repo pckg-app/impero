@@ -39,7 +39,7 @@ class MoveSite extends Command
 
         if (!$webs->count()) {
             $this->outputDated('No webs');
-            return;
+            //return;
         }
 
         //$site->removeFromWeb();

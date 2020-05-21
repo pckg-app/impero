@@ -55,7 +55,7 @@ class Docker extends AbstractService implements ServiceInterface
 
     public function initSwarm($ip)
     {
-        $this->getConnection()->exec('docker swarm init --advertise-addr ' . $ip);
+        $this->getConnection()->exec('sudo docker swarm init --advertise-addr ' . $ip);
     }
 
     public function deploySwarm($name, $dir, $files, $variables = [])
@@ -81,8 +81,7 @@ class Docker extends AbstractService implements ServiceInterface
         /**
          * Build commend.
          */
-        $command = 'cd ' . $dir . ' && ' . $vars . ' docker stack deploy ' .
-            $name . ' ' . $entrypoints . ' --with-registry-auth --prune';
+        $command = 'cd ' . $dir . ' && ' . $vars . ' docker stack deploy ' . $name . ' ' . $entrypoints . ' --with-registry-auth --prune --resolve-image';
 
         /**
          * Dump entrypoints.
