@@ -1,6 +1,7 @@
 <?php namespace Impero\Sites\Provider;
 
 use Impero\Sites\Console\CheckoutSite;
+use Impero\Sites\Console\DeploySite;
 use Impero\Sites\Console\DereplicateDatabaseToSlave;
 use Impero\Sites\Console\DestroySite;
 use Impero\Sites\Console\ExecSite;
@@ -113,6 +114,7 @@ class Sites extends Provider
             DereplicateDatabaseToSlave::class,
             DestroySite::class,
             ExecSite::class,
+            DeploySite::class,
         ];
     }
 

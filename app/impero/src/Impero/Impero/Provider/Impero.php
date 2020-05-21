@@ -9,6 +9,7 @@ use Impero\Impero\Middleware\LogApiResponses;
 use Impero\Mysql\Provider\Mysql as MysqlProvider;
 use Impero\Servers\Provider\Servers;
 use Impero\Services\Provider\Services;
+use Impero\Services\Service\Backup\Provider\Backup;
 use Impero\Sites\Provider\Sites;
 use Impero\Storage\Provider\Storage;
 use Impero\Task\Provider\Task;
@@ -46,6 +47,7 @@ class Impero extends Provider
             Frontend::class,
             Task::class,
             Storage::class,
+            Backup::class,
         ];
     }
 

@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  # every 12h check for letsencrypt renewal
+  # this should be handled by Impero?
+  # when server has docker installed impero can deploy a special service for letsencrypt.
+  # because it should run only one per host, we will need to activate it on all servers.
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure

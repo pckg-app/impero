@@ -2,6 +2,7 @@
 
 use Impero\Impero\Provider\Impero as ImperoProvider;
 use Impero\Services\Service\Backup\Console\MakeMysqlBackup;
+use Impero\Services\Service\Backup\Console\MakeMysqlRestore;
 use Impero\Services\Service\Storage\Console\MakeConfigBackup;
 use Impero\Services\Service\Storage\Console\MakeStorageBackup;
 use Impero\Services\Service\System\Console\MakeSystemBackup;
@@ -22,10 +23,12 @@ class Impero extends Provider
     public function providers()
     {
         return [
-            ImperoProvider::class,
+            Provider\Frontend::class,
             Provider\Framework::class,
+            \Pckg\Manager\Provider\Manager::class,
             Console::class,
             (new \Pckg\Queue\Provider\Queue())->setRoutePrefix('/queue'),
+            ImperoProvider::class,
         ];
     }
 
@@ -49,6 +52,7 @@ class Impero extends Provider
     {
         return [
             MakeMysqlBackup::class,
+            MakeMysqlRestore::class,
             MakeStorageBackup::class,
             MakeSystemBackup::class,
             MakeConfigBackup::class,
@@ -83,14 +87,24 @@ class Impero extends Provider
     public function assets()
     {
         return [
-            'vue' => [
+            'libraries' => [
+                '/build/js/libraries.js',
+            ],
+            'vue'       => [
                 '/build/js/backend.js',
                 '/build/js/services.js',
                 '/build/js/auth.js',
                 '/build/js/generic.js',
             ],
-            '@' . path('root') . 'app/impero/public/less/vars.less',
-            'less/impero.less',
+            'main'      => [
+                '@' . path('vendor') . 'pckg/generic/src/Pckg/Maestro/public/less/maestro_vars.less',
+                '@' . path('vendor') . 'pckg/helpers-less/shared-vars.less',
+                '@' . path('root') . 'app/impero/public/less/vars.less',
+                'less/impero.less',
+            ],
+            'footer'    => [
+                '/build/js/footer.js',
+            ],
         ];
     }
 

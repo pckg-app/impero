@@ -10,6 +10,14 @@ use Pckg\Queue\Service\RabbitMQ;
 use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\Console\Input\InputOption;
 
+/**
+ * This is an asynchronous command which reads the bring-up section in pckg.yaml.
+ * It publishes commands to service workers so only one service command is
+ * executed on the server at the same time.
+ *
+ * Class CheckoutSite
+ * @package Impero\Sites\Console
+ */
 class CheckoutSite extends Command
 {
 
@@ -30,11 +38,15 @@ class CheckoutSite extends Command
 
     public function configure()
     {
-        $this->setName('site:checkout')->setDescription('Deploy services to server')->addOptions([
-                                                                                                     'site'  => 'Site ID',
-                                                                                                     'scale' => 'Scale configuration',
-                                                                                                 ],
-                                                                                                 InputOption::VALUE_REQUIRED);
+        $this->setName('site:checkout')
+            ->setDescription('Deploy services to server')
+            ->addOptions([
+                'site' => 'Site ID',
+                'scale' => 'Scale configuration',
+            ], InputOption::VALUE_REQUIRED)
+        ->addOptions([
+            'no-queue' => 'Directly run commands, no queue'
+        ], InputOption::VALUE_NONE);
     }
 
     /**
@@ -88,6 +100,7 @@ class CheckoutSite extends Command
      * Not-dependant parts can be queued immediately to server:service queue.
      * Dependant parts will be fired immediately after all requirements are met.
      * Requirements are met when all needed events are fired.
+     *
      * Known resources: mysql, redis, rabbitmq
      * Known commands: checkout, prepare
      * Known services: web, web-static, web-dynamic, cron, queue
@@ -364,7 +377,12 @@ class CheckoutSite extends Command
          */
         $this->outputDated('Posting to channel ' . $channel . ' command ' . $callback);
         $this->outputDated(json_encode($data));
-        queue($channel, $callback, $data);
+
+        if ($this->option('no-queue')) {
+            d('skipping', $channel, $callback, $data);
+        } else {
+            queue($channel, $callback, $data);
+        }
     }
 
 }

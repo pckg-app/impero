@@ -40,7 +40,7 @@ class Zip extends AbstractService implements ServiceInterface
     {
         $task = Task::create('Compressing file ');
 
-        return $task->make(function() use ($file, $output) {
+        return $task->make(function () use ($file, $output) {
             if (!$output) {
                 $output = $this->prepareDirectory('random') . sha1random();
             }
@@ -60,15 +60,25 @@ class Zip extends AbstractService implements ServiceInterface
      */
     public function compressDirectory($input, $output = null)
     {
-        if ($output) {
+        if (!$output) {
             $output = $this->prepareDirectory('random') . sha1random();
         }
 
-        $command = 'zip ' . $output . ' -y -x "live/*/*/storage/tmp/*" -x "live/*/*/storage/cache/*" -r ' . $input .
+        $command = 'sudo zip ' . $output . '.zip -y -x "**/storage/tmp/*" -x "**/storage/cache/*" -r ' . $input .
             ' && mv ' . $output . '.zip ' . $output;
         $this->exec($command);
 
         return $output;
+    }
+
+    /**
+     * @param array $directories
+     * @param null $output
+     * @return string|null
+     */
+    public function compressDirectories(array $directories, $output = null)
+    {
+        return $this->compressDirectory(implode(" ", $directories), $output);
     }
 
     /**
@@ -89,7 +99,7 @@ class Zip extends AbstractService implements ServiceInterface
         }
 
         $dir = $this->prepareDirectory('random');
-        $this->exec('cd ' . $dir . ' && unzip -qq ' . $file);
+        $this->exec('cd ' . $dir . ' && unzip -qq -u ' . $file);
 
         $output = $dir . $output;
 
@@ -107,7 +117,18 @@ class Zip extends AbstractService implements ServiceInterface
         if (!$output) {
             $output = $this->prepareDirectory('random') . sha1random();
         }
-        $command = 'unzip ' . $file . ' ' . $output;
+        $command = 'unzip ' . $file . ' -d ' . $output;
+        $this->exec($command);
+
+        /**
+         * In that directory there's a single file that needs to be unzipped.
+         * Why?
+         */
+        $lsLa = $this->getConnection()->exec('ls -la ' . $output . ' | head -n 4', $outputs);
+        $array = explode(" ", $outputs);
+        $name = end($array);
+
+        $command = 'cd ' . $output . ' && unzip ' . $output . '/' . $name;
         $this->exec($command);
 
         return $output;

@@ -7,9 +7,10 @@ return [
             'host' => [
                 'impero.foobar.si',
                 'bob.pckg.impero',
+                '(.*)',
             ],
         ],
-        'queue'  => [
+        /*'queue'  => [
             'host' => [
                 'queue.foobar.si',
                 'bob.pckg.queue',
@@ -26,6 +27,6 @@ return [
             'host' => [
                 'bob.pckg.tempus',
             ],
-        ],
+        ],*/
     ],
 ];

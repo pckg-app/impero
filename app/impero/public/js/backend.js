@@ -1,4 +1,3 @@
-import PckgPingComponent from "../../../../vendor/pckg/generic/src/Pckg/Generic/View/pckgPing.vue";
 import VueComponentGmapsComponent from "../../../../vendor/pckg/helpers-js/vue/gmaps.vue";
 import PckgDynamicPaginatorComponent from "../../../../vendor/pckg/generic/src/Pckg/Maestro/public/vue/pckg-dynamic-paginator.vue";
 import PckgTabelizeFieldDatetimeComponent from "../../../../vendor/pckg/generic/src/Pckg/Maestro/public/vue/pckg-tabelize-field-datetime.vue";
@@ -23,7 +22,6 @@ import { Tasks, Services, Service } from "../../src/Pckg/Generic/public/impero.j
 
 Pckg.vue.stores.impero = ImperoStore;
 
-Vue.component('pckg-ping', PckgPingComponent);
 Vue.component('vue-component-gmaps', VueComponentGmapsComponent);
 Vue.component('pckg-dynamic-paginator', PckgDynamicPaginatorComponent);
 Vue.component('pckg-tabelize-field-datetime', PckgTabelizeFieldDatetimeComponent);

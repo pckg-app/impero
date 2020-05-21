@@ -3,6 +3,7 @@
 use Impero\Mysql\Record\Database;
 use Impero\Servers\Record\Server;
 use Impero\Servers\Record\Task;
+use Impero\Services\Service\Connection\ContainerConnection;
 use Pckg\Collection;
 
 /**
@@ -45,16 +46,20 @@ class Mysql extends AbstractService implements ServiceInterface
     {
         $task = Task::create('Starting slave');
 
-        return $task->make(function() {
+        return $task->make(function () {
             return $this->getMysqlConnection()->execute('START SLAVE;');
         });
     }
 
     /**
-     * @return MysqlConnection
+     * @return MysqlConnection|MysqlContainerConnection
      */
     public function getMysqlConnection()
     {
+        if ($this->getConnection() instanceof ContainerConnection) {
+            return new MysqlContainerConnection($this->getConnection());
+        }
+
         return new MysqlConnection($this->getConnection());
     }
 
@@ -65,7 +70,7 @@ class Mysql extends AbstractService implements ServiceInterface
     {
         $task = Task::create('Stopping slave');
 
-        return $task->make(function() {
+        return $task->make(function () {
             $this->getMysqlConnection()->execute('STOP SLAVE;');
         });
     }
@@ -196,9 +201,9 @@ max_binlog_size = 256M';
     {
         $task = Task::create('Dumping mysql slave replication configuration');
 
-        return $task->make(function() use ($databases) {
+        return $task->make(function () use ($databases) {
             $replicationFile = $this->getReplicationConfigLocation();
-            $tables = $databases->map('name')->unique()->map(function($table){
+            $tables = $databases->map('name')->unique()->map(function ($table) {
                 return 'replicate-wild-do-table=' . $table . '.%';
             })->implode("\n");
             $content = '[mysqld]
@@ -262,7 +267,7 @@ log_bin = /var/log/mysql/mysql-bin.log
      */
     public function refreshMasterReplicationFilter(Collection $databases)
     {
-        $dbString = $databases->map(function(Database $database) {
+        $dbString = $databases->map(function (Database $database) {
             return '`' . $database->name . '`';
         })->implode(',');
         $sql = 'CHANGE REPLICATION FILTER REPLICATE_DO_DB = (' . $dbString . ');';
@@ -321,8 +326,8 @@ log_bin = /var/log/mysql/mysql-bin.log
     {
         $task = Task::create('Refresing slave replication filter');
 
-        return $task->make(function() use ($databases) {
-            $dbString = $databases->map(function(Database $database) {
+        return $task->make(function () use ($databases) {
+            $dbString = $databases->map(function (Database $database) {
                 return '\'' . $database->name . '.%\'';
             })->implode(',');
             $sql = 'CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = (' . $dbString . ');';
@@ -360,6 +365,32 @@ log_bin = /var/log/mysql/mysql-bin.log
         $stopBinlogPosition = '27284'; // or --stop-never ? what about --one-database ?
         $command = 'mysqlbinlog --start-position=' . $startBinlogPosition . '  --stop-position=' . $stopBinlogPosition .
             ' ' . $binlogs . ' ' . '| mysql --host=host_name -u root -p';
+    }
+
+    /**
+     * This is executed on droplet's mysql server or in container on droplet.
+     * This only works directly on droplet?
+     *
+     * @param $name
+     * @param $file
+     */
+    public function restoreDatabase($name, $file)
+    {
+        /**
+         * Create database in mysql server.
+         */
+        $sql = 'CREATE DATABASE IF NOT EXISTS `' . $name . '` CHARACTER SET `utf8` COLLATE `utf8_general_ci`';
+        $error = $output = null;
+        $ok = $this->getMysqlConnection()->execute($sql, $error, $output);
+        d('ok', $ok, $error, $output);
+
+        /**
+         * Import database over SSH / in shell.
+         */
+        $error = $output = null;
+        $ok = $this->getMysqlConnection()
+            ->pipeIn($file, $name . ' --init-command="SET SESSION FOREIGN_KEY_CHECKS=0;"', $error, $output);
+        d('ok', $ok, $error, $output);
     }
 
 }

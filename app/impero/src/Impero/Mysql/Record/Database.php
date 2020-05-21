@@ -123,84 +123,17 @@ class Database extends Record implements Connectable
         /**
          * Execute backup task.
          */
-        $task->make(function() {
-            /**
-             * Establish connection to server and create mysql dump.
-             */
+        $task->make(function () {
+
             $backupService = new Backup($this->getConnection());
-            $localBackupService = new Backup(context()->getOrCreate(ConnectionManager::class)->createConnection());
-            $createdAt = date('Y-m-d H:i:s');
 
-            $backupFile = $backupService->createMysqlBackup($this);
-
-            if (!$backupFile) {
-                throw new Exception('Backed up file not set?');
-            }
-
-            /**
-             * Compress and encrypt backup on remote server.
-             */
-            $crypto = new Crypto($this->server, null, $backupFile);
-            $encryptedFile = $crypto->compressAndEncrypt();
-
-            if (!$encryptedFile) {
-                throw new Exception('Encrypted file not set?');
-            }
-
-            /**
-             * Transfer encrypted backup, private key and certificate to safe / cold location.
-             */
-            $coldFile = $backupService->toCold($crypto->getFile());
-            if (!$coldFile) {
-                throw new Exception('Cold file not set?');
-            }
-
-            $keys = $crypto->getKeys();
-            /**
-             * @T00D00
-             */
-            $coldPrivate = $keys['private'] ?? null;
-            $coldCert = $keys['cert'] ?? null;
-            //$coldPrivate = $localBackupService->toCold($keys['private']);
-            //$coldCert = $localBackupService->toCold($keys['cert']);
-
-            $task = Task::create('Associating cold file with keys');
-            $task->make(function() use ($coldFile, $coldPrivate, $coldCert, $createdAt) {
-                /**
-                 * @T00D00 - decrypt keys?
-                 * Associate key with cold path so we can decrypt it later.
-                 * If someone gets coldpath encrypted files he cannot decrypt them without keys.
-                 * If someone gets encryption keys he won't have access to cold storage.
-                 * If someone gets encrypted files and keys he need mapper between them.
-                 * If someone gets mapper between coldpath and keys he would need keys and storage.
-                 * .......
-                 * We also want to associate backup with database and server maybe? So we can actually know right context. :)
-                 * So, when we want to restore db backup or storage backup, we go to database or mount point and see list of
-                 * available backups. User selects backup to restore, and target server, system checks for secret links,
-                 * transfers, encrypts and imports file; or download encrypted file + private key package, both repackaged and
-                 * encrypted with per-download-set password.
-                 * .......
-                 * Maybe we should store secret keys in different database for better security?
-                 *         When decrypting we need to know which private key unlocks with file and which cert cancels private key.
-                 *         Additionally we'll encrypt private key with password file.
-                 */
-
-                /**
-                 * Now tell system that this file is backup of specific database?
-                 */
-                $secretData = [
-                    'file' => $coldFile,
-                    'keys' => json_encode([
-                                              'morph_id'   => Databases::class,
-                                              'poly_id'    => $this->id,
-                                              'created_at' => $createdAt,
-                                              'type'       => 'mysql:dump',
-                                              'private'    => $coldPrivate,
-                                              'cert'       => $coldCert,
-                                          ]),
-                ];
-                Secret::create($secretData);
-            });
+            Backup::fullColdBackup($backupService, function ($backupService) {
+                return $backupService->createMysqlBackup($this);
+            }, $this->server, [
+                'morph_id' => Databases::class,
+                'poly_id' => $this->id,
+                'type' => 'mysql:dump',
+            ]);
         });
 
         return true;

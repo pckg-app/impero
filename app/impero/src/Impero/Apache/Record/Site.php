@@ -7,13 +7,19 @@ use Impero\Mysql\Entity\Databases;
 use Impero\Mysql\Entity\Users;
 use Impero\Mysql\Record\Database;
 use Impero\Mysql\Record\User as DatabaseUser;
+use Impero\Secret\Entity\Secrets;
+use Impero\Secret\Record\Secret;
+use Impero\Secret\Service\Secret as SecretService;
 use Impero\Servers\Entity\ServersMorphs;
 use Impero\Servers\Record\Server;
 use Impero\Servers\Record\ServersMorph;
 use Impero\Servers\Record\Task;
 use Impero\Services\Service\Apache\DeployApacheService;
+use Impero\Services\Service\Backup;
 use Impero\Services\Service\Config\DeployConfigService;
 use Impero\Services\Service\Cron\DeployCronService;
+use Impero\Services\Service\Docker;
+use Impero\Services\Service\Mysql;
 use Impero\Services\Service\Storage\Console\DeployStorageResource;
 use Impero\Services\Service\Checkout\ExecuteCheckoutProcedure;
 use Impero\Services\Service\Checkout\ExecutePrepareProcedure;
@@ -24,6 +30,7 @@ use Pckg\Database\Record;
 use Pckg\Framework\Console\Command;
 use Pckg\Generic\Record\SettingsMorph;
 use Pckg\Queue\Service\Cron\Fork;
+use Symfony\Component\Yaml\Yaml;
 use Throwable;
 use Pckg\Queue\Service\RabbitMQ;
 
@@ -390,26 +397,38 @@ class Site extends Record
         $this->restartAllServices();
     }
 
+    public function getLastSecretFor($type)
+    {
+        return SecretService::getLastSecretFor(Sites::class, $this->id, $type);
+    }
+
     public function createFullBackup()
     {
-        /**
-         * Storage
-         *  - htdocs
-         *  - logs
-         * Mysql
-         *  - project databases
-         * Config
-         *  - config/env.php
-         *  - .env
-         * Certificates
-         *  - /etc/letsencrypt/
-         * Upload everything to DO spaces.
-         */
+        (new Backup\Console\CreateSiteBackup())->executeManually([
+            '--site' => $this->id,
+        ]);
+    }
+
+    public function createFullRestore(Server $server)
+    {
+        (new Backup\Console\RestoreSiteBackup())->executeManually([
+            'site' => $this->id,
+            'server' => $server->id,
+        ]);
+    }
+
+    public function getSslDomain()
+    {
+        return $this->server_name; // could be different!
+
+        $finalDir = dirname(readlink($this->getSslPath() . '/cert.pem'));
+        $exploded = explode('/', $finalDir);
+        return end($exploded);
     }
 
     public function removeFromCron()
     {
-        (new SitesServers())->where('site_id', $this->id)->where('type', 'cron')->all()->each(function(
+        (new SitesServers())->where('site_id', $this->id)->where('type', 'cron')->all()->each(function (
             SitesServer $sitesServer
         ) {
             $sitesServer->undeploy();
@@ -422,7 +441,7 @@ class Site extends Record
         /**
          * Delete htdocs, logs and ssl directories, as well as parent site directory.
          */
-        (new SitesServers())->where('site_id', $this->id)->where('type', 'web')->all()->each(function(
+        (new SitesServers())->where('site_id', $this->id)->where('type', 'web')->all()->each(function (
             SitesServer $sitesServer
         ) {
             /**
@@ -430,7 +449,7 @@ class Site extends Record
              */
             $sitesServer->undeploy();
         });
-        (new SitesServers())->where('site_id', $this->id)->where('type', 'config')->all()->each(function(
+        (new SitesServers())->where('site_id', $this->id)->where('type', 'config')->all()->each(function (
             SitesServer $sitesServer
         ) {
             $sitesServer->undeploy();
@@ -496,16 +515,16 @@ class Site extends Record
          * Delete users
          */
         $databases = (new Databases())->where('name', $this->getSiteDatabases())->all();
-        $databases->each(function(Database $database) {
+        $databases->each(function (Database $database) {
             /**
              * Delete database users.
              */
             (new Users())->where('name', $database->name)->delete();
 
             $slave = (new ServersMorphs())->where('type', 'database:slave')
-                                          ->where('morph_id', Databases::class)
-                                          ->where('poly_id', $database->id)
-                                          ->one();
+                ->where('morph_id', Databases::class)
+                ->where('poly_id', $database->id)
+                ->one();
             if ($slave) {
                 $this->dereplicateDatabasesFromSlave($slave->server);
                 $slave->delete();
@@ -556,7 +575,7 @@ class Site extends Record
     {
         $task = Task::create('Adding cron worker for site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(function() use ($server, $pckg, $vars) {
+        return $task->make(function () use ($server, $pckg, $vars) {
 
         });
     }
@@ -567,7 +586,7 @@ class Site extends Record
 
         $task = Task::create('Adding web worker for site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(function() use ($server) {
+        return $task->make(function () use ($server) {
             /**
              * Link server and site's service.
              */
@@ -626,7 +645,7 @@ class Site extends Record
     {
         $task = Task::create('Creating site #' . $this->id . ' on filesystem on server #' . $server->id);
 
-        return $task->make(function() use ($server) {
+        return $task->make(function () use ($server) {
             $connection = $server->getConnection();
 
             $connection->exec('mkdir -p ' . $this->getHtdocsPath());
@@ -644,9 +663,9 @@ class Site extends Record
     public function executeCheckoutProcedure(Server $server)
     {
         (new ExecuteCheckoutProcedure())->executeManually([
-                                                              '--server' => $server->id,
-                                                              '--site'   => $this->id,
-                                                          ]);
+            '--server' => $server->id,
+            '--site' => $this->id,
+        ]);
     }
 
     public function getImperoPckgAttribute()
@@ -656,6 +675,15 @@ class Site extends Record
         }
 
         $setting = SettingsMorph::getSettingOrDefault('impero.pckg', Sites::class, $this->id, []);
+
+        if (!$setting) {
+            d('no setting, reading from checkout');
+            /**
+             * Try to read file from the server.
+             */
+            $content = $this->getServerConnection()->sftpRead($this->getHtdocsPath() . '.pckg/pckg.yaml');
+            return Yaml::parse($content);
+        }
 
         $this->set('imperoPckg', $setting);
 
@@ -701,13 +729,16 @@ class Site extends Record
 
         /**
          * Init platform.
+         * Some commands should be executed in docker container?
+         * This means docker needs to be ready.
+         * Also, Build should be made.
          */
         foreach ($pckg['init'] as $initCommand) {
             $this->replaceCommands($commands, $initCommand);
         }
 
         /**
-         * Execute commands
+         * Execute commands.
          */
         $connection->execMultiple($commands, $output, $error, $aliasDir);
     }
@@ -721,9 +752,9 @@ class Site extends Record
     public function deployStorageService(Server $server)
     {
         (new DeployStorageResource())->executeManually([
-                                                          '--server' => $server->id,
-                                                          '--site'   => $this->id,
-                                                      ]);
+            '--server' => $server->id,
+            '--site' => $this->id,
+        ]);
     }
 
     public function getStorageDir()
@@ -745,8 +776,19 @@ class Site extends Record
         if (strpos($command, 'command:') === 0) {
             $pckg = $this->getImperoPckgAttribute();
             $commandSlug = substr($command, strlen('command:'));
-            foreach ($pckg['commands'][$commandSlug] ?? [] as $subCommand) {
-                $commands[] = $this->replaceVars($subCommand);
+            foreach ($pckg['commands'][$commandSlug] ?? [] as $srv => $subCommand) {
+                if (is_array($subCommand)) {
+                    foreach ($subCommand as $subSubCommand) {
+                        /**
+                         * We need to run command in container.
+                         */
+                        $name = $pckg['checkout']['swarm']['name'] . '_' . $srv;
+                        $prefix = 'CONTAINER=`docker ps -l -f name=' . $name . ' -f status=running --format "{{.ID}}"` && docker container exec -i $CONTAINER';
+                        $commands[] = $prefix . ' ' . $this->replaceVars($subSubCommand);
+                    }
+                } else {
+                    $commands[] = $this->replaceVars($subCommand);
+                }
             }
 
             return;
@@ -761,8 +803,8 @@ class Site extends Record
          * Default variables are needed for path definition for each service deployments.
          */
         $defaults = [
-            '$webDir'     => $this->getHtdocsPath(),
-            '$logsDir'    => $this->getLogPath(),
+            '$webDir' => $this->getHtdocsPath(),
+            '$logsDir' => $this->getLogPath(),
             '$storageDir' => $this->getStorageDir(),
         ];
 
@@ -809,13 +851,13 @@ class Site extends Record
     {
         $task = Task::create('Copying config for site #' . $this->id . ' to server #' . $server->id);
 
-        return $task->make(function() use ($server) {
+        return $task->make(function () use ($server) {
             $pckg = $this->getImperoPckgAttribute();
             $otherWorker = (new ServersMorphs())->where('type', 'web')
-                                                ->where('server_id', $server->id, '!=')
-                                                ->where('morph_id', Sites::class)
-                                                ->where('poly_id', $this->id)
-                                                ->one();
+                ->where('server_id', $server->id, '!=')
+                ->where('morph_id', Sites::class)
+                ->where('poly_id', $this->id)
+                ->one();
 
             $connection = $server->getConnection();
             foreach ($pckg['checkout']['config'] ?? [] as $dest => $copy) {
@@ -860,12 +902,12 @@ class Site extends Record
 
         if ($skipped) {
             $this->server->logCommand('Skipping obtaining certificate(s) for domains ' .
-                                      collect($skipped)->implode(', ') . ' on ip ' . $ip, null, null, null);
+                collect($skipped)->implode(', ') . ' on ip ' . $ip, null, null, null);
         }
 
         if ($realDomains) {
             $this->server->logCommand('Obtaining certificate(s) for domains ' . collect($realDomains)->implode(', ') .
-                                      ' on ip ' . $ip, null, null, null);
+                ' on ip ' . $ip, null, null, null);
         }
 
 
@@ -874,10 +916,10 @@ class Site extends Record
          */
         $connection = $this->getServerConnection();
         $certsDir = null;
-        if (count($realDomains) === 3 && collect($realDomains)->filter(function($domain){
-            return strpos($domain, '.id.startcomms.com') > 0
-                || strpos($domain, '.cdn.startcomms.com') > 0
-                || strpos($domain, '.demo.startcomms.com') > 0;
+        if (count($realDomains) === 3 && collect($realDomains)->filter(function ($domain) {
+                return strpos($domain, '.id.startcomms.com') > 0
+                    || strpos($domain, '.cdn.startcomms.com') > 0
+                    || strpos($domain, '.demo.startcomms.com') > 0;
             })->count() === 3) {
             $certsDir = '/etc/letsencrypt/live/\*.id.startcomms.com/'; // * is escaped
 
@@ -946,12 +988,12 @@ class Site extends Record
          * Update site in impero.
          */
         $this->setAndSave([
-                              'ssl'                        => 'letsencrypt',
-                              'ssl_certificate_file'       => 'cert.pem',
-                              'ssl_certificate_key_file'   => 'privkey.pem',
-                              'ssl_certificate_chain_file' => 'fullchain.pem',
-                              'ssl_letsencrypt_autorenew'  => true,
-                          ]);
+            'ssl' => 'letsencrypt',
+            'ssl_certificate_file' => 'cert.pem',
+            'ssl_certificate_key_file' => 'privkey.pem',
+            'ssl_certificate_chain_file' => 'fullchain.pem',
+            'ssl_letsencrypt_autorenew' => true,
+        ]);
 
         /**
          * Dump virtualhosts and restart apache.
@@ -986,18 +1028,17 @@ class Site extends Record
      */
     public function checkout(Server $server)
     {
+        throw new \Exception('is this ever used?');
+
         $task = Task::create('Checking out site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(function() use ($server) {
+        return $task->make(function () use ($server) {
             /**
              * Create htdocs, logs and ssl directories on $server.
              * If needed we enable https / letsencrypt (on loadbalancer?).
              * Reload and restart apache on new server.
              */
-            (new DeployApacheService())->executeManually([
-                                                             '--server' => $server->id,
-                                                             '--site'   => $this->id,
-                                                         ]);
+            $this->deployWebService($server);
 
             /**
              * We checkout and initialize standalone platforms or create directory structure and symlinks for linked ones.
@@ -1042,13 +1083,20 @@ class Site extends Record
      */
     public function deployWebService(Server $server)
     {
+        /**
+         * We should check if we have SSL configuration for site in cold backup?
+         */
+        (new DeployApacheService())->executeManually([
+            '--server' => $server->id,
+            '--site' => $this->id,
+        ]);
     }
 
     public function undeployWebService(Server $server, $dump = true)
     {
         $task = Task::create('Undeploying web service for site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(function() use ($server, $dump) {
+        return $task->make(function () use ($server, $dump) {
             /**
              * Link server and site's service.
              */
@@ -1075,7 +1123,7 @@ class Site extends Record
     {
         $task = Task::create('Undeploying database for site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(function() use ($server) {
+        return $task->make(function () use ($server) {
 
         });
     }
@@ -1089,9 +1137,9 @@ class Site extends Record
     public function deployDatabaseService(Server $server)
     {
         (new DeployMysqlService())->executeManually([
-                                                        '--server' => $server->id,
-                                                        '--site'   => $this->id,
-                                                    ]);
+            '--server' => $server->id,
+            '--site' => $this->id,
+        ]);
     }
 
     public function mergeImperoVarsAttribute($vars)
@@ -1116,9 +1164,9 @@ class Site extends Record
     public function deployConfigService(Server $server)
     {
         (new DeployConfigService())->executeManually([
-                                                         '--server' => $server->id,
-                                                         '--site'   => $this->id,
-                                                     ]);
+            '--server' => $server->id,
+            '--site' => $this->id,
+        ]);
     }
 
     /**
@@ -1153,9 +1201,9 @@ class Site extends Record
     public function executePrepareProcedure(Server $server)
     {
         (new ExecutePrepareProcedure())->executeManually([
-                                                             '--server' => $server->id,
-                                                             '--site'   => $this->id,
-                                                         ]);
+            '--server' => $server->id,
+            '--site' => $this->id,
+        ]);
     }
 
     /**
@@ -1168,7 +1216,7 @@ class Site extends Record
             '--server' => $server->id,
             '--site' => $this->id,
             '--config' => ['commands' => []],
-                                                       ]);
+        ]);
     }
 
     public function check($pckg, $fix = false)
@@ -1230,7 +1278,7 @@ class Site extends Record
     {
         $task = Task::create('Re-checking out site #' . $this->id . ' on server #' . $server->id);
 
-        return $task->make(function() use ($server) {
+        return $task->make(function () use ($server) {
             /**
              * Make sure that htdocs, logs and ssl directories are created.
              * Also check that https is active.
@@ -1265,11 +1313,188 @@ class Site extends Record
         });
     }
 
+    /**
+     * This is a hybrid between a checkout and recheckout.
+     */
+    public function moveCheckout(Server $server, $restore = false)
+    {
+        $task = Task::create('Moving checkout out site #' . $this->id . ' to server #' . $server->id);
+
+        return $task->make(function () use ($server, $restore) {
+            /**
+             * Make sure that htdocs, logs and ssl directories are created.
+             * Also check that https is active.
+             */
+            $this->createOnFilesystem($server);
+
+            /**
+             * Make sure that git is checked out, files and directories are linked.
+             */
+            $this->executeCheckoutProcedure($server);
+
+            /**
+             * Make sure that directories from pckg.yaml are properly created and linked.
+             */
+            $this->deployStorageService($server);
+
+            /**
+             * Now, create full restore (SSL, DB, config, storage).
+             * This is where we already need database.
+             * We need to create new Docker environment before.
+             * We will skip automatic database creation and import for now.
+             * Let's see how other parts go.
+             */
+            if ($restore) {
+                $this->createFullRestore($server);
+            }
+
+            /**
+             * This is where we run new docker environment.
+             * This is defined in the configuration.
+             */
+            $this->deployDockerCheckout($server, true);
+
+            /**
+             * We need to reconfigure everything?
+             */
+            $this->deployConfigService($server);
+
+            /**
+             * Everything is ready, we may enable cronjobs.
+             */
+            $this->deployCronService($server);
+
+            $this->restartApache();
+        });
+    }
+
+    public function deployDockerCheckout(Server $server, $dumpEnv = false)
+    {
+        $fullConfig = $this->getImperoPckgAttribute();
+        $swarm = $fullConfig['checkout']['swarm']['active'] ?? null;
+        if (!$swarm) {
+            return;
+        }
+        $entrypoint = $fullConfig['checkout']['swarm']['entrypoint'] ?? null;
+        $name = $fullConfig['checkout']['swarm']['name'] ?? null;
+        if (!$entrypoint || !$name) {
+            return;
+        }
+        if (!($fullConfig['docker'] ?? null)) {
+            return;
+        }
+        if (!is_array($entrypoint)){
+            $entrypoint = [$entrypoint];
+        }
+
+        /**
+         * We should note somewhere in database that docker swarm is active on this server?
+         * This also means we need to configure all services.
+         * So we first configure all services.
+         */
+        $serverConnection = $server->getConnection();
+        $envFiles = [];
+        /**
+         * Check all entrypoints.
+         */
+        foreach ($entrypoint as $f => $e) {
+            /**
+             * Check all env_files.
+             */
+            foreach ($e['services'] ?? [] as $service => $serviceConf) {
+                if (!isset($serviceConf['env_file'])) {
+                    continue;
+                }
+
+                $envFiles[$serviceConf['env_file']] = $serviceConf['env_file'];
+            }
+        }
+
+        /**
+         * Build variables.
+         * Those variables are generated to secure services such as Redis and MySQL.
+         * They are secrets and may be existable in docker secrets?
+         * They should only be generated on their first deploy.
+         */
+        $variables = $fullConfig['checkout']['swarm']['env'] ?? [];
+        $imperoVars = $this->getImperoVarsAttribute();
+        $finalVariables = [];
+        if (isset($imperoVars['$pckgBuildId'])) {
+            $variables['PCKG_BUILD_ID'] = $imperoVars['$pckgBuildId'];
+        }
+
+        foreach ($variables as $k => $variable) {
+            if ($variable !== ':generate') {
+                $finalVariables[$k] = $variable;
+                continue;
+            } else if (!$dumpEnv) {
+                continue;
+            }
+
+            $finalVariables[$k] = auth()->createPassword(20);
+        }
+        $mappedVariables = collect($finalVariables)->keyBy(function ($i, $k) {
+            return '$' . $k;
+        })->all();
+
+        /**
+         * Let's dump all $envFiles.
+         * $envFiles will use generated variables from above.
+         * Can we move those files to docker secrets at some point?
+         */
+        if ($dumpEnv && $finalVariables) {
+            $puts = [];
+            foreach ($envFiles as $envFile) {
+                /**
+                 * Check if file already exists.
+                 */
+                $envContent = $serverConnection->fileExists($this->getHtdocsPath() . $envFile);
+                if ($envContent) {
+                    continue;
+                }
+                /**
+                 * Check if example exists.
+                 */
+                $envContent = $serverConnection->fileExists($this->getHtdocsPath() . $envFile . '.impero');
+                if (!$envContent) {
+                    continue;
+                }
+
+                /**
+                 * Get example content.
+                 */
+                $envContent = $serverConnection->sftpRead($this->getHtdocsPath() . $envFile . '.impero');
+                if (!$envContent) {
+                    continue;
+                }
+
+                /**
+                 * Replace example variables.
+                 */
+                $envContent = $this->replaceVars($envContent, $mappedVariables);
+
+                /**
+                 * Save docker service config.
+                 */
+                $puts[$envFile] = $envContent;
+            }
+
+            foreach ($puts as $f => $c) {
+                $serverConnection->saveContent($this->getHtdocsPath() . $f, $c);
+            }
+        }
+
+        /**
+         * Then deploy swarm.
+         */
+        (new Docker($server))->deploySwarm($name, $this->getHtdocsPath(), $fullConfig['docker'] ?? [], $finalVariables);
+    }
+
     public function createNewHtdocsPath(Server $server)
     {
         $task = Task::create('Creating new htdocs path');
 
-        return $task->make(function() use ($server) {
+        return $task->make(function () use ($server) {
             $connection = $server->getConnection();
 
             /**
@@ -1305,8 +1530,8 @@ class Site extends Record
     {
         $task = Task::create('Re-deploying cron service for site #' . $this->id);
 
-        return $task->make(function() {
-            (new SitesServers())->where('site_id', $this->id)->where('type', 'cron')->allAndEach(function(
+        return $task->make(function () {
+            (new SitesServers())->where('site_id', $this->id)->where('type', 'cron')->allAndEach(function (
                 SitesServer $sitesServer
             ) {
                 $sitesServer->redeploy();
@@ -1318,8 +1543,8 @@ class Site extends Record
      * @param Server $server
      * @param        $pckg
      * @param        $vars
-     * @param bool   $isAlias
-     * @param bool   $checkAlias
+     * @param bool $isAlias
+     * @param bool $checkAlias
      *
      * @throws \Exception
      */
@@ -1327,7 +1552,7 @@ class Site extends Record
     {
         $task = Task::create('Deploying site #' . $this->id . ' to server #' . $server->id);
 
-        return $task->make(function() use ($server, $isAlias, $checkAlias, $migrate) {
+        return $task->make(function () use ($server, $isAlias, $checkAlias, $migrate) {
             $pckg = $this->getImperoPckgAttribute();
             $connection = null;
             $htdocsDir = $this->getHtdocsPath();
@@ -1366,6 +1591,15 @@ class Site extends Record
             }
 
             /**
+             * Check for swarm deploy.
+             * The problem was, first site has waited for git, composer and yarn commands to finish.
+             * Now we actually need to execute swarm / stack deploy only once.
+             * This is not a problem for singletone projects. Only Comms is affected here.
+             */
+            // env should be dumped only on first run
+            $this->deployDockerCheckout($server);
+
+            /**
              * Standalone and aliased platforms are migrated in their htdocs directory.
              */
             if (!$migrate || !($pckg['migrate'] ?? [])) {
@@ -1374,7 +1608,7 @@ class Site extends Record
 
             $connection = $connection ?? $server->getConnection();
             $task = Task::create('Migrating site #' . $this->id);
-            $task->make(function() use ($pckg, $deployDir, $connection) {
+            $task->make(function () use ($pckg, $deployDir, $connection) {
                 $finalCommands = [];
                 foreach ($pckg['migrate'] ?? [] as $command) {
                     $this->replaceCommands($finalCommands, $command);
@@ -1399,9 +1633,9 @@ class Site extends Record
     {
         $task = Task::create('Copying old config');
 
-        return $task->make(function() use ($server) {
+        return $task->make(function () use ($server) {
             $server->getConnection()->exec('cp ' . $this->getHtdocsOldPath() . 'config/env.php ' .
-                                           $this->getHtdocsPath() . 'config/env.php');
+                $this->getHtdocsPath() . 'config/env.php');
         });
     }
 
@@ -1414,7 +1648,7 @@ class Site extends Record
     {
         $task = Task::create('Un-deploying cron service for site #' . $this->id);
 
-        return $task->make(function() {
+        return $task->make(function () {
             $sitesServers = (new SitesServers())->where('site_id', $this->id)->where('type', 'cron')->all();
 
             $sitesServers->each->undeploy();
@@ -1425,7 +1659,7 @@ class Site extends Record
     {
         $task = Task::create('Un-deploying config service for site #' . $this->id . ' on server ' . $server->id);
 
-        return $task->make(function() use ($server) {
+        return $task->make(function () use ($server) {
             $connection = $server->getConnection();
             $pckg = $this->getImperoPckgAttribute();
 
@@ -1445,25 +1679,25 @@ class Site extends Record
     {
         $task = Task::create('Redeploy config service for site #' . $this->id);
 
-        $action = function() {
+        $action = function () {
             $sitesServers = (new SitesServers())->where('site_id', $this->id)->where('type', 'config')->all();
 
             if ($sitesServers->count() == 0) {
                 /**
                  * Deploy to all web workers.
                  */
-                (new SitesServers())->where('site_id', $this->id)->where('type', 'web')->all()->each(function(
+                (new SitesServers())->where('site_id', $this->id)->where('type', 'web')->all()->each(function (
                     SitesServer $sitesServer
                 ) {
                     $this->deployConfigService($sitesServer->server);
                 });
             } else {
-                $sitesServers->each(function(SitesServer $sitesServer) {
+                $sitesServers->each(function (SitesServer $sitesServer) {
                     $sitesServer->redeploy();
                 });
             }
         };
-        $exception = function(Task $task, Throwable $e) {
+        $exception = function (Task $task, Throwable $e) {
             /**
              * Exception was thrown, task is already marked as error.
              * Can we log exception to rollbar?
@@ -1499,10 +1733,10 @@ class Site extends Record
     public function getInfrastructure()
     {
         return [
-            'sitesServers'  => (new SitesServers())->where('site_id', $this->id)->all(),
+            'sitesServers' => (new SitesServers())->where('site_id', $this->id)->all(),
             'serversMorphs' => (new ServersMorphs())->where('morph_id', Sites::class)
-                                                    ->where('poly_id', $this->id)
-                                                    ->all(),
+                ->where('poly_id', $this->id)
+                ->all(),
         ];
     }
 
@@ -1546,19 +1780,19 @@ class Site extends Record
 
         $databases = (new Databases())->where('name', $databases)->all();
         $site = $this;
-        $databases->each(function(Database $database) use ($server, $site) {
+        $databases->each(function (Database $database) use ($server, $site) {
             $sitesServer = SitesServer::gets([
-                                                 'site_id'   => $site->id,
-                                                 'server_id' => $server->id,
-                                                 'type'      => 'database:slave',
-                                             ]);
+                'site_id' => $site->id,
+                'server_id' => $server->id,
+                'type' => 'database:slave',
+            ]);
 
             $serversMorph = ServersMorph::gets([
-                                                   'morph_id'  => Databases::class,
-                                                   'poly_id'   => $database->id,
-                                                   'type'      => 'database:slave',
-                                                   'server_id' => $server->id,
-                                               ]);
+                'morph_id' => Databases::class,
+                'poly_id' => $database->id,
+                'type' => 'database:slave',
+                'server_id' => $server->id,
+            ]);
 
             if (!$sitesServer || !$serversMorph) {
                 return;
@@ -1601,19 +1835,19 @@ class Site extends Record
 
         $databases = (new Databases())->where('name', $databases)->all();
         $site = $this;
-        $databases->each(function(Database $database) use ($server, $site) {
+        $databases->each(function (Database $database) use ($server, $site) {
             $sitesServer = SitesServer::getOrNew([
-                                                     'site_id'   => $site->id,
-                                                     'server_id' => $server->id,
-                                                     'type'      => 'database:slave',
-                                                 ]);
+                'site_id' => $site->id,
+                'server_id' => $server->id,
+                'type' => 'database:slave',
+            ]);
 
             $serversMorph = ServersMorph::getOrNew([
-                                                       'morph_id'  => Databases::class,
-                                                       'poly_id'   => $database->id,
-                                                       'type'      => 'database:slave',
-                                                       'server_id' => $server->id,
-                                                   ]);
+                'morph_id' => Databases::class,
+                'poly_id' => $database->id,
+                'type' => 'database:slave',
+                'server_id' => $server->id,
+            ]);
             if (!$sitesServer->isNew() && !$serversMorph->isNew()) {
                 /**
                  * Skip existing?

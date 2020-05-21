@@ -1,0 +1,19 @@
+.c-pckg-clipboard[data-v-4f4fe71b] {
+  display: inline-block;
+  vertical-align: bottom;
+  width: 3rem;
+  text-align: center;
+}
+.c-pckg-clipboard .__copy-handle[data-v-4f4fe71b] {
+  max-width: 2rem;
+  display: table-cell;
+  width: 1%;
+}
+.c-pckg-clipboard .__copy-element[data-v-4f4fe71b] {
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  opacity: 0;
+}
+

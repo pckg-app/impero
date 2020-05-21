@@ -43,11 +43,11 @@ class MysqlConnection
      *
      * @return mixed
      */
-    public function execute($sql, &$error = null)
+    public function execute($sql, &$error = null, &$output = null)
     {
         $command = 'mysql -u impero -e ' . escapeshellarg($sql . ';');
 
-        $result = $this->sshConnection->exec($command, $error);
+        $result = $this->sshConnection->exec($command, $output, $error);
 
         return $result;
     }
@@ -63,6 +63,12 @@ class MysqlConnection
     public function query($database = null, $sql = null, $binds = [])
     {
         if (!$this->pdo) {
+            /**
+             * This is needed when we want to connect to remote mysql using ssh connection.
+             * It is something that impero does to execute SQL queries with PDO in remote database.
+             * For example, Impero can show tables form zero's db.
+             * Do we want to utilize this in containers?
+             */
             $tunnelPort = $this->sshConnection->tunnel();
 
             $p = "mysql:host=127.0.0.1:" . $tunnelPort . ";charset=utf8" . ($database ? ";dbname=" . $database : '');
@@ -110,10 +116,10 @@ class MysqlConnection
      *
      * @return mixed
      */
-    public function pipeIn($pipe, $database = null, &$error = null)
+    public function pipeIn($pipe, $database = null, &$error = null, &$output = null)
     {
         return $this->sshConnection->exec('mysql -u impero ' . ($database ? $database . ' ' : '') . '< ' . $pipe,
-                                          $error);
+                                          $output, $error);
     }
 
 }

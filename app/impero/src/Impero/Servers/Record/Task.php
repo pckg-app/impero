@@ -26,6 +26,9 @@ class Task extends Record
          * If title was passed, transform it.
          */
         if (is_string($data)) {
+            if (isConsole()) {
+                d($data);
+            }
             $data = ['title' => $data];
         }
 

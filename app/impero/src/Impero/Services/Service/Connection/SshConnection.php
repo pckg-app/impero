@@ -208,6 +208,7 @@ class SshConnection implements ConnectionInterface, Connectable
             $errorStreamContent = stream_get_contents($errorStream);
             $infoStreamContent = stream_get_contents($stream);
         } catch (Throwable $e) {
+            d(exception($e));
             $serverCommand->setAndSave([
                                            'command' => 'Error executing command ' . $command,
                                            'info'    => $infoStreamContent,
@@ -219,7 +220,7 @@ class SshConnection implements ConnectionInterface, Connectable
             $output = $infoStreamContent;
             $error = $errorStreamContent;
 
-            //d($command, $output, $error);
+            d($command, $output, $error);
 
             $serverCommand->setAndSave([
                                            'command' => 'Command executed ' . $command,
@@ -337,6 +338,11 @@ password = s0m3p4ssw0rd';*/
              * -p 22222 - connect via ssh on port 22222
              * -f - for connection, send it to background
              * -L localPort:ip:remotePort - local forwarding (-R - opposite, remote forwarding)
+             * -g ?
+             *
+             * This allows connection on a localhost to tunnelPort.
+             * For example, impero can connect directly to zero's db.
+             * Now we would like to reuse this to connect to a container on zero?
              */
             $this->tunnelPort = 3307; // @T00D00
             $command = 'ssh -p ' . $this->port . ' -i ' . $this->key . ' -f -L ' . $this->tunnelPort .

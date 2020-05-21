@@ -118,8 +118,44 @@ class DigitalOcean extends AbstractService implements ServiceInterface
      * @throws \InvalidArgumentException
      * @throws \League\Flysystem\FileNotFoundException
      */
-    public function downloadFromSpaces($file)
+    public function downloadFromSpaces($coldName, $delete = false)
     {
+        $connection = $this->getConnection();
+        $connectionConfig = $connection->getConnectionConfig();
+
+        $adapter = new SftpAdapter([
+                                       'host'          => $connectionConfig['host'],
+                                       'port'          => $connectionConfig['port'],
+                                       'username'      => $connectionConfig['user'],
+                                       'privateKey'    => $connectionConfig['key'],
+                                       'password'      => null,
+                                       'root'          => '/',
+                                       'timeout'       => 10,
+                                       'directoryPerm' => 0755,
+                                   ]);
+        $remoteFilesystem = new Filesystem($adapter);
+
+        $coldFilesystem = $this->getColdFilesystem();
+        $file = '/home/impero/impero/backup/impero/' . filename($coldName);
+        d('writing to ' . $file);
+
+        // $coldFilesystem->writeStream($coldName, $remoteFilesystem->readStream($file));
+        if (!$remoteFilesystem->has($file)) {
+            /**
+             * This needs to be direct. Current implementation uses spaces-impero-destination.
+             * We need to use spaces-destination connection.
+             */
+            $remoteFilesystem->writeStream($file, $coldFilesystem->readStream($coldName));
+        } else {
+            d('file already present');
+        }
+
+        /*if ($delete) {
+            $connection->deleteFile($file);
+        }*/
+
+        return $file;
+
         $filesystem = $this->getFilesystem();
 
         $output = $this->prepareDirectory('random') . sha1random();

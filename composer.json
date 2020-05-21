@@ -16,11 +16,10 @@
     "pckg/mail": "dev-master",
     "pckg/translator": "dev-master",
     "pckg/auth": "dev-master",
-    "pckg/generic": "dev-BR-vueify-frontend",
+    "pckg/generic": "dev-master",
     "pckg/helpers-js": "dev-master",
     "pckg/helpers-less": "dev-master",
     "pckg/import": "dev-master",
-    "pckg/payment": "dev-master",
     "pckg/tempus": "dev-master",
     "pckg/charts": "dev-master",
     "jonnyw/php-phantomjs": "4.*",
@@ -41,7 +40,10 @@
     "pckg-app/api": "dev-master",
     "pckg/manager": "dev-master",
     "snapappointments/bootstrap-select": "dev-master",
-    "php-amqplib/php-amqplib": "^2.8@dev"
+    "php-amqplib/php-amqplib": "^2.8@dev",
+    "ext-json": "*",
+    "ext-ssh2": "*",
+    "ext-pdo": "*"
   },
   "minimum-stability": "dev",
   "autoload": {

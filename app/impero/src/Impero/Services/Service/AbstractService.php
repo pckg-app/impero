@@ -83,7 +83,7 @@ class AbstractService
     }
 
     /**
-     * @return ConnectionInterface
+     * @return ConnectionInterface|Connectable
      */
     public function getConnection()
     {
