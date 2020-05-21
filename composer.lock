@@ -2560,12 +2560,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/generic.git",
-                "reference": "da8ee985d4b7f45d5dc15775a1b4e1e38f574575"
+                "reference": "ef771977bd8aa4f0dcb8865306b57fffef5aa15c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/generic/zipball/da8ee985d4b7f45d5dc15775a1b4e1e38f574575",
-                "reference": "da8ee985d4b7f45d5dc15775a1b4e1e38f574575",
+                "url": "https://api.github.com/repos/pckg/generic/zipball/ef771977bd8aa4f0dcb8865306b57fffef5aa15c",
+                "reference": "ef771977bd8aa4f0dcb8865306b57fffef5aa15c",
                 "shasum": ""
             },
             "require": {
@@ -2591,7 +2591,7 @@
             ],
             "description": "Building admin interface and generic frontend made simple",
             "homepage": "https://github.com/pckg/generic",
-            "time": "2020-05-11T15:31:45+00:00"
+            "time": "2020-05-21T14:06:13+00:00"
         },
         {
             "name": "pckg/helpers-js",
