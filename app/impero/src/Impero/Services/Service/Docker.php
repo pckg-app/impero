@@ -81,7 +81,7 @@ class Docker extends AbstractService implements ServiceInterface
         /**
          * Build commend.
          */
-        $command = 'cd ' . $dir . ' && ' . $vars . ' docker stack deploy ' . $name . ' ' . $entrypoints . ' --with-registry-auth --prune --resolve-image';
+        $command = 'cd ' . $dir . ' && ' . $vars . ' docker stack deploy ' . $name . ' ' . $entrypoints . ' --with-registry-auth --prune --resolve-image always';
 
         /**
          * Dump entrypoints.
