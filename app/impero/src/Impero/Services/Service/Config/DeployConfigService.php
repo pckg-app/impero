@@ -29,7 +29,7 @@ class DeployConfigService extends Command
     public function handle()
     {
         $this->storeOptions();
-
+return;
         $task = Task::create('Copying config for site #' . $this->site->id . ' on server #' . $this->server->id);
 
         $task->make(function() {

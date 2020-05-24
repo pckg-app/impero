@@ -677,12 +677,16 @@ class Site extends Record
         $setting = SettingsMorph::getSettingOrDefault('impero.pckg', Sites::class, $this->id, []);
 
         if (!$setting) {
-            d('no setting, reading from checkout');
             /**
              * Try to read file from the server.
              */
-            $content = $this->getServerConnection()->sftpRead($this->getHtdocsPath() . '.pckg/pckg.yaml');
-            return Yaml::parse($content);
+            try {
+                $content = $this->getServerConnection()->sftpRead($this->getHtdocsPath() . '.pckg/pckg.yaml');
+                $setting = Yaml::parse($content);
+                $this->setImperoPckgAttribute($setting);
+            } catch (Throwable $e) {
+                return [];
+            }
         }
 
         $this->set('imperoPckg', $setting);
@@ -1238,30 +1242,30 @@ class Site extends Record
         foreach ($pckg['checkout']['create']['dir'] ?? [] as $dir) {
             $parsed = $this->replaceVars($htdocsDir . $dir);
             $checks['dirs'][$storageDir . $dir] = $connection->dirExists($parsed) ? 'ok:dir'
-                : ($connection->symlinkExists($parsed) ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
+                : ($connection->symlinkExists($parsed) ? 'symlink' : ($connection->fileExists($parsed) ? 'file' : null));
         }
         foreach ($pckg['checkout']['symlink']['dir'] ?? [] as $dir) {
             $parsed = $this->replaceVars($htdocsDir . $dir);
             $checks['dirs'][$parsed] = $connection->symlinkExists($parsed) ? 'ok:symlink'
-                : ($connection->dirExists($parsed) ? 'dir' : $connection->fileExists($parsed) ? 'file' : null);
+                : ($connection->dirExists($parsed) ? 'dir' : ($connection->fileExists($parsed) ? 'file' : null));
         }
         foreach ($pckg['checkout']['symlink']['file'] ?? [] as $dir) {
             $parsed = $this->replaceVars($htdocsDir . $dir);
             $checks['dirs'][$parsed] = $connection->fileExists($parsed)
                 ? 'ok:file' : ($connection->dirExists($parsed)
-                    ? 'dir' : $connection->symlinkExists($parsed) ? 'symlink' : null);
+                    ? 'dir' : ($connection->symlinkExists($parsed) ? 'symlink' : null));
         }
         foreach ($pckg['resources']['storage']['dir'] ?? [] as $dir) {
             $parsed = $this->replaceVars($storageDir . $dir);
             $checks['dirs'][$parsed] = $connection->dirExists($parsed)
                 ? 'ok:dir' : ($connection->symlinkExists($parsed)
-                    ? 'symlink' : $connection->fileExists($parsed) ? 'file' : null);
+                    ? 'symlink' : ($connection->fileExists($parsed) ? 'file' : null));
         }
         foreach ($pckg['services']['web']['mount'] ?? [] as $link => $dir) {
             $checks['dirs'][$storageDir . $link] = $connection->symlinkExists($htdocsDir . $link)
                 ? 'ok:symlink' : ($connection->dirExists($htdocsDir . $link)
-                    ? 'dir' : $connection->fileExists($htdocsDir . $link)
-                        ? 'file' : null);
+                    ? 'dir' : ($connection->fileExists($htdocsDir . $link)
+                        ? 'file' : null));
         }
 
         return $checks;
@@ -1362,9 +1366,9 @@ class Site extends Record
             /**
              * Everything is ready, we may enable cronjobs.
              */
-            $this->deployCronService($server);
+            // $this->deployCronService($server);
 
-            $this->restartApache();
+            //$this->restartApache();
         });
     }
 
@@ -1433,6 +1437,10 @@ class Site extends Record
 
             $finalVariables[$k] = auth()->createPassword(20);
         }
+        $volumes = $fullConfig['checkout']['swarm']['volumes'] ?? [];
+        foreach ($volumes as $from => $to) {
+            $finalVariables[$from] = $to;
+        }
         $mappedVariables = collect($finalVariables)->keyBy(function ($i, $k) {
             return '$' . $k;
         })->all();
@@ -1482,12 +1490,16 @@ class Site extends Record
             foreach ($puts as $f => $c) {
                 $serverConnection->saveContent($this->getHtdocsPath() . $f, $c);
             }
+
+            foreach ($volumes as $from => $to) {
+                $server->exec('mkdir -p ' . $to);
+            }
         }
 
         /**
          * Then deploy swarm.
          */
-        (new Docker($server))->deploySwarm($name, $this->getHtdocsPath(), $fullConfig['docker'] ?? [], $finalVariables);
+        (new Docker($server, $this))->deploySwarm($name, $this->getHtdocsPath(), $fullConfig['docker'] ?? [], $finalVariables);
     }
 
     public function createNewHtdocsPath(Server $server)

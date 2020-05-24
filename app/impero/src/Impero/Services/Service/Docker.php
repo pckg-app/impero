@@ -1,7 +1,13 @@
 <?php namespace Impero\Services\Service;
 
+use Defuse\Crypto\Crypto;
+use Defuse\Crypto\Key;
+use Impero\Apache\Record\Site;
 use Impero\Jobs\Record\Job;
+use Impero\Servers\Entity\Servers;
+use Impero\Services\Service\Connection\Connectable;
 use Impero\Services\Service\Connection\ContainerConnection;
+use Pckg\Generic\Record\DataAttribute;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -21,6 +27,17 @@ class Docker extends AbstractService implements ServiceInterface
      * @var string
      */
     protected $name = 'Docker';
+
+    /**
+     * @var Site|null
+     */
+    protected $site;
+
+    public function __construct(Connectable $connection, Site $site = null)
+    {
+        parent::__construct($connection);
+        $this->site = $site;
+    }
 
     /**
      * @return bool|mixed|string
@@ -79,7 +96,29 @@ class Docker extends AbstractService implements ServiceInterface
         })->implode(' ');
 
         /**
-         * Build commend.
+         * We have a problem with docker stack deploy not resolving correct images.
+         * We need to make sure we are logged in to the container repository.
+         * Usernames and passwords should be secure. Argh.
+         * This is something that impero should hold.
+         */
+        $pckg = $this->site->getImperoPckgAttribute();
+        $registry = $pckg['checkout']['swarm']['registry'] ?? null;
+        if ($registry) {
+            $attribute = DataAttribute::gets([
+                    'morph_id' => 'registry',
+                    'poly_id' => $registry,
+                    'slug' => 'auth',
+                ])->value ?? null;
+            if ($attribute) {
+                $decoded = json_decode($attribute, true);
+                $password = Crypto::decrypt($decoded['pass'], Key::loadFromAsciiSafeString($decoded['key']));
+                $login = 'docker login -u ' . escapeshellarg($decoded['user']) . ' -p ' . escapeshellarg($password) . ' ' . $registry;
+                $this->getConnection()->exec($login);
+            }
+        }
+
+        /**
+         * Build command.
          */
         $command = 'cd ' . $dir . ' && ' . $vars . ' docker stack deploy ' . $name . ' ' . $entrypoints . ' --with-registry-auth --prune --resolve-image always';
 

@@ -74,7 +74,7 @@ class Ufw extends AbstractService implements ServiceInterface
     {
         $commands = [
             'sudo apt-get update',
-            'sudo apt-get upgrade',
+            //'sudo apt-get upgrade -y',
             // ufw
             'sudo apt-get install ufw -y',
             'sudo ufw disable',
@@ -85,7 +85,7 @@ class Ufw extends AbstractService implements ServiceInterface
             'sudo ufw allow 443',
             // docker
             'sudo sudo ufw allow 2376/tcp && sudo ufw allow 7946/udp && sudo ufw allow 7946/tcp && sudo ufw allow 2377/tcp && sudo ufw allow 4789/udp',
-            'sudo ufw enable',
+            //'sudo ufw enable',
         ];
         $connection = $this->getConnection();
         foreach ($commands as $command) {

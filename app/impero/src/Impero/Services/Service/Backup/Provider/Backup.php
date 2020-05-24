@@ -1,6 +1,7 @@
 <?php namespace Impero\Services\Service\Backup\Provider;
 
 use Impero\Servers\Console\ProtectServer;
+use Impero\Services\Service\Docker\Console\RegisterRegistry;
 use Impero\Sites\Console\MoveSite;
 use Impero\Services\Service\Docker\Console\ActivateDocker;
 use Impero\Services\Service\Backup\Console\CreateSiteBackup;
@@ -16,6 +17,7 @@ class Backup extends Provider
             CreateSiteBackup::class,
             RestoreSiteBackup::class,
             ActivateDocker::class,
+            RegisterRegistry::class,
             MoveSite::class,
             ProtectServer::class,
         ];

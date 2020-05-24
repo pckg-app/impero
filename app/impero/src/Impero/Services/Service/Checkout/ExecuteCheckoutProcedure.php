@@ -35,7 +35,7 @@ class ExecuteCheckoutProcedure extends Command
     {
         list($site, $server) = $this->getSiteAndServerOptions();
 
-        $task = Task::create('Checking out site #' . $site->id . ' on server #' . $server->id);
+        $task = Task::create('Checking out site #' . $site->id . ' on servers #' . $server->id);
 
         $task->make(function() use ($server, $site) {
             $this->checkoutSiteOnServer($site, $server);
