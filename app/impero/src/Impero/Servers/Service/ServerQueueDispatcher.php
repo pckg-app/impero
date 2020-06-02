@@ -45,10 +45,23 @@ class ServerQueueDispatcher extends Command
                      * This is long running script.
                      * We should implement stop event for which all services should be listening for gracefull shutdown.
                      */
-                    (new RunChannel())->executeManually([
-                                                            '--channel'     => $channel,
-                                                            '--concurrency' => 1,
-                                                        ]);
+                    while (true) {
+                        $this->outputDated('Running channel ' . $channel);
+
+                        try {
+                            (new RunChannel())->executeManually([
+                                '--channel' => $channel,
+                                '--concurrency' => 1,
+                            ]);
+                        } catch (\Throwable $e) {
+                            $this->outputDated('EXCEPTION: ' . exception($e));
+                            error_log('EXCEPTION: ' . exception($e));
+                        }
+
+                        $this->outputDated('Sleeping 5s');
+                        sleep(5);
+                        $this->outputDated('Restart fork ...');
+                    }
                 }, function() use ($channel) {
                     return 'php service:dispatch-workers --channel=' . $channel;
                 });
