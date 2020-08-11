@@ -44,7 +44,7 @@
     "simple-vue-validator": "^0.14.2",
     "sortablejs": "^1.7.0",
     "terser-webpack-plugin": "^2.2.1",
-    "tinymce": "^4.7.2",
+    "tinymce": "^4.9.11",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "vee-validate": "^2.0.0-rc.27",
     "vue": "^2.5.3",
