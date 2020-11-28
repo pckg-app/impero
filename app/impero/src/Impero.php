@@ -11,8 +11,10 @@ use Pckg\Auth\Middleware\RestrictAccess;
 use Pckg\Framework\Console\Provider\Console;
 use Pckg\Framework\Provider;
 use Pckg\Generic\Middleware\EncapsulateResponse;
+use Pckg\Manager\Asset;
 use Pckg\Manager\Middleware\RegisterCoreAssets;
 use Pckg\Queue\Service\Cron;
+use Pckg\Translator\Service\Translator;
 
 /**
  * Class Impero
@@ -88,13 +90,13 @@ class Impero extends Provider
     {
         return [
             'libraries' => [
-                '/build/js/libraries.js',
+                '/build/libraries.js',
             ],
             'vue'       => [
-                '/build/js/backend.js',
-                '/build/js/services.js',
-                '/build/js/auth.js',
-                '/build/js/generic.js',
+                '/build/backend.js',
+                '/build/services.js',
+                '/build/auth.js',
+                '/build/generic.js',
             ],
             'main'      => [
                 '@' . path('vendor') . 'pckg/generic/src/Pckg/Maestro/public/less/maestro_vars.less',
@@ -103,7 +105,25 @@ class Impero extends Provider
                 'less/impero.less',
             ],
             'footer'    => [
-                '/build/js/footer.js',
+                '/build/footer.js',
+            ],
+            'php' => [
+                function () {
+                    return assetManager()->buildAsset(function () {
+                        $config = config();
+                        $router = router();
+                        $publicRoutes = base64_encode(json_encode($router->getPublicRoutes()));
+                        $vueRoutes = base64_encode(json_encode($router->getVueRoutes()));
+
+                        $string = 'Pckg.config = JSON.parse(utils.base64decode(\'' . $config->getPublicConfig() . '\'));
+
+        Pckg.router = {};
+        Pckg.router.urls = JSON.parse(utils.base64decode(\'' . $publicRoutes . '\'));
+        Pckg.router.vueUrls = JSON.parse(utils.base64decode(\'' . $vueRoutes . '\'));';
+
+                        return $string;
+                    });
+                }
             ],
         ];
     }

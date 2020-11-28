@@ -1,4 +1,6 @@
-import { pckgInterval, pckgTranslations, pckgCdn, pckgTimeout, pckgDelimiters, pckgFormValidator } from "../../../../vendor/pckg/generic/src/Pckg/Generic/public/vue/pckg-generic-app-top.js";
+import {
+    pckgInterval, pckgTranslations, pckgCdn, pckgTimeout, pckgDelimiters, pckgFormValidator
+} from "../../../../vendor/pckg/framework/src/Pckg/Framework/public/js/pckg-generic-app-top.js";
 
 window.pckgInterval = pckgInterval;
 window.pckgTranslations = pckgTranslations;

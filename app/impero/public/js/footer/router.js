@@ -2,7 +2,7 @@ import VueRouter from 'vue-router'
 
 const router = new VueRouter({
     mode: 'history',
-    routes: Pckg.router.vueUrls || []
+    routes: [],//Pckg.router.vueUrls || []
 });
 
 router.beforeEach(function (to, from, next) {

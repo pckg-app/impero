@@ -10,27 +10,13 @@
     }
   ],
   "require": {
-    "pckg/framework": "dev-master",
-    "pckg/migrator": "dev-master",
-    "pckg/queue": "dev-master",
+    "pckg-app/frontend": "dev-master",
     "pckg/mail": "dev-master",
     "pckg/translator": "dev-master",
-    "pckg/auth": "dev-master",
     "pckg/generic": "dev-master",
-    "pckg/helpers-js": "dev-master",
-    "pckg/helpers-less": "dev-master",
-    "pckg/import": "dev-master",
-    "pckg/tempus": "dev-master",
-    "pckg/charts": "dev-master",
-    "jonnyw/php-phantomjs": "4.*",
-    "nesbot/carbon": "1.*",
-    "codeception/codeception": "dev-master",
     "twbs/bootstrap": "3.*",
     "components/jquery": "2.*",
     "fortawesome/font-awesome": "4.*",
-    "bootstrap-select/bootstrap-select": "1.*",
-    "kraksoft/colorbox": "1.*",
-    "dimsemenov/magnific-popup": "dev-master",
     "robrichards/xmlseclibs": "^2.0",
     "aferrandini/phpqrcode": "^1.0",
     "defuse/php-encryption": "dev-master",
@@ -38,14 +24,18 @@
     "league/flysystem-aws-s3-v3": "1.*",
     "league/flysystem-sftp": "dev-master",
     "pckg-app/api": "dev-master",
-    "pckg/manager": "dev-master",
     "snapappointments/bootstrap-select": "dev-master",
     "php-amqplib/php-amqplib": "2.*",
     "ext-json": "*",
     "ext-ssh2": "*",
-    "ext-pdo": "*"
+    "ext-pdo": "*",
+    "dimsemenov/magnific-popup": "9999999-dev"
+  },
+  "require-dev": {
+    "pckg-app/frontend-dev": "dev-master"
   },
   "minimum-stability": "dev",
+  "prefer-stable": true,
   "autoload": {
     "psr-4": {
       "": [

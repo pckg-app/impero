@@ -2,13 +2,13 @@ import HtmlbuilderValidatorError from "../../../../vendor/pckg/generic/src/Pckg/
 import PckgTooltipComponent from "../../../../vendor/pckg/generic/src/Pckg/Generic/View/pckgTooltip.vue";
 import PckgLoaderComponent from "../../../../vendor/pckg/generic/src/Pckg/Generic/View/pckgLoader.vue";
 import PckgClipboardComponent from "../../../../vendor/pckg/generic/src/Pckg/Generic/View/pckgClipboard.vue";
-import PckgSelectComponent from "../../../../vendor/pckg/generic/src/Pckg/Generic/View/pckgSelect.vue";
+import PckgSelectComponent from "../../../../vendor/pckg/helpers-js/vue/pckgSelect.vue";
 import PckgDatetimeComponent from "../../../../vendor/pckg/generic/src/Pckg/Generic/View/pckgDatetime.vue";
-import PckgHtmleditorComponent from "../../../../vendor/pckg/generic/src/Pckg/Generic/View/pckgHtmleditor.vue";
+import PckgHtmleditorComponent from "../../../../vendor/pckg/helpers-js/vue/pckgHtmleditor.vue";
 import PckgDispatcherNotificationsComponent from "../../../../vendor/pckg/generic/src/Pckg/Generic/View/dispatcherNotifications.vue";
 import PckgBootstrapAlertComponent from "../../../../vendor/pckg/generic/src/Pckg/Maestro/public/vue/pckg-bootstrap-alert.vue";
 import PckgBootstrapModalComponent from "../../../../vendor/pckg/generic/src/Pckg/Maestro/public/vue/pckg-bootstrap-modal.vue";
-import PckgHtmlbuilderDropzoneComponent from "../../../../vendor/pckg/generic/src/Pckg/Maestro/public/vue/pckg-htmlbuilder-dropzone.vue";
+import PckgHtmlbuilderDropzoneComponent from "../../../../vendor/pckg/helpers-js/vue/pckg-htmlbuilder-dropzone.vue";
 import VeeValidate from "../../../../node_modules/vee-validate/dist/vee-validate.min";
 import PckgDatetimePicker from "../../../../vendor/pckg/generic/src/Pckg/Generic/View/pckg-datetime-picker.vue";
 
