@@ -2535,12 +2535,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/generic.git",
-                "reference": "f0e9f0b1d219268917f59aef1b456afaeee7f547"
+                "reference": "df918abb57c6268acae7c38455753cf232de1197"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/generic/zipball/f0e9f0b1d219268917f59aef1b456afaeee7f547",
-                "reference": "f0e9f0b1d219268917f59aef1b456afaeee7f547",
+                "url": "https://api.github.com/repos/pckg/generic/zipball/df918abb57c6268acae7c38455753cf232de1197",
+                "reference": "df918abb57c6268acae7c38455753cf232de1197",
                 "shasum": ""
             },
             "require": {
@@ -2570,7 +2570,7 @@
                 "issues": "https://github.com/pckg/generic/issues",
                 "source": "https://github.com/pckg/generic/tree/master"
             },
-            "time": "2020-11-27T13:49:01+00:00"
+            "time": "2020-11-29T16:50:14+00:00"
         },
         {
             "name": "pckg/helpers-js",
