@@ -6487,10 +6487,10 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-pckg-app-frontend-dev@^0.0.3f:
-  version "0.0.3-f"
-  resolved "https://registry.yarnpkg.com/pckg-app-frontend-dev/-/pckg-app-frontend-dev-0.0.3-f.tgz#3ac3854e806ebad981b91e745be13268816b743d"
-  integrity sha512-RTCc9RU9GVDaXNnxQ0MlO3WeRV61Qc58h+PSLhtTTTNgn6uv4Y40q7rYO1XgJ9HpJ2caEtjGFJjLQGcDbsAOgg==
+pckg-app-frontend-dev@^0.0.4a:
+  version "0.0.4-a"
+  resolved "https://registry.yarnpkg.com/pckg-app-frontend-dev/-/pckg-app-frontend-dev-0.0.4-a.tgz#b3f606e6e9603678bb4db031f3f4a6a3100afd3a"
+  integrity sha512-hfomMWiVqBVXkEiPzWJZrw3C+LakH6VmZx5TOqpAKp4mFX1exhQJ3NKo9EFuwX0KtxiIOZXr0gSJr34yn/hAAg==
   dependencies:
     "@babel/cli" "^7.*"
     "@babel/core" "^7.*"
@@ -6533,10 +6533,10 @@ pckg-app-frontend-dev@^0.0.3f:
     webpack-dev-server "^3.*"
     webpack-merge "^5.*"
 
-pckg-app-frontend@^0.0.3f:
-  version "0.0.3-f"
-  resolved "https://registry.yarnpkg.com/pckg-app-frontend/-/pckg-app-frontend-0.0.3-f.tgz#477847e080bd37451076f2e2922aa7c858c4d2be"
-  integrity sha512-02+YznQOwgCSoYVRbEwHhmE6zOIF3nHKSiir8ae3rmjD8II1iPCBgVjDGKptGHlkRHqSPDZRZmL3YOyuHkvr8A==
+pckg-app-frontend@^0.0.4a:
+  version "0.0.4-a"
+  resolved "https://registry.yarnpkg.com/pckg-app-frontend/-/pckg-app-frontend-0.0.4-a.tgz#1bc1bdf08b5360f1b969fafa4358902853124087"
+  integrity sha512-PAL6r24Z2OoXiA6WDl1bDrN9Gf7gwnz/6OxjqwnWLmo/uIQv051+vCfDM3cj2Gv4NPiUEHWgrxG/VVJ9nSWNQA==
   dependencies:
     "@babel/polyfill" "^7.*"
     "@babel/runtime" "^7.*"
