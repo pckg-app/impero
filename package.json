@@ -5,11 +5,11 @@
   "license": "",
   "private": true,
   "devDependencies": {
-    "pckg-app-frontend-dev": "^0.0.4a"
+    "pckg-app-frontend-dev": "^0.0.5-c"
   },
   "dependencies": {
     "dropzone": "^5.7.2",
-    "pckg-app-frontend": "^0.0.4a",
+    "pckg-app-frontend": "^0.0.5-c",
     "sortablejs": "^1.12.0",
     "tinymce": "4.9",
     "vuedraggable": "^2.24.3"

@@ -34,6 +34,21 @@
   "require-dev": {
     "pckg-app/frontend-dev": "dev-master"
   },
+  "scripts": {
+    "test": [
+      "true || vendor/bin/phpunit --help --stop-on-defect",
+      "vendor/bin/phpcloc cloc app/impero/",
+      "vendor/bin/phpstan analyse app/impero/ --level=1",
+      "vendor/bin/phpcs --extensions=php --warning-severity=8 --error-severity=1 --standard=PSR12 --parallel=2 -p app/impero/",
+      "vendor/bin/codecept run"
+    ],
+    "autofix": [
+      "vendor/bin/phpcs --extensions=php --report-diff=phpcs.diff --warning-severity=8 --error-severity=1 --standard=PSR12 --parallel=2 -p app/"
+    ],
+    "autopatch": [
+      "patch -p0 -ui phpcs.diff && rm phpcs.diff"
+    ]
+  },
   "minimum-stability": "dev",
   "prefer-stable": true,
   "autoload": {

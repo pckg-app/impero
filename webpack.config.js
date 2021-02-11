@@ -1,8 +1,6 @@
-const webpack = require("webpack");
-const {merge} = require('webpack-merge');
-const base = require('pckg-app-frontend/webpack.base.js');
+const base = require('pckg-app-frontend/full.loader.js');
 
-module.exports = merge(base, {
+module.exports = base.exports({
     entry: {
         libraries: './app/impero/public/js/libraries.js',
         auth: './app/impero/public/js/auth.js',
@@ -10,8 +8,5 @@ module.exports = merge(base, {
         services: './app/impero/public/js/services.js',
         generic: './app/impero/public/js/generic.js',
         footer: './app/impero/public/js/footer.js',
-    },
-    output: {
-        path: __dirname + '/build'
     }
 });
