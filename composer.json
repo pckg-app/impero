@@ -29,7 +29,8 @@
     "ext-json": "*",
     "ext-ssh2": "*",
     "ext-pdo": "*",
-    "dimsemenov/magnific-popup": "9999999-dev"
+    "dimsemenov/magnific-popup": "9999999-dev",
+    "pckg/framework": "dev-master#205ea1144a2dc2310542b0bcba6c240700749ff3 as dev-master"
   },
   "require-dev": {
     "pckg-app/frontend-dev": "dev-master"
