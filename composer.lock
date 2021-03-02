@@ -57,16 +57,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.173.18",
+            "version": "3.173.19",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "0ac9f1d2778034a2ef0a2bb8e098818d7b1a76e8"
+                "reference": "63c6feca49bf4083f33bf250401c0c286759e101"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/0ac9f1d2778034a2ef0a2bb8e098818d7b1a76e8",
-                "reference": "0ac9f1d2778034a2ef0a2bb8e098818d7b1a76e8",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/63c6feca49bf4083f33bf250401c0c286759e101",
+                "reference": "63c6feca49bf4083f33bf250401c0c286759e101",
                 "shasum": ""
             },
             "require": {
@@ -141,9 +141,9 @@
             "support": {
                 "forum": "https://forums.aws.amazon.com/forum.jspa?forumID=80",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.173.18"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.173.19"
             },
-            "time": "2021-02-26T19:12:35+00:00"
+            "time": "2021-03-01T19:15:59+00:00"
         },
         {
             "name": "brick/math",
@@ -2430,12 +2430,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/collection.git",
-                "reference": "090d9b7879e521d5bc15e9743cb99a2e7664b747"
+                "reference": "f4cf5b18d798a67bf0d4e713132505131d7860fa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/collection/zipball/090d9b7879e521d5bc15e9743cb99a2e7664b747",
-                "reference": "090d9b7879e521d5bc15e9743cb99a2e7664b747",
+                "url": "https://api.github.com/repos/pckg/collection/zipball/f4cf5b18d798a67bf0d4e713132505131d7860fa",
+                "reference": "f4cf5b18d798a67bf0d4e713132505131d7860fa",
                 "shasum": ""
             },
             "require": {
@@ -2472,7 +2472,7 @@
                 "issues": "https://github.com/pckg/collection/issues",
                 "source": "https://github.com/pckg/collection/tree/master"
             },
-            "time": "2021-02-27T11:38:39+00:00"
+            "time": "2021-03-02T14:42:09+00:00"
         },
         {
             "name": "pckg/concept",
@@ -2648,7 +2648,7 @@
                 "issues": "https://github.com/pckg/framework/issues",
                 "source": "https://github.com/pckg/framework/tree/master"
             },
-            "time": "2021-02-26T19:10:18+00:00"
+            "time": "2021-03-01T14:58:47+00:00"
         },
         {
             "name": "pckg/generic",
@@ -2712,12 +2712,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/helpers-js.git",
-                "reference": "80c32f757330e46b2d6c21572fc83770a9210cb1"
+                "reference": "76e52642894be5b1587857e32cf90e7963321030"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/helpers-js/zipball/80c32f757330e46b2d6c21572fc83770a9210cb1",
-                "reference": "80c32f757330e46b2d6c21572fc83770a9210cb1",
+                "url": "https://api.github.com/repos/pckg/helpers-js/zipball/76e52642894be5b1587857e32cf90e7963321030",
+                "reference": "76e52642894be5b1587857e32cf90e7963321030",
                 "shasum": ""
             },
             "default-branch": true,
@@ -2738,7 +2738,7 @@
                 "issues": "https://github.com/pckg/helpers-js/issues",
                 "source": "https://github.com/pckg/helpers-js/tree/master"
             },
-            "time": "2021-02-27T19:19:42+00:00"
+            "time": "2021-03-01T12:40:03+00:00"
         },
         {
             "name": "pckg/helpers-less",
@@ -2746,12 +2746,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/helpers-less.git",
-                "reference": "a0261bd7521aef422269f6e2e03dd3f5edf96f59"
+                "reference": "eb3801347e2806c93ed0767bfe57e0a91a8b80a6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/helpers-less/zipball/a0261bd7521aef422269f6e2e03dd3f5edf96f59",
-                "reference": "a0261bd7521aef422269f6e2e03dd3f5edf96f59",
+                "url": "https://api.github.com/repos/pckg/helpers-less/zipball/eb3801347e2806c93ed0767bfe57e0a91a8b80a6",
+                "reference": "eb3801347e2806c93ed0767bfe57e0a91a8b80a6",
                 "shasum": ""
             },
             "default-branch": true,
@@ -2772,7 +2772,7 @@
                 "issues": "https://github.com/pckg/helpers-less/issues",
                 "source": "https://github.com/pckg/helpers-less/tree/master"
             },
-            "time": "2021-02-26T18:50:48+00:00"
+            "time": "2021-03-02T14:50:04+00:00"
         },
         {
             "name": "pckg/htmlbuilder",
@@ -3121,16 +3121,16 @@
         },
         {
             "name": "php-amqplib/php-amqplib",
-            "version": "2.12.2",
+            "version": "v2.12.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-amqplib/php-amqplib.git",
-                "reference": "199f89c377df6e7a52d127af63b7c52b4e677c6c"
+                "reference": "f746eb44df6d8f838173729867dd1d20b0265faa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-amqplib/php-amqplib/zipball/199f89c377df6e7a52d127af63b7c52b4e677c6c",
-                "reference": "199f89c377df6e7a52d127af63b7c52b4e677c6c",
+                "url": "https://api.github.com/repos/php-amqplib/php-amqplib/zipball/f746eb44df6d8f838173729867dd1d20b0265faa",
+                "reference": "f746eb44df6d8f838173729867dd1d20b0265faa",
                 "shasum": ""
             },
             "require": {
@@ -3196,9 +3196,9 @@
             ],
             "support": {
                 "issues": "https://github.com/php-amqplib/php-amqplib/issues",
-                "source": "https://github.com/php-amqplib/php-amqplib/tree/2.12.2"
+                "source": "https://github.com/php-amqplib/php-amqplib/tree/v2.12.3"
             },
-            "time": "2021-02-12T17:50:22+00:00"
+            "time": "2021-03-01T12:21:31+00:00"
         },
         {
             "name": "phpoffice/phpspreadsheet",
@@ -5437,16 +5437,16 @@
         },
         {
             "name": "codeception/lib-innerbrowser",
-            "version": "1.4.0",
+            "version": "1.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeception/lib-innerbrowser.git",
-                "reference": "b7406c710684c255d9b067d7795269a5585a0406"
+                "reference": "693e116f81ef98eae98c43ef785a726faf87394e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeception/lib-innerbrowser/zipball/b7406c710684c255d9b067d7795269a5585a0406",
-                "reference": "b7406c710684c255d9b067d7795269a5585a0406",
+                "url": "https://api.github.com/repos/Codeception/lib-innerbrowser/zipball/693e116f81ef98eae98c43ef785a726faf87394e",
+                "reference": "693e116f81ef98eae98c43ef785a726faf87394e",
                 "shasum": ""
             },
             "require": {
@@ -5491,9 +5491,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Codeception/lib-innerbrowser/issues",
-                "source": "https://github.com/Codeception/lib-innerbrowser/tree/1.4.0"
+                "source": "https://github.com/Codeception/lib-innerbrowser/tree/1.4.1"
             },
-            "time": "2021-01-29T18:17:25+00:00"
+            "time": "2021-03-02T08:01:54+00:00"
         },
         {
             "name": "codeception/module-asserts",
@@ -5614,16 +5614,16 @@
         },
         {
             "name": "codeception/module-rest",
-            "version": "1.2.7",
+            "version": "1.2.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeception/module-rest.git",
-                "reference": "beeb5a91a97d042273bf10f00063e9b8f541879a"
+                "reference": "4c8c6bd75f67a25ff91bdce0d6c135c5e7aa5e10"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeception/module-rest/zipball/beeb5a91a97d042273bf10f00063e9b8f541879a",
-                "reference": "beeb5a91a97d042273bf10f00063e9b8f541879a",
+                "url": "https://api.github.com/repos/Codeception/module-rest/zipball/4c8c6bd75f67a25ff91bdce0d6c135c5e7aa5e10",
+                "reference": "4c8c6bd75f67a25ff91bdce0d6c135c5e7aa5e10",
                 "shasum": ""
             },
             "require": {
@@ -5662,9 +5662,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Codeception/module-rest/issues",
-                "source": "https://github.com/Codeception/module-rest/tree/1.2.7"
+                "source": "https://github.com/Codeception/module-rest/tree/1.2.8"
             },
-            "time": "2020-11-04T16:58:11+00:00"
+            "time": "2021-03-02T06:47:59+00:00"
         },
         {
             "name": "codeception/module-webdriver",
@@ -6579,16 +6579,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "0.12.79",
+            "version": "0.12.80",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "dd7769915648b704b9bd12925994457f1c2c8442"
+                "reference": "c6a1b17f22ecf708d434d6bee05092647ec7e686"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/dd7769915648b704b9bd12925994457f1c2c8442",
-                "reference": "dd7769915648b704b9bd12925994457f1c2c8442",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/c6a1b17f22ecf708d434d6bee05092647ec7e686",
+                "reference": "c6a1b17f22ecf708d434d6bee05092647ec7e686",
                 "shasum": ""
             },
             "require": {
@@ -6619,7 +6619,7 @@
             "description": "PHPStan - PHP Static Analysis Tool",
             "support": {
                 "issues": "https://github.com/phpstan/phpstan/issues",
-                "source": "https://github.com/phpstan/phpstan/tree/0.12.79"
+                "source": "https://github.com/phpstan/phpstan/tree/0.12.80"
             },
             "funding": [
                 {
@@ -6635,7 +6635,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-02-25T16:44:57+00:00"
+            "time": "2021-02-28T20:22:43+00:00"
         },
         {
             "name": "phpstan/phpstan-strict-rules",
