@@ -46,13 +46,13 @@ export class Service extends Record {
 
     isInstalledOnServer(server) {
         console.log('isInstalledOnServer', this, server);
-        return server.services.filter(function (service) {
+        return (server.services || []).filter(function (service) {
             return service.id == this.id || service.service == this.service;
         }.bind(this)).length > 0;
     }
 
     getInstallOnServerUrl(server) {
-        return utils.url('@api.services.install', {server: server.id, service: this.id});
+        return utils.url('/api/services/[service]/install/[server]', {server: server.id, service: this.id});
     }
 
     saveServerSettings(server) {

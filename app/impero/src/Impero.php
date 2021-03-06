@@ -92,12 +92,6 @@ class Impero extends Provider
             'libraries' => [
                 '/build/libraries.js',
             ],
-            'vue'       => [
-                '/build/backend.js',
-                '/build/services.js',
-                '/build/auth.js',
-                '/build/generic.js',
-            ],
             'main'      => [
                 '@' . path('vendor') . 'pckg/generic/src/Pckg/Maestro/public/less/maestro_vars.less',
                 '@' . path('vendor') . 'pckg/helpers-less/shared-vars.less',
@@ -107,24 +101,27 @@ class Impero extends Provider
             'footer'    => [
                 '/build/footer.js',
             ],
-            'php' => [
-                function () {
-                    return assetManager()->buildAsset(function () {
-                        $config = config();
-                        $router = router();
-                        $publicRoutes = base64_encode(json_encode($router->getPublicRoutes()));
-                        $vueRoutes = base64_encode(json_encode($router->getVueRoutes()));
+            'config' => function () {
+                return assetManager()->buildAsset(function () {
+                    $config = config()->getPublicConfig();
 
-                        $string = 'Pckg.config = JSON.parse(utils.base64decode(\'' . $config->getPublicConfig() . '\'));
+                    return 'var Pckg = Pckg || {}; Pckg.locale = {
+        languages: ' . json_encode(localeManager()->getLanguages()->keyBy('slug')->map('title')) . '
+    };
 
-        Pckg.router = {};
-        Pckg.router.urls = JSON.parse(utils.base64decode(\'' . $publicRoutes . '\'));
-        Pckg.router.vueUrls = JSON.parse(utils.base64decode(\'' . $vueRoutes . '\'));';
+    Pckg.config = JSON.parse(utils.base64decode(' . json_encode($config) . '));
 
-                        return $string;
-                    });
-                }
-            ],
+    Pckg.site = {
+        domain: ' . json_encode(config('domain')) . ',
+        url: ' . json_encode('https://' . config('domain')) . '
+    };
+
+        Pckg.router = {
+        urls: ' . json_encode(router()->getPublicRoutes()) . ',
+        vueUrls: ' . json_encode(router()->getVueRoutes()) . '
+    };';
+                });
+            }
         ];
     }
 
