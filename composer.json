@@ -30,7 +30,7 @@
     "ext-ssh2": "*",
     "ext-pdo": "*",
     "dimsemenov/magnific-popup": "9999999-dev",
-    "pckg/framework": "dev-master#cf3278a6f7465af4154ed5868662899aa06107f5 as dev-master"
+    "pckg/framework": "dev-master#030d9ac5d16e6a620d6ae49d744b03af627e443b as dev-master"
   },
   "require-dev": {
     "pckg-app/frontend-dev": "dev-master"

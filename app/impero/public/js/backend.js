@@ -11,7 +11,7 @@ import PckgBootstrapAlertComponent from "../../../../vendor/pckg/generic/src/Pck
 import PckgBootstrapModalComponent from "../../../../vendor/pckg/generic/src/Pckg/Maestro/public/vue/pckg-bootstrap-modal.vue";
 import PckgDispatcherNotificationsComponent from "../../../../vendor/pckg/generic/src/Pckg/Generic/View/dispatcherNotifications.vue";
 
-import "../../../../vendor/pckg/helpers-js/webpack/orm.js";
+import "pckg-orm/src/orm";
 import ImperoStore from "../../src/Pckg/Generic/public/store.impero";
 import { Tasks, Services, Service } from "../../src/Pckg/Generic/public/impero.js";
 

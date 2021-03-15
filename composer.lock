@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7805f33089051faa53fe3b9c6be04e98",
+    "content-hash": "648585b78a8b25e7ea9e8af9b37c87d3",
     "packages": [
         {
             "name": "aferrandini/phpqrcode",
@@ -103,16 +103,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.173.23",
+            "version": "3.173.28",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "259fa1a47a46f81e66b1ea328ed961a58fa061c2"
+                "reference": "593baa5930896bb443c437032daf4016e1e3878d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/259fa1a47a46f81e66b1ea328ed961a58fa061c2",
-                "reference": "259fa1a47a46f81e66b1ea328ed961a58fa061c2",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/593baa5930896bb443c437032daf4016e1e3878d",
+                "reference": "593baa5930896bb443c437032daf4016e1e3878d",
                 "shasum": ""
             },
             "require": {
@@ -187,9 +187,9 @@
             "support": {
                 "forum": "https://forums.aws.amazon.com/forum.jspa?forumID=80",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.173.23"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.173.28"
             },
-            "time": "2021-03-05T19:20:35+00:00"
+            "time": "2021-03-12T19:29:55+00:00"
         },
         {
             "name": "brick/math",
@@ -887,16 +887,16 @@
         },
         {
             "name": "guzzlehttp/promises",
-            "version": "1.4.0",
+            "version": "1.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/promises.git",
-                "reference": "60d379c243457e073cff02bc323a2a86cb355631"
+                "reference": "8e7d04f1f6450fef59366c399cfad4b9383aa30d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/promises/zipball/60d379c243457e073cff02bc323a2a86cb355631",
-                "reference": "60d379c243457e073cff02bc323a2a86cb355631",
+                "url": "https://api.github.com/repos/guzzle/promises/zipball/8e7d04f1f6450fef59366c399cfad4b9383aa30d",
+                "reference": "8e7d04f1f6450fef59366c399cfad4b9383aa30d",
                 "shasum": ""
             },
             "require": {
@@ -936,9 +936,9 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/promises/issues",
-                "source": "https://github.com/guzzle/promises/tree/1.4.0"
+                "source": "https://github.com/guzzle/promises/tree/1.4.1"
             },
-            "time": "2020-09-30T07:37:28+00:00"
+            "time": "2021-03-07T09:25:29+00:00"
         },
         {
             "name": "guzzlehttp/psr7",
@@ -1135,6 +1135,68 @@
                 }
             ],
             "time": "2020-11-17T21:26:43+00:00"
+        },
+        {
+            "name": "laminas/laminas-zendframework-bridge",
+            "version": "1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laminas/laminas-zendframework-bridge.git",
+                "reference": "6cccbddfcfc742eb02158d6137ca5687d92cee32"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laminas/laminas-zendframework-bridge/zipball/6cccbddfcfc742eb02158d6137ca5687d92cee32",
+                "reference": "6cccbddfcfc742eb02158d6137ca5687d92cee32",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.3 || ^8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5.7 || ^6.5 || ^7.5 || ^8.1 || ^9.3",
+                "psalm/plugin-phpunit": "^0.15.1",
+                "squizlabs/php_codesniffer": "^3.5",
+                "vimeo/psalm": "^4.6"
+            },
+            "type": "library",
+            "extra": {
+                "laminas": {
+                    "module": "Laminas\\ZendFrameworkBridge"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/autoload.php"
+                ],
+                "psr-4": {
+                    "Laminas\\ZendFrameworkBridge\\": "src//"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "Alias legacy ZF class names to Laminas Project equivalents.",
+            "keywords": [
+                "ZendFramework",
+                "autoloading",
+                "laminas",
+                "zf"
+            ],
+            "support": {
+                "forum": "https://discourse.laminas.dev/",
+                "issues": "https://github.com/laminas/laminas-zendframework-bridge/issues",
+                "rss": "https://github.com/laminas/laminas-zendframework-bridge/releases.atom",
+                "source": "https://github.com/laminas/laminas-zendframework-bridge"
+            },
+            "funding": [
+                {
+                    "url": "https://funding.communitybridge.org/projects/laminas-project",
+                    "type": "community_bridge"
+                }
+            ],
+            "time": "2021-02-25T21:54:58+00:00"
         },
         {
             "name": "league/flysystem",
@@ -2048,16 +2110,16 @@
         },
         {
             "name": "nesbot/carbon",
-            "version": "2.45.1",
+            "version": "2.46.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/briannesbitt/Carbon.git",
-                "reference": "528783b188bdb853eb21239b1722831e0f000a8d"
+                "reference": "2fd2c4a77d58a4e95234c8a61c5df1f157a91bf4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/briannesbitt/Carbon/zipball/528783b188bdb853eb21239b1722831e0f000a8d",
-                "reference": "528783b188bdb853eb21239b1722831e0f000a8d",
+                "url": "https://api.github.com/repos/briannesbitt/Carbon/zipball/2fd2c4a77d58a4e95234c8a61c5df1f157a91bf4",
+                "reference": "2fd2c4a77d58a4e95234c8a61c5df1f157a91bf4",
                 "shasum": ""
             },
             "require": {
@@ -2137,7 +2199,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-02-11T18:30:17+00:00"
+            "time": "2021-02-24T17:30:44+00:00"
         },
         {
             "name": "paragonie/random_compat",
@@ -2238,12 +2300,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg-app/frontend.git",
-                "reference": "c21ef96c30a6f34716404698bba7be6c6eeb3e49"
+                "reference": "74f1e7da8b952afa5e5124cb82d77d904446962d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg-app/frontend/zipball/c21ef96c30a6f34716404698bba7be6c6eeb3e49",
-                "reference": "c21ef96c30a6f34716404698bba7be6c6eeb3e49",
+                "url": "https://api.github.com/repos/pckg-app/frontend/zipball/74f1e7da8b952afa5e5124cb82d77d904446962d",
+                "reference": "74f1e7da8b952afa5e5124cb82d77d904446962d",
                 "shasum": ""
             },
             "require": {
@@ -2286,7 +2348,7 @@
                 "issues": "https://github.com/pckg-app/frontend/issues",
                 "source": "https://github.com/pckg-app/frontend/tree/master"
             },
-            "time": "2021-02-08T10:07:45+00:00"
+            "time": "2021-03-15T10:50:40+00:00"
         },
         {
             "name": "pckg/auth",
@@ -2395,12 +2457,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/collection.git",
-                "reference": "815bb9adce6ecbe20bb42cb8070201b754bb1b91"
+                "reference": "8f6ea6b060b76b487f398492067e669a8fcccf1e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/collection/zipball/815bb9adce6ecbe20bb42cb8070201b754bb1b91",
-                "reference": "815bb9adce6ecbe20bb42cb8070201b754bb1b91",
+                "url": "https://api.github.com/repos/pckg/collection/zipball/8f6ea6b060b76b487f398492067e669a8fcccf1e",
+                "reference": "8f6ea6b060b76b487f398492067e669a8fcccf1e",
                 "shasum": ""
             },
             "require": {
@@ -2437,7 +2499,7 @@
                 "issues": "https://github.com/pckg/collection/issues",
                 "source": "https://github.com/pckg/collection/tree/master"
             },
-            "time": "2021-03-05T18:25:35+00:00"
+            "time": "2021-03-15T10:34:04+00:00"
         },
         {
             "name": "pckg/concept",
@@ -2491,12 +2553,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/database.git",
-                "reference": "da91cb3d31dd949fd6f396732cb30945b07b1116"
+                "reference": "0cccbd1e7f17cf3665fd9d1b1e7a5607efa0aebe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/database/zipball/da91cb3d31dd949fd6f396732cb30945b07b1116",
-                "reference": "da91cb3d31dd949fd6f396732cb30945b07b1116",
+                "url": "https://api.github.com/repos/pckg/database/zipball/0cccbd1e7f17cf3665fd9d1b1e7a5607efa0aebe",
+                "reference": "0cccbd1e7f17cf3665fd9d1b1e7a5607efa0aebe",
                 "shasum": ""
             },
             "require": {
@@ -2543,7 +2605,7 @@
                 "issues": "https://github.com/pckg/database/issues",
                 "source": "https://github.com/pckg/database/tree/master"
             },
-            "time": "2021-03-06T16:17:43+00:00"
+            "time": "2021-03-15T10:22:43+00:00"
         },
         {
             "name": "pckg/framework",
@@ -2551,12 +2613,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/framework.git",
-                "reference": "cf3278a6f7465af4154ed5868662899aa06107f5"
+                "reference": "030d9ac5d16e6a620d6ae49d744b03af627e443b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/framework/zipball/cf3278a6f7465af4154ed5868662899aa06107f5",
-                "reference": "cf3278a6f7465af4154ed5868662899aa06107f5",
+                "url": "https://api.github.com/repos/pckg/framework/zipball/030d9ac5d16e6a620d6ae49d744b03af627e443b",
+                "reference": "030d9ac5d16e6a620d6ae49d744b03af627e443b",
                 "shasum": ""
             },
             "require": {
@@ -2613,7 +2675,7 @@
                 "issues": "https://github.com/pckg/framework/issues",
                 "source": "https://github.com/pckg/framework/tree/master"
             },
-            "time": "2021-03-06T14:04:53+00:00"
+            "time": "2021-03-10T19:22:31+00:00"
         },
         {
             "name": "pckg/generic",
@@ -2621,12 +2683,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/generic.git",
-                "reference": "fb3cdcd5789dfda122b496e869c351bb316774fe"
+                "reference": "c61b6b5cb013d9aaa28e08041cff2c188a3060a0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/generic/zipball/fb3cdcd5789dfda122b496e869c351bb316774fe",
-                "reference": "fb3cdcd5789dfda122b496e869c351bb316774fe",
+                "url": "https://api.github.com/repos/pckg/generic/zipball/c61b6b5cb013d9aaa28e08041cff2c188a3060a0",
+                "reference": "c61b6b5cb013d9aaa28e08041cff2c188a3060a0",
                 "shasum": ""
             },
             "require": {
@@ -2669,7 +2731,7 @@
                 "issues": "https://github.com/pckg/generic/issues",
                 "source": "https://github.com/pckg/generic/tree/master"
             },
-            "time": "2021-03-05T18:26:39+00:00"
+            "time": "2021-03-10T21:14:20+00:00"
         },
         {
             "name": "pckg/helpers-js",
@@ -2677,12 +2739,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/helpers-js.git",
-                "reference": "f1c803dd33fb25bd040a7a35d4d409b98ae9eb74"
+                "reference": "a6ced7371c6d0aa34d8592742481c0360396320d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/helpers-js/zipball/f1c803dd33fb25bd040a7a35d4d409b98ae9eb74",
-                "reference": "f1c803dd33fb25bd040a7a35d4d409b98ae9eb74",
+                "url": "https://api.github.com/repos/pckg/helpers-js/zipball/a6ced7371c6d0aa34d8592742481c0360396320d",
+                "reference": "a6ced7371c6d0aa34d8592742481c0360396320d",
                 "shasum": ""
             },
             "default-branch": true,
@@ -2703,7 +2765,7 @@
                 "issues": "https://github.com/pckg/helpers-js/issues",
                 "source": "https://github.com/pckg/helpers-js/tree/master"
             },
-            "time": "2021-03-06T16:50:56+00:00"
+            "time": "2021-03-09T20:36:48+00:00"
         },
         {
             "name": "pckg/helpers-less",
@@ -2711,12 +2773,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg/helpers-less.git",
-                "reference": "eb3801347e2806c93ed0767bfe57e0a91a8b80a6"
+                "reference": "79c86a44c7e86c5958097529a51a8f9f4357e24b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg/helpers-less/zipball/eb3801347e2806c93ed0767bfe57e0a91a8b80a6",
-                "reference": "eb3801347e2806c93ed0767bfe57e0a91a8b80a6",
+                "url": "https://api.github.com/repos/pckg/helpers-less/zipball/79c86a44c7e86c5958097529a51a8f9f4357e24b",
+                "reference": "79c86a44c7e86c5958097529a51a8f9f4357e24b",
                 "shasum": ""
             },
             "default-branch": true,
@@ -2737,7 +2799,7 @@
                 "issues": "https://github.com/pckg/helpers-less/issues",
                 "source": "https://github.com/pckg/helpers-less/tree/master"
             },
-            "time": "2021-03-02T14:50:04+00:00"
+            "time": "2021-03-08T14:33:08+00:00"
         },
         {
             "name": "pckg/htmlbuilder",
@@ -3267,25 +3329,22 @@
         },
         {
             "name": "phpoffice/phpword",
-            "version": "0.18.0",
+            "version": "0.18.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPOffice/PHPWord.git",
-                "reference": "1bd7cd62381051db6d6c7174d3c95a3ada48bc0f"
+                "reference": "06b90e39a36872c6ee73534e1a073f4b3132fc6a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPOffice/PHPWord/zipball/1bd7cd62381051db6d6c7174d3c95a3ada48bc0f",
-                "reference": "1bd7cd62381051db6d6c7174d3c95a3ada48bc0f",
+                "url": "https://api.github.com/repos/PHPOffice/PHPWord/zipball/06b90e39a36872c6ee73534e1a073f4b3132fc6a",
+                "reference": "06b90e39a36872c6ee73534e1a073f4b3132fc6a",
                 "shasum": ""
             },
             "require": {
                 "ext-xml": "*",
                 "laminas/laminas-escaper": "^2.2",
                 "php": "^5.3.3 || ^7.0 || ^8.0"
-            },
-            "replace": {
-                "laminas/laminas-zendframework-bridge": "*"
             },
             "require-dev": {
                 "dompdf/dompdf": "0.8.* || 1.0.*",
@@ -3376,9 +3435,9 @@
             ],
             "support": {
                 "issues": "https://github.com/PHPOffice/PHPWord/issues",
-                "source": "https://github.com/PHPOffice/PHPWord/tree/0.18.0"
+                "source": "https://github.com/PHPOffice/PHPWord/tree/0.18.1"
             },
-            "time": "2021-02-12T21:28:06+00:00"
+            "time": "2021-03-08T01:06:35+00:00"
         },
         {
             "name": "phpseclib/phpseclib",
@@ -4229,16 +4288,16 @@
         },
         {
             "name": "symfony/console",
-            "version": "v5.2.4",
+            "version": "v5.2.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "d6d0cc30d8c0fda4e7b213c20509b0159a8f4556"
+                "reference": "938ebbadae1b0a9c9d1ec313f87f9708609f1b79"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/d6d0cc30d8c0fda4e7b213c20509b0159a8f4556",
-                "reference": "d6d0cc30d8c0fda4e7b213c20509b0159a8f4556",
+                "url": "https://api.github.com/repos/symfony/console/zipball/938ebbadae1b0a9c9d1ec313f87f9708609f1b79",
+                "reference": "938ebbadae1b0a9c9d1ec313f87f9708609f1b79",
                 "shasum": ""
             },
             "require": {
@@ -4306,7 +4365,7 @@
                 "terminal"
             ],
             "support": {
-                "source": "https://github.com/symfony/console/tree/v5.2.4"
+                "source": "https://github.com/symfony/console/tree/v5.2.5"
             },
             "funding": [
                 {
@@ -4322,7 +4381,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-02-23T10:08:49+00:00"
+            "time": "2021-03-06T13:42:15+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
@@ -4974,16 +5033,16 @@
         },
         {
             "name": "symfony/translation",
-            "version": "v5.2.4",
+            "version": "v5.2.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/translation.git",
-                "reference": "74b0353ab34ff4cca827a2cf909e325d96815e60"
+                "reference": "0947ab1e3aabd22a6bef393874b2555d2bb976da"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/translation/zipball/74b0353ab34ff4cca827a2cf909e325d96815e60",
-                "reference": "74b0353ab34ff4cca827a2cf909e325d96815e60",
+                "url": "https://api.github.com/repos/symfony/translation/zipball/0947ab1e3aabd22a6bef393874b2555d2bb976da",
+                "reference": "0947ab1e3aabd22a6bef393874b2555d2bb976da",
                 "shasum": ""
             },
             "require": {
@@ -5047,7 +5106,7 @@
             "description": "Provides tools to internationalize your application",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/translation/tree/v5.2.4"
+                "source": "https://github.com/symfony/translation/tree/v5.2.5"
             },
             "funding": [
                 {
@@ -5063,7 +5122,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-03-04T15:41:09+00:00"
+            "time": "2021-03-06T07:59:01+00:00"
         },
         {
             "name": "symfony/translation-contracts",
@@ -6235,12 +6294,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pckg-app/frontend-dev.git",
-                "reference": "cab25510cc2f696ddc3c3bf86caa9dd9997db6a5"
+                "reference": "048ffd97a5dd00ad2ec12834e375f22f70f36823"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pckg-app/frontend-dev/zipball/cab25510cc2f696ddc3c3bf86caa9dd9997db6a5",
-                "reference": "cab25510cc2f696ddc3c3bf86caa9dd9997db6a5",
+                "url": "https://api.github.com/repos/pckg-app/frontend-dev/zipball/048ffd97a5dd00ad2ec12834e375f22f70f36823",
+                "reference": "048ffd97a5dd00ad2ec12834e375f22f70f36823",
                 "shasum": ""
             },
             "require": {
@@ -6272,7 +6331,7 @@
                 "issues": "https://github.com/pckg-app/frontend-dev/issues",
                 "source": "https://github.com/pckg-app/frontend-dev/tree/master"
             },
-            "time": "2021-03-04T16:45:46+00:00"
+            "time": "2021-03-15T10:50:27+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -6683,16 +6742,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "0.12.80",
+            "version": "0.12.81",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "c6a1b17f22ecf708d434d6bee05092647ec7e686"
+                "reference": "0dd5b0ebeff568f7000022ea5f04aa86ad3124b8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/c6a1b17f22ecf708d434d6bee05092647ec7e686",
-                "reference": "c6a1b17f22ecf708d434d6bee05092647ec7e686",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/0dd5b0ebeff568f7000022ea5f04aa86ad3124b8",
+                "reference": "0dd5b0ebeff568f7000022ea5f04aa86ad3124b8",
                 "shasum": ""
             },
             "require": {
@@ -6723,7 +6782,7 @@
             "description": "PHPStan - PHP Static Analysis Tool",
             "support": {
                 "issues": "https://github.com/phpstan/phpstan/issues",
-                "source": "https://github.com/phpstan/phpstan/tree/0.12.80"
+                "source": "https://github.com/phpstan/phpstan/tree/0.12.81"
             },
             "funding": [
                 {
@@ -6739,7 +6798,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-02-28T20:22:43+00:00"
+            "time": "2021-03-08T22:03:02+00:00"
         },
         {
             "name": "phpstan/phpstan-strict-rules",
@@ -8229,16 +8288,16 @@
         },
         {
             "name": "softcreatr/jsonpath",
-            "version": "0.7.2",
+            "version": "0.7.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SoftCreatR/JSONPath.git",
-                "reference": "46689608586a8081be399342755c36e179f3b5fc"
+                "reference": "e3ae75112a5247e3b27a7e0e72155eae261d8c72"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SoftCreatR/JSONPath/zipball/46689608586a8081be399342755c36e179f3b5fc",
-                "reference": "46689608586a8081be399342755c36e179f3b5fc",
+                "url": "https://api.github.com/repos/SoftCreatR/JSONPath/zipball/e3ae75112a5247e3b27a7e0e72155eae261d8c72",
+                "reference": "e3ae75112a5247e3b27a7e0e72155eae261d8c72",
                 "shasum": ""
             },
             "require": {
@@ -8283,6 +8342,7 @@
             "description": "JSONPath implementation for parsing, searching and flattening arrays",
             "support": {
                 "email": "hello@1-2.dev",
+                "forum": "https://github.com/SoftCreatR/JSONPath/discussions",
                 "issues": "https://github.com/SoftCreatR/JSONPath/issues",
                 "source": "https://github.com/SoftCreatR/JSONPath"
             },
@@ -8292,7 +8352,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-10-27T11:37:08+00:00"
+            "time": "2021-03-08T14:18:21+00:00"
         },
         {
             "name": "squizlabs/php_codesniffer",
@@ -8916,16 +8976,16 @@
         },
         {
             "name": "symfony/var-dumper",
-            "version": "v5.2.4",
+            "version": "v5.2.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-dumper.git",
-                "reference": "6a81fec0628c468cf6d5c87a4d003725e040e223"
+                "reference": "002ab5a36702adf0c9a11e6d8836623253e9045e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/6a81fec0628c468cf6d5c87a4d003725e040e223",
-                "reference": "6a81fec0628c468cf6d5c87a4d003725e040e223",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/002ab5a36702adf0c9a11e6d8836623253e9045e",
+                "reference": "002ab5a36702adf0c9a11e6d8836623253e9045e",
                 "shasum": ""
             },
             "require": {
@@ -8984,7 +9044,7 @@
                 "dump"
             ],
             "support": {
-                "source": "https://github.com/symfony/var-dumper/tree/v5.2.4"
+                "source": "https://github.com/symfony/var-dumper/tree/v5.2.5"
             },
             "funding": [
                 {
@@ -9000,20 +9060,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-02-18T23:11:19+00:00"
+            "time": "2021-03-06T07:59:01+00:00"
         },
         {
             "name": "symfony/yaml",
-            "version": "v5.2.4",
+            "version": "v5.2.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "7d6ae0cce3c33965af681a4355f1c4de326ed277"
+                "reference": "298a08ddda623485208506fcee08817807a251dd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/7d6ae0cce3c33965af681a4355f1c4de326ed277",
-                "reference": "7d6ae0cce3c33965af681a4355f1c4de326ed277",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/298a08ddda623485208506fcee08817807a251dd",
+                "reference": "298a08ddda623485208506fcee08817807a251dd",
                 "shasum": ""
             },
             "require": {
@@ -9059,7 +9119,7 @@
             "description": "Loads and dumps YAML files",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/yaml/tree/v5.2.4"
+                "source": "https://github.com/symfony/yaml/tree/v5.2.5"
             },
             "funding": [
                 {
@@ -9075,7 +9135,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-02-22T15:48:39+00:00"
+            "time": "2021-03-06T07:59:01+00:00"
         },
         {
             "name": "theseer/tokenizer",
@@ -9129,30 +9189,35 @@
         },
         {
             "name": "webmozart/assert",
-            "version": "1.9.1",
+            "version": "1.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webmozarts/assert.git",
-                "reference": "bafc69caeb4d49c39fd0779086c03a3738cbb389"
+                "reference": "6964c76c7804814a842473e0c8fd15bab0f18e25"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webmozarts/assert/zipball/bafc69caeb4d49c39fd0779086c03a3738cbb389",
-                "reference": "bafc69caeb4d49c39fd0779086c03a3738cbb389",
+                "url": "https://api.github.com/repos/webmozarts/assert/zipball/6964c76c7804814a842473e0c8fd15bab0f18e25",
+                "reference": "6964c76c7804814a842473e0c8fd15bab0f18e25",
                 "shasum": ""
             },
             "require": {
-                "php": "^5.3.3 || ^7.0 || ^8.0",
+                "php": "^7.2 || ^8.0",
                 "symfony/polyfill-ctype": "^1.8"
             },
             "conflict": {
                 "phpstan/phpstan": "<0.12.20",
-                "vimeo/psalm": "<3.9.1"
+                "vimeo/psalm": "<4.6.1 || 4.6.2"
             },
             "require-dev": {
-                "phpunit/phpunit": "^4.8.36 || ^7.5.13"
+                "phpunit/phpunit": "^8.5.13"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.10-dev"
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "Webmozart\\Assert\\": "src/"
@@ -9176,9 +9241,9 @@
             ],
             "support": {
                 "issues": "https://github.com/webmozarts/assert/issues",
-                "source": "https://github.com/webmozarts/assert/tree/1.9.1"
+                "source": "https://github.com/webmozarts/assert/tree/1.10.0"
             },
-            "time": "2020-07-08T17:02:28+00:00"
+            "time": "2021-03-09T10:59:23+00:00"
         }
     ],
     "aliases": [
