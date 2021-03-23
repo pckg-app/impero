@@ -11,7 +11,7 @@
     "dropzone": "^5.8.1",
     "pckg-app-frontend": "^0.0.6",
     "sortablejs": "^1.13.0",
-    "tinymce": "4.9",
+    "tinymce": "5.6",
     "vuedraggable": "^2.24.3"
   },
   "scripts": {
