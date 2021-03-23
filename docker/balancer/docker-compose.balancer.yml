@@ -1,0 +1,34 @@
+version: '3.5'
+
+services:
+
+  balancer:
+    image: haproxy:2.2-alpine
+    networks:
+      - public
+    ports:
+      # redirect HTTP traffic to HTTPS
+      - "80:80"
+      # allow HTTPS traffic
+      # - "443:443"
+      - target: 443
+        published: 443
+        mode: host
+        protocol: tcp
+    volumes:
+      - "/private/balancer/haproxy/run-haproxy/:/run/haproxy/"
+      - "./docker/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg"
+      - "/shared/balancer/private/server.crt:/etc/haproxy/server.crt"
+      - "/shared/balancer/private/server.key:/etc/haproxy/server.key"
+      - "/shared/balancer/private/server.merged.crt:/etc/haproxy/server.merged.crt"
+
+    deploy:
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - "node.labels.has-balancer == yes"
+
+networks:
+  public:
+    external: true

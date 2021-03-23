@@ -1,4 +1,4 @@
-import {Entity, Record} from "../../../../../../vendor/pckg/helpers-js/webpack/orm";
+import {Entity, Record} from "pckg-orm/src/orm";
 
 export class Task extends Record {
 

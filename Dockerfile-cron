@@ -1,0 +1,14 @@
+FROM schtr4jh/pckg:php-cron
+
+COPY ./docker/docker-entrypoint-php-cron.sh /docker-entrypoint-php-cron.sh
+
+COPY ./docker/cron /etc/cron.d/impero-cron
+
+RUN chmod 0644 /etc/cron.d/impero-cron
+
+RUN crontab /etc/cron.d/impero-cron
+
+COPY . /var/www/html
+
+#CMD ["cron", "-f"]
+ENTRYPOINT ["sh", "/docker-entrypoint-php-cron.sh"]

@@ -20,10 +20,8 @@ storage/**
 logs/**
 
 # ENV
-app/*/config/env.php
-config/env.php
 .npmrc
-.env
+/.env*
 
 # DEV -.-
 sublime

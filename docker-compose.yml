@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+
+  web:
+    image: schtr4jh/pckg:apache-fpm-alpine
+    env_file: ./.env.web.docker
+    ports:
+      - "8061:443"
+      #- "80:80"
+    depends_on:
+      - queue-server
+      - cache-server
+      - database
+      - bridge
+    volumes:
+      - ./:/var/www/html/
+    networks:
+      - public
+      - impero-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  queue-platforms-supervisor:
+    image: schtr4jh/pckg:php-go-supervisord-alpine
+    volumes:
+      - ./:/var/www/html/
+      - ./docker/supervisor/task-queue-platforms.conf:/etc/supervisor/conf.d/supervisord.conf
+    networks:
+      - impero-backend
+    depends_on:
+      - queue-server
+      - cache-server
+      - database
+    environment:
+      - "JOB=none"
+    deploy:
+      replicas: 1 # all tasks are scaled at once
+      restart_policy:
+        condition: on-failure
+
+  cron:
+    image: "schtr4jh/pckg:php-cron"
+    networks:
+      - impero-backend
+    environment:
+      JOB: console
+    volumes:
+      - ./:/var/www/html/
+      - "./docker/docker-entrypoint-php-cron.sh:/docker-entrypoint-php-cron.sh"
+      - "./docker/cron:/etc/cron.d/impero-cron"
+
+  database:
+    image: mysql:5
+    env_file: ./.env.database.docker
+    volumes:
+      - imperodbstorage:/var/lib/mysql
+    command: [ "mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_general_ci", "--skip-character-set-client-handshake" ]
+    networks:
+      - impero-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  cache-server:
+    image: redis:5-alpine
+    env_file: ./.env.redis.docker
+    command: ["sh", "-c", "redis-server --requirepass $${REDIS_PASS}"]
+    networks:
+      - impero-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  queue-server:
+    image: rabbitmq:3-alpine
+    env_file: ./.env.rabbit.docker
+    networks:
+      - impero-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+networks:
+  default: {}
+  impero-backend: {}
+  public:
+    external: true
+  bridge:
+    external: true
+    name: bridge
+
+volumes:
+  imperodbstorage: {}

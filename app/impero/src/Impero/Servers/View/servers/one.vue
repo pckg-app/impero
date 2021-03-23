@@ -27,7 +27,10 @@
                     <a href="#notifications" aria-controls="logs" role="tab" data-toggle="tab">Notifications</a>
                 </li>
                 <li role="presentation">
-                    <a href="#network" aria-controls="network" role="tab" data-toggle="tab">Network and firewall</a>
+                  <a href="#network" aria-controls="network" role="tab" data-toggle="tab">Network and firewall</a>
+                </li>
+                <li role="presentation">
+                  <a href="#storage" aria-controls="storage" role="tab" data-toggle="tab">Storage</a>
                 </li>
                 <li role="presentation">
                     <a href="#tasks" aria-controls="tasks" role="tab" data-toggle="tab">Tasks</a>
@@ -220,6 +223,16 @@
                         </tr>
                         </tbody>
                     </table>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="storage">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h3>Storage</h3>
+                      <h4>NFS</h4>
+                      <p><i class="fal fa-fw fa-check"></i> NFS is <span class="color-success">active</span></p>
+                      <p><i class="fal fa-fw fa-times"></i> NFS is <span class="color-error">inactive</span></p>
+                    </div>
+                  </div>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="network">
                     <div class="row">

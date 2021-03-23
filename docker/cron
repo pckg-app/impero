@@ -1,0 +1,1 @@
+ * * * * * php /www/mine/foobar.si/impero.foobar.si/htdocs/console impero cron:run > /proc/1/fd/1 2>/proc/1/fd/2

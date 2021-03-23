@@ -1,0 +1,7 @@
+FROM schtr4jh/pckg:apache-fpm-alpine
+
+COPY . /var/www/html
+
+#COPY ./docker/ep2.sh /docker-entrypoint-apache-fpm.sh
+
+ENTRYPOINT ["sh", "/docker-entrypoint-apache-fpm.sh"]
