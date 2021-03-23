@@ -71,4 +71,4 @@ jobs:
         php-versions: [ '7.4' ]
     steps:
       - name: Notify Condo
-        run: curl -d repository=https://bitbucket.org/$GITHUB_REPOSITORY.git -d branch=${GITHUB_REF##*/} -d PCKG_BUILD_ID=$GITHUB_SHA http://condo.foobar.si/webhook
+        run: curl -d repository=https://bitbucket.org/$GITHUB_REPOSITORY.git -d branch=${GITHUB_REF##*/} -d PCKG_BUILD_ID=$GITHUB_SHA https://condo.foobar.si/webhook
