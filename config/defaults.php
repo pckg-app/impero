@@ -34,5 +34,19 @@ return [
             ],
         ],
     ],
+    'pckg' => [
+        'queue'     => [
+            'provider' => [
+                'rabbitmq' => [
+                    'connection' => [
+                        'host' => dotenv('QUEUE_HOST', 'localhost'),
+                        'port' => dotenv('QUEUE_PORT', 5672),
+                        'user' => dotenv('QUEUE_USER', 'guest'),
+                        'pass' => dotenv('QUEUE_PASS', 'guest'),
+                    ],
+                ],
+            ],
+        ],
+    ],
     'lessc' => ' --js=true',
 ];

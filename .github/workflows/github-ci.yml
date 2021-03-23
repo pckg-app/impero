@@ -1,0 +1,74 @@
+name: Builder
+on:
+
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Impero (PHP ${{ matrix.php-versions }})
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.pull_request.title, '[skip ci]') && !contains(github.event.pull_request.title, '[ci skip]')"
+    timeout-minutes: 15
+    strategy:
+      fail-fast: true
+      matrix:
+        php-versions: [ '7.4' ]
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --prefer-dist --no-progress --no-suggest --optimize-autoloader --ignore-platform-reqs
+
+      - name: Install Yarn dependencies
+        run: yarn install --production --silent --ignore-engines
+
+      - name: Dump Registry auth
+        env:
+          DOCKER_HUB_JSON: ${{ secrets.DOCKER_HUB_JSON }}
+        run: echo $DOCKER_HUB_JSON > ~/.docker/config.json
+
+      - name: Pull www image
+        run: docker pull schtr4jh/pckg:apache-fpm-alpine
+
+      - name: Pull cron image
+        run: docker pull schtr4jh/pckg:php-cron
+
+      - name: Pull supervisor image
+        run: docker pull schtr4jh/pckg:php-go-supervisord-alpine
+
+      - name: Build www image
+        run: docker build -f Dockerfile-www -t registry.digitalocean.com/comms/impero:$GITHUB_SHA .
+
+      - name: Build cron image
+        run: docker build -f Dockerfile-cron -t registry.digitalocean.com/comms/impero-cron:$GITHUB_SHA .
+
+      - name: Build supervisor image
+        run: docker build -f Dockerfile-supervisor -t registry.digitalocean.com/comms/impero-supervisor:$GITHUB_SHA .
+
+      - name: Push www image
+        run: docker push registry.digitalocean.com/comms/impero:$GITHUB_SHA
+
+      - name: Push cron image
+        run: docker push registry.digitalocean.com/comms/impero-cron:$GITHUB_SHA
+
+      - name: Push supervisor image
+        run: docker push registry.digitalocean.com/comms/impero-supervisor:$GITHUB_SHA
+
+  deploy:
+    name: Deploy Impero
+    runs-on: ubuntu-latest
+    if: "false && (contains(github.event.head_commit.message, '[ci deploy]') || contains(github.event.head_commit.message, '[deploy ci]') || contains(github.event.pull_request.title, '[deploy ci]') || contains(github.event.pull_request.title, '[ci deploy]'))"
+    timeout-minutes: 20
+    strategy:
+      fail-fast: true
+      matrix:
+        php-versions: [ '7.4' ]
+    steps:
+      - name: Notify Condo
+        run: curl -d repository=https://bitbucket.org/$GITHUB_REPOSITORY.git -d branch=${GITHUB_REF##*/} -d PCKG_BUILD_ID=$GITHUB_SHA http://condo.foobar.si/webhook
