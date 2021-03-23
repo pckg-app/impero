@@ -1,0 +1,7 @@
+FROM schtr4jh/pckg:php-go-supervisord-alpine
+
+COPY . /var/www/html
+
+COPY ./docker/supervisor/task-queue-platforms.conf /etc/supervisor/conf.d/supervisord.conf
+
+ENTRYPOINT ["sh", "/docker-entrypoint-php-go-supervisord.sh"]
