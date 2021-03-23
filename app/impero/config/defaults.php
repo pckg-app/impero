@@ -3,6 +3,19 @@
 use Pckg\Mail\Service\Mail\Handler\Command;
 
 return [
+    'impero'   => [
+        'service' => [
+            'digitalocean' => [
+                'spaces' => [
+                    'endpoint' => dotenv('IMPERO_DO_SPACES_ENDPOINT'),
+                    'key'      => dotenv('IMPERO_DO_SPACES_KEY'),
+                    'secret'   => dotenv('IMPERO_DO_SPACES_SECRET'),
+                    'region'   => dotenv('IMPERO_DO_SPACES_REGION'),
+                    'bucket'   => dotenv('IMPERO_DO_SPACES_BUCKET'),
+                ],
+            ],
+        ],
+    ],
     'pckg'    => [
         'auth' => [
             'gates'     => [
